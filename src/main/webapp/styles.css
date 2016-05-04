@@ -1,0 +1,126 @@
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+
+body {
+	line-height: 1;
+	margin: 0 40px;
+	background-color: lightgray;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+table, th, td {
+   border: 1px solid black;
+}
+
+th, td {
+	padding: 5px;
+}
+
+a:hover   { color: #00c }  /* user hovers     */
+
+.link {
+	text-decoration: none;
+}
+
+tr:hover.sel-row {
+	background-color: #ffff99;
+}
+
+.rightAlign {
+	text-align: right;
+}
+
+.header {
+	height: 50px;
+	text-align: center;
+    padding: 15px;
+    font-size: 24;
+    font-weight: bold;
+    background-color: white;
+}
+
+.content {
+	margin-top: 15px;
+	padding: 20px;
+	background-color: white;
+}
+
+.footer {
+	margin: 15px 0;
+	background-color: white;
+	padding: 20px;
+	text-align: center;
+}
+
+.label {
+	display: inline-block;
+	width: 100px;
+}
+
+.field {
+	margin-top: 10px;
+}
+
+.fieldset {
+	border: 1px solid black;
+	padding: 10px;
+}
+
+.inline-block {
+	display: inline-block;
+}
+
+.block {
+	display: block;
+}
+
+.float-left {
+	float: left;
+}
+
+.user-actions, .statistics {
+	margin-left: 15px;
+}
+
+.action-button {
+	margin-top: 10px;
+	width: 100px;
+}
+
