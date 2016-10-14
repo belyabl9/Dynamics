@@ -1,42 +1,32 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+<%@ taglib tagdir="/WEB-INF/tags" prefix="t" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@ page import="domain.User" %>
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<link rel="stylesheet" href="styles.css">
-<title>Keystroke Dynamics</title>
-</head>
-<body>
 
-	<script type="text/javascript">
-
-	</script>
-
-	<div class="header">
-		<h1>Main Page</h1>
-	</div>
-
-	<div class="content">
-		<form action="users">
-			<div>
-				<input class="action-button" type="submit" value="Users" />
-			</div>		
-		</form>
-		
-		<form action="stat">
-			<div>
-				<input class="action-button" type="submit" value="Statistics" />
-			</div>
-		</form>
-	</div>
-	
-	<div id="footer" class="footer">
-		Keystroke Dynamics<br>Serhii Beliablia, MP-111
-	</div>
-
-</body>
-</html>
+<t:page pageTitle="Keystroke Dynamics">
+	<jsp:attribute name="navBar">
+        <t:navBar></t:navBar>
+    </jsp:attribute>
+    <jsp:attribute name="bodyFooter">
+	    <footer class="footer">
+	      <div class="container">
+	        <p class="footer-text">
+	        	Keystroke Dynamics
+	        	<br>
+	        	Serhii Beliablia, MP-111
+	        </p>
+	      </div>
+	    </footer>
+    </jsp:attribute>
+    <jsp:body>
+		<div class="panel panel-primary">
+            <div class="panel-heading">
+              <h3 class="panel-title">Project Information</h3>
+            </div>
+            <div class="panel-body">
+				This project is aimed to investigate current approaches for creating keystroke biometric systems
+            </div>
+        </div>
+    </jsp:body>
+</t:page>

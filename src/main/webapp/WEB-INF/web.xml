@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" version="3.0">
   <display-name>Servlet 3.0 Web Application</display-name>
+  <servlet>
+    <description>Servlet that handles all incoming requests</description>
+    <servlet-name>ControllerServlet</servlet-name>
+    <servlet-class>com.m1namoto.servlets.ControllerServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ControllerServlet</servlet-name>
+    <url-pattern>/page/*</url-pattern>
+    <url-pattern>/ajax/*</url-pattern>
+  </servlet-mapping>
 </web-app>
