@@ -1,17 +1,11 @@
 package dynamics.test;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
-
-import org.junit.Test;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -19,9 +13,20 @@ import com.m1namoto.etc.AuthRequest;
 import com.m1namoto.utils.PropertiesService;
 import com.m1namoto.utils.Utils;
 
-public class AuthTest {
-
+public class AuthThread extends Thread {
     private final static String authRequestsPath = PropertiesService.getPropertyValue("saved_auth_requests_path");
+    
+    private double leftBoundary;
+    private double rightBoundary;
+    private double step = 0.05;
+    private Map<Double, Double> results;
+    
+    public AuthThread(double leftBoundary, double rightBoundary, double step, Map<Double, Double> results) {
+        this.leftBoundary = leftBoundary;
+        this.rightBoundary = rightBoundary;
+        this.step = step;
+        this.results = results;
+    }
     
     private double getFRR(double threshold) throws Exception {
         File requestsRoot = new File(authRequestsPath);
@@ -52,34 +57,23 @@ public class AuthTest {
                         allFailed++;
                     }
                 }
-                System.out.println(String.format("User: %s; Successful: %d; Failed: %d", loginDir.getName(), successful, failed));
             }
         }
         
-        System.out.println("Attempts: " + authAttempts);
-        System.out.println("All failed: " + allFailed);
         double frr = (double) allFailed / authAttempts;
-        System.out.println("FRR: " + frr);
         
         return frr;
     }
     
-    @Test
-    public void doAuth() throws Exception {
-        Map<Double, Double> results = new HashMap<Double, Double>();
-        AuthThread[] authThreads = new AuthThread[] {
-                new AuthThread(0.5, 0.7, 0.05, results),
-                new AuthThread(0.7, 0.9, 0.05, results),
-                new AuthThread(0.9, 1, 0.05, results)
-        };
-
-        for (AuthThread thread : authThreads) {
-            thread.run();
-        }
-        for (AuthThread thread : authThreads) {
-            thread.join();
+    public void run() {
+        for (double threshold = leftBoundary; threshold < rightBoundary; threshold += step) {
+            double frr = 0;
+            try {
+                frr = getFRR(threshold);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            results.put(threshold, frr);
         }
     }
-
 }
-
