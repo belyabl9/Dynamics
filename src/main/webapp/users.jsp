@@ -43,7 +43,7 @@
 							<th data-toggle="tooltip" title="Admin (A) or regular user (U)">User Type</th>
 							<th>Full Name</th>
 							<th>Login</th>
-							<th>Initial Registration</th>
+							<th>Authentications</th>
                             <th>Actions</th>
 						</tr>
 					</thead>

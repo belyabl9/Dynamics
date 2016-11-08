@@ -23,6 +23,9 @@
                 <li class="${activeMenuItem eq 'stat' ? "active" : ""}">
                     <a href="/page/stat">Statistics</a>
                 </li>
+                <li class="${activeMenuItem eq 'eval' ? "active" : ""}">
+                    <a href="/page/eval">Evaluation</a>
+                </li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 <li>

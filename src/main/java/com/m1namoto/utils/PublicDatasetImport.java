@@ -3,11 +3,12 @@ package com.m1namoto.utils;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.m1namoto.classifier.Classifier;
 import com.m1namoto.domain.HoldFeature;
 import com.m1namoto.domain.ReleasePressFeature;
 import com.m1namoto.domain.User;
-import com.m1namoto.service.Features;
-import com.m1namoto.service.Users;
+import com.m1namoto.service.FeaturesService;
+import com.m1namoto.service.UsersService;
 
 import weka.core.Instance;
 import weka.core.Instances;
@@ -60,7 +61,7 @@ public class PublicDatasetImport {
                 //continue;
             }
 
-            User user = Users.findById(classValue);
+            User user = UsersService.findById(classValue);
             if (user == null) {
                 throw new Exception("User was not found");
             }
@@ -73,14 +74,14 @@ public class PublicDatasetImport {
             for (Integer index : codeMap.keySet()) {
                 double val = instance.value(index) * 1000;
                 HoldFeature feature = new HoldFeature(val, (int) codeMap.get(index), user);
-                Features.save(feature);
+                FeaturesService.save(feature);
             }
             
             for (Integer index : releasePressCodeMap.keySet()) {
                 double val = instance.value(index) * 1000;
                 ReleasePressPair codePair = releasePressCodeMap.get(index);
                 ReleasePressFeature feature = new ReleasePressFeature(val, codePair.getReleaseCode(), codePair.getPressCode(), user);
-                Features.save(feature);
+                FeaturesService.save(feature);
             }
 
             processedUsers.put(user.getId(), true);
@@ -88,7 +89,7 @@ public class PublicDatasetImport {
     }
     
     public static void main(String[] args) throws Exception {
-       Instances instances = Features.readInstancesFromFile(System.getProperty("user.dir") + "/" + DATASET_FILE);
+       Instances instances = Classifier.readInstancesFromFile(System.getProperty("user.dir") + "/" + DATASET_FILE);
        saveInstances(instances);
     }
     

@@ -11,7 +11,7 @@ public class UsersPageAction extends Action {
     @Override
     protected ActionResult execute() {
         UsersPageData usersData = new UsersPageData();
-        List<User> users = com.m1namoto.service.Users.getList();
+        List<User> users = com.m1namoto.service.UsersService.getList();
         usersData.setUsers(users);
         
         return createShowPageResult(Const.ViewURIs.USERS, usersData);

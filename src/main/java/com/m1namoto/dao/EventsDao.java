@@ -45,4 +45,14 @@ public class EventsDao extends GenericDAO<Event> {
     public Event createEvent(Event event) {
         return save(event);
     }
+    
+    public void deleteAll() {
+        Session session = getFactory().openSession();
+        session.getTransaction().begin();
+        String hql = "DELETE FROM Event";
+        Query query = session.createQuery(hql);
+        query.executeUpdate();
+        session.getTransaction().commit();
+        session.close();
+    }
 }

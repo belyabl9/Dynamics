@@ -27,11 +27,23 @@ public abstract class Feature extends DomainSuperClass implements Serializable {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "session_id", nullable = false)
+    private Session session;
+
     public Feature() {}
     
     public Feature(double value, User user) {
         this.value = value;
         this.user = user;
+    }
+    
+    public Session getSession() {
+        return session;
+    }
+
+    public void setSession(Session session) {
+        this.session = session;
     }
     
     public double getValue() {

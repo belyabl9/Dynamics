@@ -38,7 +38,7 @@ public class UsersServlet extends HttpServlet {
 		String userId = request.getParameter("id");
 		if (userId != null) {
 			if (!userId.equals("New")) {
-				User user = com.m1namoto.service.Users.findById(Long.parseLong(userId));
+				User user = com.m1namoto.service.UsersService.findById(Long.parseLong(userId));
 				request.setAttribute("user", user);
 				request.getRequestDispatcher(USER_INFO_PAGE).forward(request, response);
 				return;
@@ -48,7 +48,7 @@ public class UsersServlet extends HttpServlet {
 			return;
 		}
 
-		List<User> users = com.m1namoto.service.Users.getList();
+		List<User> users = com.m1namoto.service.UsersService.getList();
 		request.setAttribute("users", users);
 		request.getRequestDispatcher(USERS_PAGE).forward(request, response);
 	}
@@ -65,24 +65,24 @@ public class UsersServlet extends HttpServlet {
 			if (userId != null && userId.equals("New")) {
 				user = new User();
 			} else {
-				user = com.m1namoto.service.Users.findById(Long.parseLong(userId));
+				user = com.m1namoto.service.UsersService.findById(Long.parseLong(userId));
 			}
 			
 			user.setName(request.getParameter("firstName") + " " + request.getParameter("surname"));
 			user.setLogin(request.getParameter("login"));
 			user.setPassword(request.getParameter("password"));
 			user.setUserType(Integer.parseInt(request.getParameter("userType")));
-			user = com.m1namoto.service.Users.save(user);
+			user = com.m1namoto.service.UsersService.save(user);
 			userId = String.valueOf(user.getId());
 		} else if (action != null && action.equals(DEL_USER_ACTION)) {
-			User user = com.m1namoto.service.Users.findById(Long.parseLong(userId));
-			com.m1namoto.service.Users.del(user);
+			User user = com.m1namoto.service.UsersService.findById(Long.parseLong(userId));
+			com.m1namoto.service.UsersService.del(user);
 			response.sendRedirect(request.getContextPath() + "/users");
 			return;
 		} else if (action != null && action.equals(DEL_USER_SESSIONS)) {
 		    User user = new User();
 		    user.setId(Long.parseLong(userId));
-			com.m1namoto.service.Events.deleteUserEvents(user);
+			com.m1namoto.service.EventsService.deleteUserEvents(user);
 		}
 		
 		response.sendRedirect(request.getContextPath() + "/users?id=" + String.valueOf(userId));

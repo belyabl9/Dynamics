@@ -2,7 +2,7 @@ package com.m1namoto.action;
 
 import com.m1namoto.domain.User;
 import com.m1namoto.page.PageData;
-import com.m1namoto.service.Features;
+import com.m1namoto.service.FeaturesService;
 
 public class DeleteUserFeaturesAction extends Action {
     
@@ -15,7 +15,7 @@ public class DeleteUserFeaturesAction extends Action {
         
         User user = new User();
         user.setId(Long.valueOf(userId));
-        Features.deleteFeatures(user);
+        FeaturesService.deleteFeatures(user);
         
         PageData data = new PageData();
         

@@ -3,31 +3,34 @@ package com.m1namoto.dao;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.service.ServiceRegistry;
+
+import com.m1namoto.utils.PropertiesService;
 
 public class HibernateUtil {
     private static SessionFactory sessionFactory;
+    private static DatabaseConfigs dbConfig = DatabaseConfigs.valueOf(PropertiesService.getPropertyValue("active_db_config"));
 
-    private static SessionFactory buildSessionFactory() {
-        try {
-            // Create the SessionFactory from hibernate.cfg.xml
-            Configuration configuration = new Configuration();
-            configuration.configure("hibernate.cfg.xml");
-            ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties()).build();
-            SessionFactory sessionFactory = configuration.buildSessionFactory(serviceRegistry);
-
-            return sessionFactory;
+    public static enum DatabaseConfigs {
+        MAIN("hibernate.cfg.xml"), TEST("hibernate.cfg.test.xml");
+        private String stringValue;
+        private DatabaseConfigs(String stringValue) {
+            this.stringValue = stringValue;
         }
-        catch (Throwable ex) {
-            // Make sure you log the exception, as it might be swallowed
-            System.err.println("Initial SessionFactory creation failed." + ex);
-            throw new ExceptionInInitializerError(ex);
+        public String toString() {
+            return stringValue;
         }
+    };
+    
+    public static void setDb(DatabaseConfigs config) {
+        dbConfig = config;
     }
 
     public static SessionFactory getSessionFactory() {
-        if(sessionFactory == null) {
-            sessionFactory = buildSessionFactory();
+        if (sessionFactory == null) {
+            Configuration configuration = new Configuration();
+            configuration.configure(dbConfig.toString());
+            StandardServiceRegistryBuilder ssrb = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties());
+            sessionFactory = configuration.buildSessionFactory(ssrb.build());
         }
         return sessionFactory;
     }

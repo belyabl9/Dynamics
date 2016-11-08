@@ -41,12 +41,58 @@ public class FeaturesDao extends GenericDAO<Feature> {
         
         return features;
     }
+
+    public List<HoldFeature> getUserHoldFeatures(User user) {
+        String hql = "FROM HoldFeature WHERE user_id = :user_id";
+        Session session = getFactory().openSession();
+        Query query = session.createQuery(hql);
+        query.setParameter("user_id", user.getId());
+        List<HoldFeature> features = query.list(); 
+        session.close();
+        
+        return features;
+    }
+    
+    public List<ReleasePressFeature> getUserReleasePressFeatures(User user) {
+        String hql = "FROM ReleasePressFeature WHERE user_id = :user_id";
+        Session session = getFactory().openSession();
+        Query query = session.createQuery(hql);
+        query.setParameter("user_id", user.getId());
+        List<ReleasePressFeature> features = query.list(); 
+        session.close();
+
+        return features;
+    }
+    
+    public List<Feature> getSessionFeatures(com.m1namoto.domain.Session session) {
+        String hql = "FROM Feature WHERE session_id = :session_id";
+        Session hibSession = getFactory().openSession();
+        Query query = hibSession.createQuery(hql);
+        query.setParameter("session_id", session.getId());
+        List<Feature> features = query.list(); 
+        hibSession.close();
+        
+        return features;
+    }
     
     public void deleteFeatures(User user) {
         List<Feature> features = getUserFeatures(user);
         for (Feature feature : features) {
             delete(feature);
         }
+    }
+    
+    public void deleteAll() {
+        Session session = getFactory().openSession();
+        session.getTransaction().begin();
+        String[] tables = new String[] { "HoldFeature", "ReleasePressFeature", "Feature" };
+        for (int i = 0; i < tables.length; i++) {
+            String hql = String.format("DELETE FROM %s", tables[i]);
+            Query query = session.createQuery(hql);
+            query.executeUpdate();
+        }
+        session.getTransaction().commit();
+        session.close();
     }
 
 }

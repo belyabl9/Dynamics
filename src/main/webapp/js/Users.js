@@ -1,5 +1,8 @@
 var Users = (function() {
 
+	var ADMIN_USER_TYPE = 0;
+	var REGULAR_USER_TYPE = 1;
+	
 	var usersTable;
 	var usersTableId = 'usersTable';
 	
@@ -19,9 +22,9 @@ var Users = (function() {
                     { data: 'name' },
                     { data: 'login' },
                     {
-                        data: 'registered',
+                        data: 'authenticatedCnt',
                         "render": function ( data, type, row ) {
-                            return data ? 'Y' : 'N';
+                            return row.userType === ADMIN_USER_TYPE ? '' : data;
                         }
                     },
                     {

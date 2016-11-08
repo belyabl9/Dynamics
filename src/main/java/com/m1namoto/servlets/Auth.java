@@ -1,8 +1,10 @@
 package com.m1namoto.servlets;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -13,21 +15,26 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.m1namoto.classifier.ClassificationResult;
+import com.m1namoto.classifier.Classifier;
+import com.m1namoto.classifier.DynamicsInstance;
 import com.m1namoto.domain.Event;
 import com.m1namoto.domain.Feature;
 import com.m1namoto.domain.HoldFeature;
 import com.m1namoto.domain.ReleasePressFeature;
 import com.m1namoto.domain.Session;
 import com.m1namoto.domain.User;
-import com.m1namoto.service.Classifier;
-import com.m1namoto.service.DynamicsInstance;
-import com.m1namoto.service.Events;
-import com.m1namoto.service.Features;
-import com.m1namoto.service.Users;
+import com.m1namoto.etc.AuthRequest;
+import com.m1namoto.service.EventsService;
+import com.m1namoto.service.FeaturesService;
+import com.m1namoto.service.SessionsService;
+import com.m1namoto.service.UsersService;
+import com.m1namoto.utils.PropertiesService;
 import com.m1namoto.utils.ReleasePressPair;
 
 /**
@@ -35,7 +42,7 @@ import com.m1namoto.utils.ReleasePressPair;
  */
 @WebServlet("/auth")
 public class Auth extends HttpServlet {
-    final static Logger logger = Logger.getLogger(Auth.class);
+    private final static Logger logger = Logger.getLogger(Auth.class);
 
     private static final int TRUSTED_AUTHENTICATION_LIMIT = 5;
     
@@ -50,7 +57,7 @@ public class Auth extends HttpServlet {
     private static final String REQ_PASSWORD_PARAM = "password";
     private static final String REQ_STAT_PARAM = "stat";
     
-    private static final double ALLOWED_CLASS_PROBABILITY = 80;
+    private static final double CLASS_PREDICTION_THRESHOLD = 0.8;
 
     /**
      * @see HttpServlet#HttpServlet()
@@ -66,23 +73,23 @@ public class Auth extends HttpServlet {
         response.getWriter().append("Served at: ").append(request.getContextPath());
     }
 
-    private List<Integer> getPredictedClasses(List<Session> sessions, String password) {
+    private ClassificationResult getPredictedClass(List<Session> sessions, User userToCheck) {
         logger.info("Predict classes for passed sessions");
-        List<Integer> predictedClasses = new ArrayList<Integer>();
+        ClassificationResult predictedClass = null;
         Classifier classifier = null;
         try {
-            classifier = new Classifier(password);
+            classifier = new Classifier(userToCheck);
         } catch (Exception e) {
-            logger.error("Can not create neural network", e);
+            logger.error("Can not create classifier", e);
         }
 
         List<HoldFeature> sessionHoldFeatures = new ArrayList<HoldFeature>();
         List<ReleasePressFeature> sessionReleasePressFeatures = new ArrayList<ReleasePressFeature>();
         User user = null;
         for (Session session : sessions) {
-            logger.debug(session);
-            sessionHoldFeatures.addAll(session.getHoldFeatures());
-            sessionReleasePressFeatures.addAll(session.getReleasePressFeatures());
+            //logger.debug(session);
+            sessionHoldFeatures.addAll(session.getHoldFeaturesFromEvents());
+            sessionReleasePressFeatures.addAll(session.getReleasePressFeaturesFromEvents());
         }
 
         List<Double> featureValues = new ArrayList<Double>();
@@ -93,10 +100,10 @@ public class Auth extends HttpServlet {
         logger.debug("Session Release-Press Features");
         logger.debug(sessionReleasePressFeatures);
 
-        Map<Integer, List<HoldFeature>> holdFeaturesPerCode = Features.getUserHoldFeaturesPerCode(sessionHoldFeatures);
+        Map<Integer, List<HoldFeature>> holdFeaturesPerCode = FeaturesService.getHoldFeaturesPerCode(sessionHoldFeatures);
         logger.debug("Hold Features Per Code:");
         logger.debug(holdFeaturesPerCode);
-        char[] passwordCharacters = password.toCharArray();  
+        char[] passwordCharacters = userToCheck.getPassword().toCharArray();  
         for (char c : passwordCharacters) {
             List<HoldFeature> featuresByCode = holdFeaturesPerCode.get((int)c);
             
@@ -105,7 +112,7 @@ public class Auth extends HttpServlet {
             featureValues.add(featuresByCode.get(0).getValue());
         }
         
-        Map<ReleasePressPair, List<ReleasePressFeature>> releasePressFeaturesPerCode = Features.getUserReleasePressFeaturesPerCode(sessionReleasePressFeatures);
+        Map<ReleasePressPair, List<ReleasePressFeature>> releasePressFeaturesPerCode = FeaturesService.getReleasePressFeaturesPerCode(sessionReleasePressFeatures);
         logger.debug("Release-Press Features Per Code:");
         logger.debug(releasePressFeaturesPerCode);
         for (int i = 1; i < passwordCharacters.length; i++) {
@@ -118,50 +125,61 @@ public class Auth extends HttpServlet {
             
             featureValues.add(featuresByCode.get(0).getValue());
         }
+
+        double meanKeyPressTimeSum = 0;
+        for (Session session : sessions) {
+            List<Event> events = session.getEvents();
+            meanKeyPressTimeSum += FeaturesService.getMeanKeyPressTime(events);
+        }
+        double meanKeyPressTime = sessions.size() == 0 ? 0 : meanKeyPressTimeSum / sessions.size();
+        featureValues.add(meanKeyPressTime);
+        
+        logger.info("Sample to check: " + featureValues);
         
         DynamicsInstance instance = new DynamicsInstance(featureValues);
         try {
-            predictedClasses.add(classifier.getClassForInstance(instance));
+            predictedClass = classifier.getClassForInstance(instance);
         } catch (Exception e) {
             logger.error("Can not get class for instance", e);
         }
 
-        return predictedClasses;
+        return predictedClass;
     }
 
-    private boolean isExpectedClass(List<Session> sessions, User expectedUser, String password) {
-        List<Integer> predictedClasses = getPredictedClasses(sessions, password);
-        logger.debug("Predict class for passed keystroke dynamics");
-        logger.debug(predictedClasses);
-
-        int expectedClassOccurences = 0;
-        long expectedUserId = expectedUser.getId();
-        for (Integer classVal : predictedClasses) {
-            if (expectedUserId == classVal) {
-                expectedClassOccurences++;
-            }
+    private boolean isExpectedClass(List<Session> sessions, User expectedUser, double threshold) {
+        ClassificationResult classificationResult = getPredictedClass(sessions, expectedUser);
+        
+        boolean isExpectedUserId = classificationResult.getPredictedClass() == expectedUser.getId();
+        boolean isThresholdAccepted = classificationResult.getProbability() >= threshold;
+        if (!isExpectedUserId) {
+            return false;
+        }
+        
+        if (!isThresholdAccepted) {
+            logger.info("Predicted probability is lower than can be accepted " + threshold);
+            return false;
         }
 
-        double probPercentage = (expectedClassOccurences * 100) / predictedClasses.size();
-        logger.debug("Probability that dynamics refers to expected user: " + probPercentage + "%");
-
-        return probPercentage > ALLOWED_CLASS_PROBABILITY;
+        return true;
     }
 
     private void saveSessionEvents(List<Session> statSessions) {
         logger.debug("Save session events");
         logger.debug(statSessions);
         for (Session session : statSessions) {
+            SessionsService.save(session);
+            
             List<Event> events = session.getEvents();
             if (events.size() == 0) {
                 continue;
             }
             for (Event event : events) {
-                Events.save(event);
+                EventsService.save(event);
             }
-            for (Feature feature : session.getFeatures()) {
+            for (Feature feature : session.getFeaturesFromEvents()) {
                 logger.debug("Save feature: " + feature);
-                Features.save(feature);
+                feature.setSession(session);
+                FeaturesService.save(feature);
             }
         }
     }
@@ -180,21 +198,63 @@ public class Auth extends HttpServlet {
         return statSessions;
     }
     
+    private void saveRequest(HttpServletRequest request) throws IOException {
+        String login = request.getParameter(REQ_LOGIN_PARAM);
+        String password = request.getParameter(REQ_PASSWORD_PARAM);
+        String stat = request.getParameter(REQ_STAT_PARAM);
+        boolean isStolen = Boolean.parseBoolean(request.getParameter("isStolen"));
+
+        AuthRequest authReq = new AuthRequest(login, password, stat);
+
+        String json = new Gson().toJson(authReq);
+        String savedReqPath = PropertiesService.getPropertyValue("saved_auth_requests_path");
+
+        File reqDir = new File(savedReqPath);
+        if (!reqDir.exists()) {
+            reqDir.mkdirs();
+        }
+
+        File loginDir = new File(savedReqPath + "/" + login);
+        if (!loginDir.exists()) {
+            loginDir.mkdirs();
+        }
+        
+        File ownershipDir = new File(loginDir.getAbsolutePath() + 
+                (isStolen ? "/stolen" : "/own"));
+        if (!ownershipDir.exists()) {
+            ownershipDir.mkdirs();
+        }
+
+        File reqFile = new File(ownershipDir.getAbsolutePath() +
+                "/req-" + new Date().getTime());
+        FileUtils.writeStringToFile(reqFile, json);
+        
+    }
+    
     /**
      * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
      */
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String login = request.getParameter(REQ_LOGIN_PARAM);
         String password = request.getParameter(REQ_PASSWORD_PARAM);
+        boolean isStolen = Boolean.parseBoolean(request.getParameter("isStolen"));
         String stat = request.getParameter(REQ_STAT_PARAM);
 
-        logger.info("Authentication");
+        String isTest = request.getParameter("test");
+        String threshold = request.getParameter("threshold");
+        
+        String learningRate = PropertiesService.getPropertyValue("learning_rate");
+        
+        boolean saveRequest = Boolean.valueOf(PropertiesService.getPropertyValue("save_requests"));
+        boolean updateTemplate = Boolean.valueOf(PropertiesService.getPropertyValue("update_template"));
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("Login: " + login);
-            logger.debug("Password: " + password);
-            //logger.debug("Statistics: " + stat);
+        if (saveRequest) {
+            saveRequest(request);
         }
+        
+        logger.info("Authentication");
+        logger.info("Login: " + login);
+        logger.info("Password: " + password);
         
         if (login == null || login.isEmpty() || password == null  || password.isEmpty()) {
             logger.info("Authentication failed: " + EMPTY_LOGIN_OR_PASSWORD);
@@ -202,7 +262,7 @@ public class Auth extends HttpServlet {
             return;
         }
 
-        User user = Users.findByLogin(login);
+        User user = UsersService.findByLogin(login);
         if (user == null) {
             logger.info("Authentication failed: " + CAN_NOT_FIND_USER);
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, CAN_NOT_FIND_USER);
@@ -233,12 +293,29 @@ public class Auth extends HttpServlet {
         List<Session> statSessions = prepareSessions(sessionsMap, user);
 
         int authenticatedCnt = user.getAuthenticatedCnt();
-
-        if (authenticatedCnt < TRUSTED_AUTHENTICATION_LIMIT || isExpectedClass(statSessions, user, password)) {
+        
+        if (!isStolen && authenticatedCnt < (((learningRate == null) || learningRate.isEmpty()) ?
+                TRUSTED_AUTHENTICATION_LIMIT : Integer.parseInt(learningRate))) {
             logger.info("Authentication has successfuly passed");
-            saveSessionEvents(statSessions);
-            user.setAuthenticatedCnt(user.getAuthenticatedCnt() + 1);
-            Users.save(user);
+            if (updateTemplate) {
+                saveSessionEvents(statSessions);
+                user.setAuthenticatedCnt(user.getAuthenticatedCnt() + 1);
+                UsersService.save(user);
+            }
+            response.setStatus(HttpServletResponse.SC_OK);
+            return;
+        }
+        
+        // TODO: Refactor
+        boolean isExpectedClass = isExpectedClass(statSessions, user,
+                Boolean.parseBoolean(isTest) ? Double.parseDouble(threshold) : CLASS_PREDICTION_THRESHOLD);
+        if (isExpectedClass) {
+            logger.info("Authentication has successfuly passed");
+            if (!isStolen && updateTemplate) {
+                saveSessionEvents(statSessions);
+                user.setAuthenticatedCnt(user.getAuthenticatedCnt() + 1);
+                UsersService.save(user);
+            }
             response.setStatus(HttpServletResponse.SC_OK);
             return;
         }

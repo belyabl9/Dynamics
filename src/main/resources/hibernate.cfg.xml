@@ -16,6 +16,7 @@
 <mapping class="com.m1namoto.domain.ReleasePressFeature" />
 <mapping class="com.m1namoto.domain.HoldFeature" />
 <mapping class="com.m1namoto.domain.Event" />
+<mapping class="com.m1namoto.domain.Session" />
 <mapping class="com.m1namoto.domain.User" />
 
 </session-factory>

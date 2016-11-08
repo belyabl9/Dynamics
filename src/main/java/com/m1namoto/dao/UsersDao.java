@@ -45,4 +45,14 @@ public class UsersDao extends GenericDAO<User> {
     public User createUser(User user) {
         return save(user);
     }
+    
+    public void deleteAll() {
+        Session session = getFactory().openSession();
+        session.getTransaction().begin();
+        String hql = "DELETE FROM User";
+        Query query = session.createQuery(hql);
+        query.executeUpdate();
+        session.getTransaction().commit();
+        session.close();
+    }
 }

@@ -22,6 +22,11 @@ public class ActionFactory {
         map(Const.ActionURIs.DEL_USER_AJAX, DelUserAction.class);
         map(Const.ActionURIs.DEL_USER_FEATURES_AJAX, DeleteUserFeaturesAction.class);
         map(Const.ActionURIs.STATISTICS_PAGE, StatisticsPageAction.class);
+        map(Const.ActionURIs.USER_SESSIONS_PAGE, UserSessionsAction.class);
+        map(Const.ActionURIs.DEL_SESSION, DeleteSessionAction.class);
+        map(Const.ActionURIs.KEYPRESS_PLOT_DATA_AJAX, KeypressPlotDataAction.class);
+        map(Const.ActionURIs.EVAL_CLASSIFIER_PAGE, EvaluationPageAction.class);
+        map(Const.ActionURIs.EVAL_CLASSIFIER_AJAX, EvalClassifierAction.class);
     }
 
     /**

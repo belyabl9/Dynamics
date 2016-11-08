@@ -2,7 +2,7 @@ package com.m1namoto.action;
 
 import com.m1namoto.domain.User;
 import com.m1namoto.page.UserInfoPageData;
-import com.m1namoto.service.Users;
+import com.m1namoto.service.UsersService;
 import com.m1namoto.utils.Const;
 
 public class UserInfoAction extends Action {
@@ -18,7 +18,7 @@ public class UserInfoAction extends Action {
             return null;
         }
         
-        User user = Users.findById(Long.valueOf(userId));
+        User user = UsersService.findById(Long.valueOf(userId));
         if (user == null) {
             
         }
