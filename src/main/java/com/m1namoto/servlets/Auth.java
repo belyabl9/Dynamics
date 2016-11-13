@@ -76,7 +76,7 @@ public class Auth extends HttpServlet {
         response.getWriter().append("Served at: ").append(request.getContextPath());
     }
 
-    private ClassificationResult getPredictedClass(List<Session> sessions, User userToCheck) {
+    private ClassificationResult getPredictedThreshold(List<Session> sessions, User userToCheck) {
         logger.info("Predict classes for passed sessions");
         ClassificationResult predictedClass = null;
         Classifier classifier = null;
@@ -177,14 +177,9 @@ public class Auth extends HttpServlet {
         return predictedClass;
     }
 
-    private boolean isExpectedClass(List<Session> sessions, User expectedUser, double threshold) {
-        ClassificationResult classificationResult = getPredictedClass(sessions, expectedUser);
-        
-        boolean isExpectedUserId = classificationResult.getPredictedClass() == expectedUser.getId();
+    private boolean isThresholdAccepted(List<Session> sessions, User expectedUser, double threshold) {
+        ClassificationResult classificationResult = getPredictedThreshold(sessions, expectedUser);
         boolean isThresholdAccepted = classificationResult.getProbability() >= threshold;
-        if (!isExpectedUserId) {
-            return false;
-        }
         
         if (!isThresholdAccepted) {
             logger.info("Predicted probability is lower than can be accepted " + threshold);
@@ -352,7 +347,7 @@ public class Auth extends HttpServlet {
         }
         
         // TODO: Refactor
-        boolean isExpectedClass = isExpectedClass(statSessions, user,
+        boolean isExpectedClass = isThresholdAccepted(statSessions, user,
                 Boolean.parseBoolean(isTest) ? Double.parseDouble(threshold) : CLASS_PREDICTION_THRESHOLD);
         if (isExpectedClass) {
             logger.info("Authentication has successfuly passed");

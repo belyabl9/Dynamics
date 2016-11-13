@@ -2,20 +2,12 @@ package com.m1namoto.classifier;
 
 public class ClassificationResult {
     
-    private int predictedClass;
     private double probability;
     
-    public ClassificationResult(int predictedClass, double probability) {
-        this.predictedClass = predictedClass;
+    public ClassificationResult(double probability) {
         this.probability = probability;
     }
     
-    public int getPredictedClass() {
-        return predictedClass;
-    }
-    public void setPredictedClass(int predictedClass) {
-        this.predictedClass = predictedClass;
-    }
     public double getProbability() {
         return probability;
     }

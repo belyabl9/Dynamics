@@ -24,6 +24,10 @@ public class Configuration {
 		this.allowedClassValues = allowedClassValues;
 	}
 
+	public List<Integer> getAllowedClassValues() {
+		return allowedClassValues;
+	}
+	
 	public void addInstance(List<Double> features, long classVal) throws Exception {
 		if (features.size() != attributes.size()) {
 			throw new Exception("Features amount is not equal to attributes");

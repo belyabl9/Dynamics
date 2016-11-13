@@ -169,14 +169,13 @@ public class Classifier {
 	    }
 	    instance.setDataset(instances);
 
-	    double clsLabel = classifier.classifyInstance(instance);
 	    double[] distr = classifier.distributionForInstance(instance);
+
+	    List<Integer> classValues = configuration.getAllowedClassValues();
+	    double probability = distr[classValues.indexOf((int)userToCheck.getId())];
 	    
-	    double probability = distr[(int)clsLabel];
-	    int predictedId = Integer.parseInt(instance.classAttribute().value((int)clsLabel));
-	    
-	    logger.info("Predicted user id=" + predictedId + " with probability=" + probability);
-	    ClassificationResult result = new ClassificationResult(predictedId, probability);
+	    logger.info("Predicted probability=" + probability);
+	    ClassificationResult result = new ClassificationResult(probability);
 		
 		return result;
 	}
