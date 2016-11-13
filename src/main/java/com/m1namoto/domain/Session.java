@@ -31,7 +31,7 @@ public class Session extends DomainSuperClass implements Serializable {
     @Transient
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
@@ -93,11 +93,23 @@ public class Session extends DomainSuperClass implements Serializable {
     public List<ReleasePressFeature> getReleasePressFeaturesFromEvents() {
         return FeaturesService.getReleasePressFeatures(events);
     }
+    
+    public List<XFeature> getXFeaturesFromEvents() {
+        return FeaturesService.getXFeatures(events);
+    }
+
+    public List<YFeature> getYFeaturesFromEvents() {
+        return FeaturesService.getYFeatures(events);
+    }
 
     public List<Feature> getFeaturesFromEvents() {
         List<Feature> features = new ArrayList<Feature>();
         features.addAll(getHoldFeaturesFromEvents());
         features.addAll(getReleasePressFeaturesFromEvents());
+        if (FeaturesService.includeMobileFeatures()) {
+            features.addAll(getXFeaturesFromEvents());
+            features.addAll(getYFeaturesFromEvents());
+        }
         
         return features;
     }

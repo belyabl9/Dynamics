@@ -10,5 +10,6 @@
     <servlet-name>ControllerServlet</servlet-name>
     <url-pattern>/page/*</url-pattern>
     <url-pattern>/ajax/*</url-pattern>
+    <url-pattern>/action/*</url-pattern>
   </servlet-mapping>
 </web-app>

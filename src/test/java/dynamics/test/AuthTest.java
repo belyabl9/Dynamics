@@ -6,7 +6,9 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
@@ -67,17 +69,27 @@ public class AuthTest {
     @Test
     public void doAuth() throws Exception {
         Map<Double, Double> results = new HashMap<Double, Double>();
-        AuthThread[] authThreads = new AuthThread[] {
-                new AuthThread(0.5, 0.7, 0.05, results),
-                new AuthThread(0.7, 0.9, 0.05, results),
-                new AuthThread(0.9, 1, 0.05, results)
-        };
+     /*
+        List<AuthThread> threads = new ArrayList<AuthThread>();
+        for (double t = 0.05; t < 0.5; t+=0.05) {
+            threads.add(new AuthThread(t, t + 0.05, 0.05, results));
+        }
 
-        for (AuthThread thread : authThreads) {
+        for (AuthThread thread : threads) {
             thread.run();
         }
-        for (AuthThread thread : authThreads) {
+        for (AuthThread thread : threads) {
             thread.join();
+            System.out.println("Thread " + thread.getId() + " has finished");
+        }
+        */
+        
+        for (double t = 0.05; t < 0.5; t+=0.05) {
+            results.put(t, getFRR(t));
+        }
+        
+        for (Double threshold : results.keySet()) {
+            System.out.println(threshold + " - " + results.get(threshold));
         }
     }
 

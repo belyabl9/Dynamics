@@ -52,7 +52,7 @@ public class Event extends DomainSuperClass implements Serializable {
     @SerializedName("z_acceleration")
     private double accelerationZ;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
     

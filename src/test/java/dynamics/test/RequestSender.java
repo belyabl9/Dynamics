@@ -13,6 +13,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
+import com.m1namoto.classifier.Classifier.Classifiers;
 import com.m1namoto.etc.AuthRequest;
 import com.m1namoto.etc.RegRequest;
 
@@ -36,21 +37,30 @@ public class RequestSender {
         return response.getStatusLine().getStatusCode();
     }
     
-    public static int sendAuthRequest(String login, String password, String stat, String isTest, double threshold) throws ClientProtocolException, IOException {
+    private static List<NameValuePair> prepareAuthParams(AuthRequest req) {
         List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-        urlParameters.add(new BasicNameValuePair("login", login));
-        urlParameters.add(new BasicNameValuePair("password", password));
-        urlParameters.add(new BasicNameValuePair("stat", stat));
-        urlParameters.add(new BasicNameValuePair("test", isTest));
-        urlParameters.add(new BasicNameValuePair("threshold", String.valueOf(threshold)));
+        urlParameters.add(new BasicNameValuePair("login", req.getLogin()));
+        urlParameters.add(new BasicNameValuePair("password", req.getPassword()));
+        urlParameters.add(new BasicNameValuePair("stat", req.getStat()));
+        urlParameters.add(new BasicNameValuePair("test", "true"));
+        if (req.getClassifierType() != null) {
+            urlParameters.add(new BasicNameValuePair("classifierType", req.getClassifierType().toString()));
+        }
+        urlParameters.add(new BasicNameValuePair("threshold", String.valueOf(req.getThreshold())));
+        urlParameters.add(new BasicNameValuePair("learningRate", String.valueOf(req.getLearningRate())));
+        urlParameters.add(new BasicNameValuePair("updateTemplate", String.valueOf(req.isUpdateTemplate())));
+        
+        return urlParameters;
+    }
 
-        return sendRequest("auth", urlParameters);
-    }
-    
     public static int sendAuthRequest(AuthRequest req) throws ClientProtocolException, IOException {
-        return sendAuthRequest(req.getLogin(), req.getPassword(), req.getStat(), "true", req.getThreshold());
+        return sendRequest("auth", prepareAuthParams(req));
     }
     
+    public static int sendDBCleanupRequest() throws ClientProtocolException, IOException {
+        return sendRequest("action/dbCleanup", new ArrayList<NameValuePair>());
+    }
+
     public static int sendRegRequest(String name, String surname, String login, String password, String stat) throws ClientProtocolException, IOException {
         List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
         urlParameters.add(new BasicNameValuePair("name", name));

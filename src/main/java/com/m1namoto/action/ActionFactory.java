@@ -27,6 +27,8 @@ public class ActionFactory {
         map(Const.ActionURIs.KEYPRESS_PLOT_DATA_AJAX, KeypressPlotDataAction.class);
         map(Const.ActionURIs.EVAL_CLASSIFIER_PAGE, EvaluationPageAction.class);
         map(Const.ActionURIs.EVAL_CLASSIFIER_AJAX, EvalClassifierAction.class);
+
+        map(Const.ActionURIs.DB_CLEANUP, DBCleanupAction.class);
     }
 
     /**

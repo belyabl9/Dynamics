@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.m1namoto.classifier.ClassificationResult;
 import com.m1namoto.classifier.Classifier;
+import com.m1namoto.classifier.Classifier.Classifiers;
 import com.m1namoto.classifier.DynamicsInstance;
 import com.m1namoto.domain.Event;
 import com.m1namoto.domain.Feature;
@@ -29,6 +30,8 @@ import com.m1namoto.domain.HoldFeature;
 import com.m1namoto.domain.ReleasePressFeature;
 import com.m1namoto.domain.Session;
 import com.m1namoto.domain.User;
+import com.m1namoto.domain.XFeature;
+import com.m1namoto.domain.YFeature;
 import com.m1namoto.etc.AuthRequest;
 import com.m1namoto.service.EventsService;
 import com.m1namoto.service.FeaturesService;
@@ -85,11 +88,17 @@ public class Auth extends HttpServlet {
 
         List<HoldFeature> sessionHoldFeatures = new ArrayList<HoldFeature>();
         List<ReleasePressFeature> sessionReleasePressFeatures = new ArrayList<ReleasePressFeature>();
+        List<XFeature> sessionXFeatures = new ArrayList<XFeature>();
+        List<YFeature> sessionYFeatures = new ArrayList<YFeature>();
         User user = null;
         for (Session session : sessions) {
             //logger.debug(session);
             sessionHoldFeatures.addAll(session.getHoldFeaturesFromEvents());
             sessionReleasePressFeatures.addAll(session.getReleasePressFeaturesFromEvents());
+            if (FeaturesService.includeMobileFeatures()) {
+                sessionXFeatures.addAll(session.getXFeaturesFromEvents());
+                sessionYFeatures.addAll(session.getYFeaturesFromEvents());
+            }
         }
 
         List<Double> featureValues = new ArrayList<Double>();
@@ -99,6 +108,14 @@ public class Auth extends HttpServlet {
 
         logger.debug("Session Release-Press Features");
         logger.debug(sessionReleasePressFeatures);
+        
+        if (FeaturesService.includeMobileFeatures()) {
+            logger.debug("Session X Features");
+            logger.debug(sessionXFeatures);
+            logger.debug("Session Y Features");
+            logger.debug(sessionYFeatures);
+        }
+
 
         Map<Integer, List<HoldFeature>> holdFeaturesPerCode = FeaturesService.getHoldFeaturesPerCode(sessionHoldFeatures);
         logger.debug("Hold Features Per Code:");
@@ -125,6 +142,20 @@ public class Auth extends HttpServlet {
             
             featureValues.add(featuresByCode.get(0).getValue());
         }
+        
+        if (FeaturesService.includeMobileFeatures()) {
+            Map<Integer, List<XFeature>> xFeaturesPerCode = FeaturesService.getXFeaturesPerCode(sessionXFeatures);
+            for (char c : passwordCharacters) {
+                List<XFeature> featuresByCode = xFeaturesPerCode.get((int)c);
+                featureValues.add(featuresByCode.get(0).getValue());
+            }
+            
+            Map<Integer, List<YFeature>> yFeaturesPerCode = FeaturesService.getYFeaturesPerCode(sessionYFeatures);
+            for (char c : passwordCharacters) {
+                List<YFeature> featuresByCode = yFeaturesPerCode.get((int)c);
+                featureValues.add(featuresByCode.get(0).getValue());
+            }
+        }
 
         double meanKeyPressTimeSum = 0;
         for (Session session : sessions) {
@@ -133,9 +164,9 @@ public class Auth extends HttpServlet {
         }
         double meanKeyPressTime = sessions.size() == 0 ? 0 : meanKeyPressTimeSum / sessions.size();
         featureValues.add(meanKeyPressTime);
-        
+
         logger.info("Sample to check: " + featureValues);
-        
+
         DynamicsInstance instance = new DynamicsInstance(featureValues);
         try {
             predictedClass = classifier.getClassForInstance(instance);
@@ -207,7 +238,7 @@ public class Auth extends HttpServlet {
         AuthRequest authReq = new AuthRequest(login, password, stat);
 
         String json = new Gson().toJson(authReq);
-        String savedReqPath = PropertiesService.getPropertyValue("saved_auth_requests_path");
+        String savedReqPath = PropertiesService.getPropertyValue("saved_auth_requests_path") + "/" + password.length();
 
         File reqDir = new File(savedReqPath);
         if (!reqDir.exists()) {
@@ -238,15 +269,30 @@ public class Auth extends HttpServlet {
         String login = request.getParameter(REQ_LOGIN_PARAM);
         String password = request.getParameter(REQ_PASSWORD_PARAM);
         boolean isStolen = Boolean.parseBoolean(request.getParameter("isStolen"));
+        String updateTemplateParam = request.getParameter("updateTemplate");
         String stat = request.getParameter(REQ_STAT_PARAM);
 
         String isTest = request.getParameter("test");
         String threshold = request.getParameter("threshold");
         
-        String learningRate = PropertiesService.getPropertyValue("learning_rate");
+        String classifierTypeParam = request.getParameter("classifierType");
+        if (classifierTypeParam != null && !classifierTypeParam.isEmpty()) {
+            Classifier.setClassifier(Classifiers.valueOf(classifierTypeParam));
+        }
+        
+        int learningRate = Integer.parseInt(PropertiesService.getPropertyValue("learning_rate"));
+        
+        String learningRateParam = request.getParameter("learningRate");
+        if (learningRateParam != null && !learningRateParam.isEmpty()) {
+            learningRate = Integer.parseInt(learningRateParam);
+        }
+        
+        System.out.println(learningRateParam);
+        System.out.println(learningRate);
         
         boolean saveRequest = Boolean.valueOf(PropertiesService.getPropertyValue("save_requests"));
-        boolean updateTemplate = Boolean.valueOf(PropertiesService.getPropertyValue("update_template"));
+        boolean updateTemplate = (updateTemplateParam == null || updateTemplateParam.isEmpty()) ?
+                Boolean.valueOf(PropertiesService.getPropertyValue("update_template")) : Boolean.parseBoolean(updateTemplateParam);
 
         if (saveRequest) {
             saveRequest(request);
@@ -294,8 +340,7 @@ public class Auth extends HttpServlet {
 
         int authenticatedCnt = user.getAuthenticatedCnt();
         
-        if (!isStolen && authenticatedCnt < (((learningRate == null) || learningRate.isEmpty()) ?
-                TRUSTED_AUTHENTICATION_LIMIT : Integer.parseInt(learningRate))) {
+        if (!isStolen && authenticatedCnt < learningRate) {
             logger.info("Authentication has successfuly passed");
             if (updateTemplate) {
                 saveSessionEvents(statSessions);

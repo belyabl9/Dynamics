@@ -74,7 +74,6 @@ public abstract class GenericDAO<T extends DomainSuperClass> {
         session.getTransaction().begin();
         T savedEntity = null;
         try {
-            System.out.println("entity id: " + entity.getId());
             if (entity.getId() == 0) {
                 session.save(entity);
                 savedEntity = entity;

@@ -58,5 +58,24 @@ public class FeatureSamplesService {
         return sample;
     }
     
+    public static FeaturesSample getCoordFeaturesSampleByString(Map<Integer, List<Double>> coordFeaturesPerCode, String password) {
+        FeaturesSample sample = new FeaturesSample();
+
+        List<Double> coordFeaturesSample = new ArrayList<Double>();
+        for (char code : password.toCharArray()) {
+            List<Double> featureValues = coordFeaturesPerCode.get((int)code);
+            Double coordFeatureVal = null;
+            if ((featureValues != null) && (featureValues.size() > 0)) {
+                coordFeatureVal = featureValues.remove(0);
+                sample.setEmpty(false);
+            }
+            coordFeaturesSample.add(coordFeatureVal);
+        }
+        
+        sample.setFeatures(coordFeaturesSample);
+        
+        return sample;
+    }
+    
     
 }

@@ -1,10 +1,5 @@
 package com.m1namoto.service;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,19 +14,26 @@ import com.m1namoto.domain.Feature;
 import com.m1namoto.domain.HoldFeature;
 import com.m1namoto.domain.ReleasePressFeature;
 import com.m1namoto.domain.User;
+import com.m1namoto.domain.XFeature;
+import com.m1namoto.domain.YFeature;
+import com.m1namoto.utils.PropertiesService;
 import com.m1namoto.utils.ReleasePressPair;
 import com.m1namoto.utils.Utils;
-
-import weka.core.Instances;
 
 public class FeaturesService {
     final static Logger logger = Logger.getLogger(FeaturesService.class);
 
     private static int KEY_PRESS_MAX_TIME = 1000;
     private static int BETWEEN_KEYS_MAX_TIME = 10000;
-    
+
     private static Map<Long, Map<Integer, List<HoldFeature>>> userHoldFeaturesMap;
     private static Map<Long, Map<ReleasePressPair, List<ReleasePressFeature>>> userReleasePressFeaturesMap;
+    private static Map<Long, Map<Integer, List<XFeature>>> userXFeaturesMap;
+    private static Map<Long, Map<Integer, List<YFeature>>> userYFeaturesMap;
+
+    public static boolean includeMobileFeatures() {
+        return Boolean.valueOf(PropertiesService.getPropertyValue("mobile_features"));
+    }
     
 	public static double getMeanTimeBetweenKeys(List<Event> events) throws Exception {
 		List<Double> timeDiffs = getTimeBetweenKeysList(events);
@@ -115,6 +117,32 @@ public class FeaturesService {
 
         return releasePressFeatures;
     }
+    
+    public static List<XFeature> getXFeatures(List<Event> events) {
+        List<XFeature> xFeatures = new ArrayList<XFeature>();
+
+        for (int i = 0; i < events.size(); i++) {
+            Event event = events.get(i);
+            if (event.getAction().equals(Event.ACTION_PRESS)) {
+                xFeatures.add(new XFeature(event.getX(), event.getCode(), event.getUser()));
+            }
+        }
+
+        return xFeatures;
+    }
+    
+    public static List<YFeature> getYFeatures(List<Event> events) {
+        List<YFeature> yFeatures = new ArrayList<YFeature>();
+
+        for (int i = 0; i < events.size(); i++) {
+            Event event = events.get(i);
+            if (event.getAction().equals(Event.ACTION_PRESS)) {
+                yFeatures.add(new YFeature(event.getY(), event.getCode(), event.getUser()));
+            }
+        }
+
+        return yFeatures;
+    }
 	
 	public static List<Double> getTimeBetweenKeysList(List<Event> events) {
 	    List<Double> timeDiffs = new ArrayList<Double>();
@@ -141,6 +169,14 @@ public class FeaturesService {
 	public static List<HoldFeature> getHoldFeatures() {
 	    return DaoFactory.getFeaturesDAO().getHoldFeatures(); 
 	}
+	
+    public static List<XFeature> getXFeatures() {
+        return DaoFactory.getFeaturesDAO().getXFeatures(); 
+    }
+
+    public static List<YFeature> getYFeatures() {
+        return DaoFactory.getFeaturesDAO().getYFeatures(); 
+    }
 	
 	public static Map<Long, List<HoldFeature>> getHoldFeaturesPerUser() {
 	    List<HoldFeature> features = getHoldFeatures();
@@ -185,14 +221,49 @@ public class FeaturesService {
 
         return featuresPerCode;
     }
+    
+    public static Map<Integer, List<XFeature>> getXFeaturesPerCode(List<XFeature> userFeatures) {
+        Map<Integer, List<XFeature>> featuresPerCode = new HashMap<Integer, List<XFeature>>();
+        
+        for (XFeature feature : userFeatures) {
+            int code = feature.getCode();
+            if (!featuresPerCode.containsKey(code)) {
+                featuresPerCode.put(code, new ArrayList<XFeature>());
+            }
+            featuresPerCode.get(code).add(feature);
+        }
+        
+        return featuresPerCode;
+    }
+    
+    public static Map<Integer, List<YFeature>> getYFeaturesPerCode(List<YFeature> userFeatures) {
+        Map<Integer, List<YFeature>> featuresPerCode = new HashMap<Integer, List<YFeature>>();
+        
+        for (YFeature feature : userFeatures) {
+            int code = feature.getCode();
+            if (!featuresPerCode.containsKey(code)) {
+                featuresPerCode.put(code, new ArrayList<YFeature>());
+            }
+            featuresPerCode.get(code).add(feature);
+        }
+        
+        return featuresPerCode;
+    }
+    
+    public static void clearFeaturesMaps() {
+        userHoldFeaturesMap = null;
+        userReleasePressFeaturesMap = null;
+        if (includeMobileFeatures()) {
+            userXFeaturesMap = null;    
+            userYFeaturesMap = null;
+        }
+    }
 	
 	public static Map<Long, Map<Integer, List<HoldFeature>>> getUserHoldFeaturesMap() {
 	    if (userHoldFeaturesMap != null) {
 	        return userHoldFeaturesMap;
 	    }
-
 	    userHoldFeaturesMap = new HashMap<Long, Map<Integer, List<HoldFeature>>>();
-
 	    List<HoldFeature> features = getHoldFeatures();
 	    for (HoldFeature feature : features) {
 	        long userId = feature.getUser().getId();
@@ -206,7 +277,7 @@ public class FeaturesService {
 	        }
 	        featuresPerCode.get(code).add(feature);
 	    }
-
+	    
 	    return userHoldFeaturesMap;
 	}
 
@@ -214,9 +285,7 @@ public class FeaturesService {
         if (userReleasePressFeaturesMap != null) {
             return userReleasePressFeaturesMap;
         }
-
         userReleasePressFeaturesMap = new HashMap<Long, Map<ReleasePressPair, List<ReleasePressFeature>>>();
-
         List<ReleasePressFeature> features = getReleasePressFeatures();
         for (ReleasePressFeature feature : features) {
             long userId = feature.getUser().getId();
@@ -232,6 +301,50 @@ public class FeaturesService {
         }
 
         return userReleasePressFeaturesMap;
+    }
+    
+    public static Map<Long, Map<Integer, List<XFeature>>> getUserXFeaturesMap() {
+        if (userXFeaturesMap != null) {
+            return userXFeaturesMap;
+        }
+        userXFeaturesMap = new HashMap<Long, Map<Integer, List<XFeature>>>();
+        List<XFeature> features = getXFeatures();
+        for (XFeature feature : features) {
+            long userId = feature.getUser().getId();
+            if (!userXFeaturesMap.containsKey(userId)) {
+                userXFeaturesMap.put(userId, new HashMap<Integer, List<XFeature>>());
+            }
+            Map<Integer, List<XFeature>> featuresPerCode = userXFeaturesMap.get(userId);
+            int code = feature.getCode();
+            if (!featuresPerCode.containsKey(code)) {
+                featuresPerCode.put(code, new ArrayList<XFeature>());
+            }
+            featuresPerCode.get(code).add(feature);
+        }
+
+        return userXFeaturesMap;
+    }
+    
+    public static Map<Long, Map<Integer, List<YFeature>>> getUserYFeaturesMap() {
+        if (userYFeaturesMap != null) {
+            return userYFeaturesMap;
+        }
+        userYFeaturesMap = new HashMap<Long, Map<Integer, List<YFeature>>>();
+        List<YFeature> features = getYFeatures();
+        for (YFeature feature : features) {
+            long userId = feature.getUser().getId();
+            if (!userYFeaturesMap.containsKey(userId)) {
+                userYFeaturesMap.put(userId, new HashMap<Integer, List<YFeature>>());
+            }
+            Map<Integer, List<YFeature>> featuresPerCode = userYFeaturesMap.get(userId);
+            int code = feature.getCode();
+            if (!featuresPerCode.containsKey(code)) {
+                featuresPerCode.put(code, new ArrayList<YFeature>());
+            }
+            featuresPerCode.get(code).add(feature);
+        }
+
+        return userYFeaturesMap;
     }
 
     public static List<HoldFeature> getUserHoldFeatures(User user) {
@@ -259,6 +372,12 @@ public class FeaturesService {
     public static void deleteAll() {
         FeaturesDao dao = DaoFactory.getFeaturesDAO();
         dao.deleteAll();
+        userHoldFeaturesMap = null;
+        userReleasePressFeaturesMap = null;
+        if (includeMobileFeatures()) {
+            userXFeaturesMap = null;
+            userYFeaturesMap = null;
+        }
     }
 
 }

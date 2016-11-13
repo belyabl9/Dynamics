@@ -18,17 +18,23 @@ public class EventsDao extends GenericDAO<Event> {
 
     public List<Event> getList() {
         String hql = "FROM Event ORDER BY time";
-        Query query = getFactory().openSession().createQuery(hql);
+        Session session = getFactory().openSession(); 
+        Query query = session.createQuery(hql);
+        List<Event> events = query.list();
+        session.close();
         
-        return query.list();
+        return events;
     }
     
     public List<Event> getListByUser(long id) {
         String hql = "FROM Event WHERE user_id = :id ORDER BY time";
-        Query query = getFactory().openSession().createQuery(hql);
+        Session session = getFactory().openSession();
+        Query query = session.createQuery(hql);
         query.setParameter("id", id);
+        List<Event> events = query.list(); 
+        session.close();
         
-        return query.list();
+        return events;
     }
 
     public void deleteUserEvents(User user) {

@@ -17,9 +17,12 @@ public class SessionsDao extends GenericDAO<com.m1namoto.domain.Session> {
 
     public List<com.m1namoto.domain.Session> getList() {
         String hql = "FROM Session ORDER BY date";
-        Query query = getFactory().openSession().createQuery(hql);
+        Session session = getFactory().openSession();
+        Query query = session.createQuery(hql);
+        List<com.m1namoto.domain.Session> sessions = query.list();
+        session.close();
 
-        return query.list();
+        return sessions;
     }
     
     public List<com.m1namoto.domain.Session> getUserSessions(User user) {
@@ -49,7 +52,7 @@ public class SessionsDao extends GenericDAO<com.m1namoto.domain.Session> {
         query.executeUpdate();
         transaction.commit();
         session.close();
-    }    
+    }
     
     public void deleteAll() {
         Session session = getFactory().openSession();

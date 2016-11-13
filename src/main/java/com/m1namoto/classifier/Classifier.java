@@ -6,14 +6,18 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.log4j.Logger;
 
 import com.m1namoto.domain.User;
+import com.m1namoto.service.FeaturesService;
 import com.m1namoto.service.UsersService;
 import com.m1namoto.utils.Utils;
 
 import weka.classifiers.Evaluation;
+import weka.classifiers.functions.MultilayerPerceptron;
 import weka.classifiers.functions.SMO;
+import weka.classifiers.trees.J48;
 import weka.classifiers.trees.RandomForest;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -25,12 +29,19 @@ public class Classifier {
 	private static String ATTR_KEY_PRESS = "keypress";
 	private static String ATTR_BETWEEN_KEYS = "betweenKeys";
 	private static String ATTR_MEAN_KEYPRESS_TIME = "meanKeypressTime";
+	private static String ATTR_X = "x";
+	private static String ATTR_Y = "y";
 	private static String ATTR_CLASS = "classVal";
 
+	public static enum Classifiers {
+	    RANDOM_FOREST, MLP, J48
+	};
+	
 	private User userToCheck;
 	//private weka.classifiers.Classifier classifier = new SMO();
-	private weka.classifiers.Classifier classifier = new RandomForest();
+	private static weka.classifiers.Classifier classifier = new RandomForest();
 	//private weka.classifiers.Classifier classifier = new MultilayerPerceptron();
+	//private static weka.classifiers.Classifier classifier = new J48();
 	private Instances instances;
 	private Configuration configuration;
 
@@ -48,6 +59,23 @@ public class Classifier {
         configuration = createConfiguration(password);
         instances = createInstances(configuration.toString());
         classifier.buildClassifier(instances);
+    }
+    
+    public static void setClassifier(Classifiers classifierType) {
+        switch (classifierType) {
+            case J48:
+                classifier = new J48();
+                logger.info("Classifier was changed to " + classifierType);
+                break;
+            case MLP:
+                classifier = new MultilayerPerceptron();
+                logger.info("Classifier was changed to " + classifierType);
+                break;
+            case RANDOM_FOREST:
+                classifier = new RandomForest();
+                logger.info("Classifier was changed to " + classifierType);
+                break;
+        }
     }
     
     public Configuration getConfiguration() {
@@ -94,17 +122,28 @@ public class Classifier {
             conf.addAttribute(ATTR_BETWEEN_KEYS + i);
         }
         conf.addAttribute(ATTR_MEAN_KEYPRESS_TIME);
+        
+        if (FeaturesService.includeMobileFeatures()) {
+            for (int i = 0; i < password.length(); i++) {
+                logger.debug("Add attribute definition: " + ATTR_X + Character.toUpperCase(password.charAt(i)) + i);
+                conf.addAttribute(ATTR_X + Character.toUpperCase(password.charAt(i)) + i);
+            }
+            for (int i = 0; i < password.length(); i++) {
+                logger.debug("Add attribute definition: " + ATTR_Y + Character.toUpperCase(password.charAt(i)) + i);
+                conf.addAttribute(ATTR_Y + Character.toUpperCase(password.charAt(i)) + i);
+            }
+        }
 
 		List<User> users = UsersService.getList(User.USER_TYPE_REGULAR);
 		List<Integer> allowedValues = new ArrayList<Integer>();
-		
+
         logger.debug("Prepare user features");
 		for (User user : users) {
 		    logger.debug("User id: " + user.getId());
 		    List<List<Double>> featuresSamples = null;
 		    boolean isUserToCheck = userToCheck != null ? userToCheck.getId() == user.getId() : false; 
 		    featuresSamples = user.getSamples(password, isUserToCheck);    
-		    
+
             for (List<Double> sample : featuresSamples) {
                 logger.debug("Add sample: " + sample);
                 conf.addInstance(sample, user.getId());

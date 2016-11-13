@@ -18,6 +18,8 @@ public class Const {
         public static String KEYPRESS_PLOT_DATA_AJAX = "/ajax/keypressPlotData";
         public static String EVAL_CLASSIFIER_PAGE = "/page/eval";
         public static String EVAL_CLASSIFIER_AJAX = "/ajax/eval";
+
+        public static String DB_CLEANUP = "/action/dbCleanup";
     }
     
     public static class ViewURIs {

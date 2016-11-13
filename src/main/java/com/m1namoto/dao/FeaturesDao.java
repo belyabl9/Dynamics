@@ -10,6 +10,8 @@ import com.m1namoto.domain.Feature;
 import com.m1namoto.domain.HoldFeature;
 import com.m1namoto.domain.ReleasePressFeature;
 import com.m1namoto.domain.User;
+import com.m1namoto.domain.XFeature;
+import com.m1namoto.domain.YFeature;
 
 public class FeaturesDao extends GenericDAO<Feature> {
 
@@ -19,16 +21,42 @@ public class FeaturesDao extends GenericDAO<Feature> {
 
     public List<HoldFeature> getHoldFeatures() {
         String hql = "FROM HoldFeature ORDER BY code";
-        Query query = getFactory().openSession().createQuery(hql);
+        Session session = getFactory().openSession();
+        Query query = session.createQuery(hql);
+        List<HoldFeature> features = query.list();
+        session.close();
+        
+        return features;
+    }
+    
+    public List<XFeature> getXFeatures() {
+        String hql = "FROM XFeature ORDER BY code";
+        Session session = getFactory().openSession();
+        Query query = session.createQuery(hql);
+        List<XFeature> features = query.list(); 
+        session.close();
+        
+        return features;
+    }
 
-        return query.list();
+    public List<YFeature> getYFeatures() {
+        String hql = "FROM YFeature ORDER BY code";
+        Session session = getFactory().openSession();
+        Query query = session.createQuery(hql);
+        List<YFeature> features = query.list();
+        session.close();
+
+        return features;
     }
 
     public List<ReleasePressFeature> getReleasePressFeatures() {
         String hql = "FROM ReleasePressFeature ORDER BY releaseCode, pressCode";
-        Query query = getFactory().openSession().createQuery(hql);
+        Session session = getFactory().openSession();
+        Query query = session.createQuery(hql);
+        List<ReleasePressFeature> features = query.list();
+        session.close();
 
-        return query.list();
+        return features;
     }
     
     public List<Feature> getUserFeatures(User user) {

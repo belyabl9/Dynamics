@@ -99,7 +99,7 @@ public class UserRegistrationServlet extends HttpServlet {
         RegRequest regReq = new RegRequest(name, surname, login, password, stat);
 
         String json = new Gson().toJson(regReq);
-        String savedReqPath = PropertiesService.getPropertyValue("saved_reg_requests_path");
+        String savedReqPath = PropertiesService.getPropertyValue("saved_reg_requests_path") + "/" + password.length();
 
         File reqDir = new File(savedReqPath);
         if (!reqDir.exists()) {

@@ -50,7 +50,7 @@ public class Auth implements Filter {
         HttpSession session = req.getSession(false);
         
         if(session == null && !(uri.endsWith("login")) && !(uri.endsWith("saveSession")) 
-                && !(uri.endsWith("auth")) && !(uri.endsWith("reg")) && !(uri.endsWith(".css")) ) {
+                && !(uri.endsWith("auth")) && !(uri.endsWith("reg")) && !(uri.endsWith(".css")) && !(uri.endsWith("action/dbCleanup"))  ) {
         	System.out.println(uri);
         	res.sendRedirect("/login");
         } else {

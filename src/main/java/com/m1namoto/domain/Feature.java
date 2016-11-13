@@ -23,11 +23,11 @@ public abstract class Feature extends DomainSuperClass implements Serializable {
     @Column(name = "value")
     private double value;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
     
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "session_id", nullable = false)
     private Session session;
 

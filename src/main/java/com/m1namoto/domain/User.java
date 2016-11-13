@@ -229,6 +229,66 @@ public class User extends DomainSuperClass implements Serializable {
         return userFeaturesByString;
     }
 
+    public Map<Integer, List<Double>> getXFeaturesByString(String password) {
+        Map<Integer, List<Double>> userFeaturesByString = new HashMap<Integer, List<Double>>();
+        long userId = this.getId();
+        Map<Integer, List<XFeature>> userXFeaturesPerCode = FeaturesService.getUserXFeaturesMap().get(userId);
+
+        if (userXFeaturesPerCode == null) {
+            logger.debug("User Hold Featuers Per Code Map is null");
+            return null;
+        }
+
+        logger.debug("User hold features per code map:");
+        logger.debug(userXFeaturesPerCode);
+        
+        for (char code : password.toCharArray()) {
+            List<XFeature> userXFeaturesByCode = userXFeaturesPerCode.get((int)code);
+            if (userXFeaturesByCode == null || userXFeaturesByCode.size() == 0) {
+                logger.debug("Null Code: " + code);
+                userFeaturesByString.put((int)code, null);
+                continue;
+            }
+            List<Double> featureValuesByCode = new ArrayList<Double>();
+            for (int i = 0; i < userXFeaturesByCode.size(); i++) {
+                featureValuesByCode.add(userXFeaturesByCode.get(i).getValue());
+            }
+            userFeaturesByString.put((int)code, featureValuesByCode);
+        }
+
+        return userFeaturesByString;
+    }
+    
+    public Map<Integer, List<Double>> getYFeaturesByString(String password) {
+        Map<Integer, List<Double>> userFeaturesByString = new HashMap<Integer, List<Double>>();
+        long userId = this.getId();
+        Map<Integer, List<YFeature>> userYFeaturesPerCode = FeaturesService.getUserYFeaturesMap().get(userId);
+
+        if (userYFeaturesPerCode == null) {
+            logger.debug("User Hold Featuers Per Code Map is null");
+            return null;
+        }
+
+        logger.debug("User hold features per code map:");
+        logger.debug(userYFeaturesPerCode);
+        
+        for (char code : password.toCharArray()) {
+            List<YFeature> userYFeaturesByCode = userYFeaturesPerCode.get((int)code);
+            if (userYFeaturesByCode == null || userYFeaturesByCode.size() == 0) {
+                logger.debug("Null Code: " + code);
+                userFeaturesByString.put((int)code, null);
+                continue;
+            }
+            List<Double> featureValuesByCode = new ArrayList<Double>();
+            for (int i = 0; i < userYFeaturesByCode.size(); i++) {
+                featureValuesByCode.add(userYFeaturesByCode.get(i).getValue());
+            }
+            userFeaturesByString.put((int)code, featureValuesByCode);
+        }
+
+        return userFeaturesByString;
+    }
+    
     public List<HoldFeature> getHoldFeatures() {
         return FeaturesService.getUserHoldFeatures(this);
     }
@@ -248,7 +308,13 @@ public class User extends DomainSuperClass implements Serializable {
         
         Map<Integer, List<Double>> holdFeaturesByString = getHoldFeaturesByString(password);
         Map<ReleasePressPair, List<Double>> releasePressFeaturesByString = getReleasePressFeaturesByString(password);
-
+        Map<Integer, List<Double>> xFeaturesByString = null;
+        Map<Integer, List<Double>> yFeaturesByString = null;
+        if (FeaturesService.includeMobileFeatures()) {
+            xFeaturesByString = getXFeaturesByString(password);
+            yFeaturesByString = getYFeaturesByString(password);
+        }
+        
         final int holdFeaturesMin = fullSample ? ORIGIN_HOLD_FEATURES_THRESHOLD : OTHER_HOLD_FEATURES_THRESHOLD;
         final int releasePressMin = fullSample ? ORIGIN_RELEASE_PRESS_FEATURES_THRESHOLD : OTHER_RELEASE_PRESS_FEATURES_THRESHOLD;
         
@@ -256,11 +322,23 @@ public class User extends DomainSuperClass implements Serializable {
         while (!isEmptySample) {
             FeaturesSample holdFeaturesSample = FeatureSamplesService.getHoldFeaturesSampleByString(holdFeaturesByString, password);
             FeaturesSample releasePressFeaturesSample = FeatureSamplesService.getReleasePressFeaturesSampleByString(releasePressFeaturesByString, password);
+            
+            
+            FeaturesSample xFeaturesSample = null; 
+            FeaturesSample yFeaturesSample = null;
+            if (FeaturesService.includeMobileFeatures()) {
+                xFeaturesSample = FeatureSamplesService.getCoordFeaturesSampleByString(xFeaturesByString, password);    
+                yFeaturesSample = FeatureSamplesService.getCoordFeaturesSampleByString(yFeaturesByString, password);
+            }
 
             List<Double> featuresSample = new ArrayList<Double>();
             featuresSample.addAll(holdFeaturesSample.getFeatures());
             featuresSample.addAll(releasePressFeaturesSample.getFeatures());
             featuresSample.add(meanKeyPressTime);
+            if (FeaturesService.includeMobileFeatures()) {
+                featuresSample.addAll(xFeaturesSample.getFeatures());
+                featuresSample.addAll(yFeaturesSample.getFeatures());    
+            }
 
             isEmptySample = (holdFeaturesSample.isEmpty() && releasePressFeaturesSample.isEmpty());
             
