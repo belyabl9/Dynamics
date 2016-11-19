@@ -8,11 +8,13 @@ import javax.persistence.Table;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import com.m1namoto.service.AnomalyDetection;
+
 @Entity
 @Table(name="ReleasePressFeatures")  
 @PrimaryKeyJoinColumn(name="feature_id")
 @OnDelete(action = OnDeleteAction.CASCADE)
-public class ReleasePressFeature extends Feature {
+public class ReleasePressFeature extends Feature implements AnomalyDetection {
 
     @Column(name = "releaseCode")
     private int releaseCode;

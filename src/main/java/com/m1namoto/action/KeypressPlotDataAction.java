@@ -7,6 +7,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.m1namoto.domain.HoldFeature;
 import com.m1namoto.domain.User;
 import com.m1namoto.domain.UserStatistics;
@@ -32,7 +33,12 @@ public class KeypressPlotDataAction extends Action {
     @Override
     protected ActionResult execute() throws Exception {
         List<UserStatistics> statList = getStatisticsPerUser();
-        String statJson = new Gson().toJson(statList);
+        
+        Gson gson = new GsonBuilder()
+                .excludeFieldsWithoutExposeAnnotation()
+                .create();
+        
+        String statJson = gson.toJson(statList);
         
         StatisticsJsonPageData data = new StatisticsJsonPageData();
         data.setStatisticsJson(StringEscapeUtils.unescapeEcmaScript(statJson));

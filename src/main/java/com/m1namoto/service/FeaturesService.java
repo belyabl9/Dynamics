@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
@@ -38,7 +39,8 @@ public class FeaturesService {
 	public static double getMeanTimeBetweenKeys(List<Event> events) throws Exception {
 		List<Double> timeDiffs = getTimeBetweenKeysList(events);
 		if (timeDiffs.size() == 0) {
-		    throw new Exception("List with time between keys is empty");
+		    //throw new Exception("List with time between keys is empty");
+		    return 0;
 		}
 		
 		return Utils.mean(timeDiffs);
@@ -278,6 +280,17 @@ public class FeaturesService {
 	        featuresPerCode.get(code).add(feature);
 	    }
 	    
+	  /*  for (Entry<Long, Map<Integer, List<HoldFeature>>> userFeaturesEntry: userHoldFeaturesMap.entrySet()) {
+	    	long userId = userFeaturesEntry.getKey();
+	    	for (Entry<Integer, List<HoldFeature>> holdFeaturesEntry : userFeaturesEntry.getValue().entrySet()) {
+		        int code = holdFeaturesEntry.getKey();
+	    		List<HoldFeature> anomalyDetectionList = holdFeaturesEntry.getValue();
+		        String description = String.format("[HoldFeature] Code: %d; User: %d", code, userId);
+		      //  AnomalyDetector anomalyDetector = new AnomalyDetector(anomalyDetectionList, description);
+		      //  anomalyDetector.removeAnomalies();
+	    	}
+	    }*/
+	    
 	    return userHoldFeaturesMap;
 	}
 
@@ -299,6 +312,18 @@ public class FeaturesService {
             }
             featuresPerCode.get(codePair).add(feature);
         }
+        
+       /* logger.info("Check Release Press Anomalies");
+        for (Map<ReleasePressPair, List<ReleasePressFeature>> userReleasePressFeatures : userReleasePressFeaturesMap.values()) {
+        	for (Entry<ReleasePressPair, List<ReleasePressFeature>> releasePressPairEntry : userReleasePressFeatures.entrySet()) {
+        		ReleasePressPair releasePressPair = releasePressPairEntry.getKey();
+        		List<ReleasePressFeature> releasePressFeaturesList = releasePressPairEntry.getValue();
+        		String description = String.format("[ReleasePressFeature] Release code: %d; Press code: %d; User: %s",
+        				releasePressPair.getReleaseCode(), releasePressPair.getPressCode(), releasePressFeaturesList.get(0).getUser().getLogin());
+        	//	AnomalyDetector anomalyDetector = new AnomalyDetector(releasePressFeaturesList, description);
+        	//	anomalyDetector.removeAnomalies();
+        	}
+        }*/
 
         return userReleasePressFeaturesMap;
     }

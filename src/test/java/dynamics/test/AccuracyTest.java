@@ -265,7 +265,7 @@ public class AccuracyTest {
     }
 
     private static void accuracyClassifierTestSet(Classifiers classifier) throws Exception {
-        AccuracyTest test6_1 = new AccuracyTest(6, 1, classifier);
+    	/*AccuracyTest test6_1 = new AccuracyTest(6, 1, classifier);
         test6_1.accuracyTest();
         
         AccuracyTest test6_5 = new AccuracyTest(6, 5, classifier);
@@ -276,7 +276,7 @@ public class AccuracyTest {
         
         AccuracyTest test6_15 = new AccuracyTest(6, 15, classifier);
         test6_15.accuracyTest();
-        /*
+        */
         AccuracyTest test12_1_mlp = new AccuracyTest(12, 1, classifier);
         test12_1_mlp.accuracyTest();
 
@@ -288,11 +288,17 @@ public class AccuracyTest {
         
         AccuracyTest test12_15 = new AccuracyTest(12, 15, classifier);
         test12_15.accuracyTest();
-        */
+        
     }
 
     public static void main(String[] args) throws Exception {
-        accuracyClassifierTestSet(Classifiers.RANDOM_FOREST);
+    	List<Double> thresholds = new ArrayList<Double>();
+    	thresholds.add(0.8);
+        AccuracyTest test12_15 = new AccuracyTest(12, 15, Classifiers.RANDOM_FOREST, thresholds);
+        test12_15.accuracyTest();
+    	
+    	//accuracyClassifierTestSet(Classifiers.MLP);
+    	//accuracyClassifierTestSet(Classifiers.RANDOM_FOREST);
         //accuracyClassifierTestSet(Classifiers.J48);
     }
 

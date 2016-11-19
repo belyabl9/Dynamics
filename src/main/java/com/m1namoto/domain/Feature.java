@@ -14,12 +14,15 @@ import javax.persistence.Table;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import com.google.gson.annotations.Expose;
+
 @Entity
 @Table(name = "Features")
 @Inheritance(strategy=InheritanceType.JOINED)
 @OnDelete(action = OnDeleteAction.CASCADE)
 public abstract class Feature extends DomainSuperClass implements Serializable {
 
+	@Expose
     @Column(name = "value")
     private double value;
 

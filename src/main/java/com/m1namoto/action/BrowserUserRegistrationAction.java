@@ -1,4 +1,4 @@
-package com.m1namoto.servlets;
+package com.m1namoto.action;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,12 +7,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -24,6 +18,7 @@ import com.m1namoto.domain.Feature;
 import com.m1namoto.domain.Session;
 import com.m1namoto.domain.User;
 import com.m1namoto.etc.RegRequest;
+import com.m1namoto.page.PageData;
 import com.m1namoto.service.EventsService;
 import com.m1namoto.service.FeaturesService;
 import com.m1namoto.service.SessionsService;
@@ -31,14 +26,9 @@ import com.m1namoto.service.UsersService;
 import com.m1namoto.utils.PropertiesService;
 import com.m1namoto.utils.Utils;
 
-/**
- * Servlet implementation class UserRegistrationServlet
- */
-@WebServlet("/reg")
-public class UserRegistrationServlet extends HttpServlet {
-	private static final long serialVersionUID = 1L;
-	
-	private final static Logger logger = Logger.getLogger(UserRegistrationServlet.class);
+public class BrowserUserRegistrationAction extends Action {
+
+	private final static Logger logger = Logger.getLogger(BrowserUserRegistrationAction.class);
     
 	private static final String REQ_NAME_PARAM = "name";
 	private static final String REQ_SURNAME_PARAM = "surname";
@@ -49,13 +39,6 @@ public class UserRegistrationServlet extends HttpServlet {
     
     private static final String REQ_SAVE = "saveRequest";
 	
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
-    public UserRegistrationServlet() {
-        super();
-    }
-
     private List<Session> prepareSessions(Map<String, List<Event>> sessionsMap, User user) {
         List<Session> statSessions = new ArrayList<Session>();
         for (String uuid : sessionsMap.keySet()) {
@@ -69,7 +52,7 @@ public class UserRegistrationServlet extends HttpServlet {
         
         return statSessions;
     }
-	
+    
     private void saveSessionEvents(List<Session> statSessions) {
         logger.debug("Save session events");
         logger.debug(statSessions);
@@ -90,12 +73,12 @@ public class UserRegistrationServlet extends HttpServlet {
         }
     }
     
-    private void saveRequest(HttpServletRequest request) throws IOException {
-        String name = request.getParameter(REQ_NAME_PARAM);
-        String surname = request.getParameter(REQ_SURNAME_PARAM);
-        String login = request.getParameter(REQ_LOGIN_PARAM);
-        String password = request.getParameter(REQ_PASSWORD_PARAM);
-        String stat = request.getParameter(REQ_STAT_PARAM);
+    private void saveRequest() throws IOException {
+        String name = requestParameters.get(REQ_NAME_PARAM)[0];
+        String surname = requestParameters.get(REQ_SURNAME_PARAM)[0];
+        String login = requestParameters.get(REQ_LOGIN_PARAM)[0];
+        String password = requestParameters.get(REQ_PASSWORD_PARAM)[0];
+        String stat = requestParameters.get(REQ_STAT_PARAM)[0];
         RegRequest regReq = new RegRequest(name, surname, login, password, stat);
 
         String json = new Gson().toJson(regReq);
@@ -115,55 +98,11 @@ public class UserRegistrationServlet extends HttpServlet {
         FileUtils.writeStringToFile(reqFile, json);
     }
     
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {        
-	    boolean saveRequest = Boolean.valueOf(PropertiesService.getPropertyValue("save_requests"));
-        if (saveRequest) {
-            saveRequest(request);
-        }
-	    
-	    try {
-            Utils.checkMandatoryParams(
-                    request.getParameterMap(), new String[] { "name", "surname", "login", "password", "stat" });
-        } catch (Exception e) {
-            logger.error(e);
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
-        }
-
-        if (UsersService.findByLogin(request.getParameter(REQ_LOGIN_PARAM)) != null) {
-            logger.info("User with such login already exists");
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
-        }
-
-        User user = createUser(request);
-        user = UsersService.save(user);
-        if (user.getId() == 0) {
-            logger.error("User was not created");
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
-        }
-        
-        String stat = request.getParameter(REQ_STAT_PARAM);
-        Type type = new TypeToken<Map<String, List<Event>>>(){}.getType();
-        Map<String, List<Event>> sessionsMap = new Gson().fromJson(stat, type);
-        List<Session> statSessions = prepareSessions(sessionsMap, user);
-        saveSessionEvents(statSessions);
-        
-        user.setAuthenticatedCnt(user.getAuthenticatedCnt() + 1);
-        UsersService.save(user);
-        
-        response.setStatus(HttpServletResponse.SC_OK);
-	}
-	
-	private User createUser(HttpServletRequest request) {
-        String name = request.getParameter(REQ_NAME_PARAM);
-        String surname = request.getParameter(REQ_SURNAME_PARAM);
-        String login = request.getParameter(REQ_LOGIN_PARAM);
-        String password = request.getParameter(REQ_PASSWORD_PARAM);
+	private User createUser() {
+        String name = requestParameters.get(REQ_NAME_PARAM)[0];
+        String surname = requestParameters.get(REQ_SURNAME_PARAM)[0];
+        String login = requestParameters.get(REQ_LOGIN_PARAM)[0];
+        String password = requestParameters.get(REQ_PASSWORD_PARAM)[0];
         
         User user = new User();
         user.setName(name + " " + surname);
@@ -174,4 +113,48 @@ public class UserRegistrationServlet extends HttpServlet {
         return user;
 	}
 
+	@Override
+	protected ActionResult execute() throws Exception {
+		PageData pageData = new PageData();
+		
+		boolean saveRequest = Boolean.valueOf(PropertiesService.getPropertyValue("save_requests"));
+        if (saveRequest) {
+            saveRequest();
+        }
+	    
+	    try {
+            Utils.checkMandatoryParams(
+                    requestParameters, new String[] { "name", "surname", "login", "password", "stat" });
+        } catch (Exception e) {
+            logger.error(e);
+            pageData.setError(true);
+            return createAjaxResult(pageData);
+        }
+
+        if (UsersService.findByLogin(requestParameters.get(REQ_LOGIN_PARAM)[0]) != null) {
+            logger.info("User with such login already exists");
+            pageData.setError(true);
+            return createAjaxResult(pageData);
+        }
+
+        User user = createUser();
+        user = UsersService.save(user);
+        if (user.getId() == 0) {
+            logger.error("User was not created");
+            pageData.setError(true);
+            return createAjaxResult(pageData);
+        }
+        
+        String stat = requestParameters.get(REQ_STAT_PARAM)[0];
+        Type type = new TypeToken<Map<String, List<Event>>>(){}.getType();
+        Map<String, List<Event>> sessionsMap = new Gson().fromJson(stat, type);
+        List<Session> statSessions = prepareSessions(sessionsMap, user);
+        saveSessionEvents(statSessions);
+        
+        user.setAuthenticatedCnt(user.getAuthenticatedCnt() + 1);
+        UsersService.save(user);
+        
+        return createAjaxResult(null);
+	}
+	
 }

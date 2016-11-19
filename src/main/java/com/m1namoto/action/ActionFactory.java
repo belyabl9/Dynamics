@@ -28,6 +28,7 @@ public class ActionFactory {
         map(Const.ActionURIs.EVAL_CLASSIFIER_PAGE, EvaluationPageAction.class);
         map(Const.ActionURIs.EVAL_CLASSIFIER_AJAX, EvalClassifierAction.class);
 
+        map(Const.ActionURIs.BROWSER_USER_REG_AJAX, BrowserUserRegistrationAction.class);
         map(Const.ActionURIs.DB_CLEANUP, DBCleanupAction.class);
     }
 

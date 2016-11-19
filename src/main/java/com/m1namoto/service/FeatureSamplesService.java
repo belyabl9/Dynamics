@@ -14,6 +14,11 @@ public class FeatureSamplesService {
     public static FeaturesSample getHoldFeaturesSampleByString(Map<Integer, List<Double>> holdFeaturesPerCode, String password) {
         FeaturesSample sample = new FeaturesSample();
 
+        if (holdFeaturesPerCode == null) {
+        	sample.setEmpty(true);
+        	return sample;
+        }
+        
         List<Double> holdFeaturesSample = new ArrayList<Double>();
         for (char code : password.toCharArray()) {
             List<Double> featureValues = holdFeaturesPerCode.get((int)code);
@@ -35,6 +40,11 @@ public class FeatureSamplesService {
        
         FeaturesSample sample = new FeaturesSample();
 
+        if (releasePressFeaturesPerCode == null) {
+        	sample.setEmpty(true);
+        	return sample;
+        }
+        
         char[] passwordCharacters = password.toCharArray();
         List<Double> releasePressSample = new ArrayList<Double>();
         for (int i = 1; i < passwordCharacters.length; i++) {

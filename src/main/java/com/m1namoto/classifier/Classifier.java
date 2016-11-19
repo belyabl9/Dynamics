@@ -165,7 +165,11 @@ public class Classifier {
 	    Instance instance = new Instance(n);
 		
 	    for (int i = 0; i < n - 1; i++) {
-	        instance.setValue(i, values.get(i));    
+	    	if (values.get(i) == null) {
+	    		instance.setValue(i, Instance.missingValue());
+	    	} else {
+	    		instance.setValue(i, values.get(i));
+	    	}
 	    }
 	    instance.setDataset(instances);
 

@@ -82,7 +82,7 @@ public class Features {
 				}
 				double timeDiff = keyReleaseEvent.getTime() - event.getTime();
 				// Anomalies
-				if (Double.isFinite(timeDiff) && timeDiff < KEY_PRESS_MAX_TIME) {
+				if (!Double.isInfinite(timeDiff) && timeDiff < KEY_PRESS_MAX_TIME) {
 				    timeDiffs.add(timeDiff);
 				}
 			}
@@ -104,7 +104,7 @@ public class Features {
                 }
                 double timeDiff = keyReleaseEvent.getTime() - event.getTime();
                 // Anomalies
-                if (Double.isFinite(timeDiff) && timeDiff < KEY_PRESS_MAX_TIME) {
+                if (!Double.isInfinite(timeDiff) && timeDiff < KEY_PRESS_MAX_TIME) {
                     holdFeatures.add(new HoldFeature(timeDiff, code, event.getUser()));
                 }
             }
@@ -125,7 +125,7 @@ public class Features {
                 }
                 double timeDiff = keyPressEvent.getTime() - event.getTime();
                 // Anomalies
-                if (Double.isFinite(timeDiff) && timeDiff > BETWEEN_KEYS_MAX_TIME) {
+                if (!Double.isInfinite(timeDiff) && timeDiff > BETWEEN_KEYS_MAX_TIME) {
                     continue;
                 }
 
@@ -150,7 +150,7 @@ public class Features {
 				}
 				double timeDiff = keyPressEvent.getTime() - event.getTime();
                 // Anomalies
-				if (Double.isFinite(timeDiff) && timeDiff > BETWEEN_KEYS_MAX_TIME) {
+				if (!Double.isInfinite(timeDiff) && timeDiff > BETWEEN_KEYS_MAX_TIME) {
 					continue;
 				}
 				timeDiffs.add(timeDiff);

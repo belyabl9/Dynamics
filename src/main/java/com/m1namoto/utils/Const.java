@@ -19,6 +19,7 @@ public class Const {
         public static String EVAL_CLASSIFIER_PAGE = "/page/eval";
         public static String EVAL_CLASSIFIER_AJAX = "/ajax/eval";
 
+        public static String BROWSER_USER_REG_AJAX = "/ajax/browserUserReg";
         public static String DB_CLEANUP = "/action/dbCleanup";
     }
     

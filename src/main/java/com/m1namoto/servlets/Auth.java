@@ -2,6 +2,7 @@ package com.m1namoto.servlets;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Date;
@@ -17,6 +18,7 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -125,8 +127,13 @@ public class Auth extends HttpServlet {
             List<HoldFeature> featuresByCode = holdFeaturesPerCode.get((int)c);
             
             logger.debug("Features by code: " + featuresByCode);
+            int cc = (int) c;
             
-            featureValues.add(featuresByCode.get(0).getValue());
+            if (featuresByCode != null && featuresByCode.size() > 0) {
+            	featureValues.add(featuresByCode.get(0).getValue());
+            } else {
+            	featureValues.add(null);
+            }
         }
         
         Map<ReleasePressPair, List<ReleasePressFeature>> releasePressFeaturesPerCode = FeaturesService.getReleasePressFeaturesPerCode(sessionReleasePressFeatures);
@@ -140,7 +147,11 @@ public class Auth extends HttpServlet {
             
             logger.debug("Release Press Features by code: " + featuresByCode);
             
-            featureValues.add(featuresByCode.get(0).getValue());
+            if (featuresByCode != null && featuresByCode.size() > 0) {
+            	featureValues.add(featuresByCode.get(0).getValue());
+            } else {
+            	featureValues.add(null);
+            }
         }
         
         if (FeaturesService.includeMobileFeatures()) {
@@ -176,9 +187,8 @@ public class Auth extends HttpServlet {
 
         return predictedClass;
     }
-
-    private boolean isThresholdAccepted(List<Session> sessions, User expectedUser, double threshold) {
-        ClassificationResult classificationResult = getPredictedThreshold(sessions, expectedUser);
+    
+    private boolean isThresholdAccepted(ClassificationResult classificationResult, double threshold) {
         boolean isThresholdAccepted = classificationResult.getProbability() >= threshold;
         
         if (!isThresholdAccepted) {
@@ -233,7 +243,10 @@ public class Auth extends HttpServlet {
         AuthRequest authReq = new AuthRequest(login, password, stat);
 
         String json = new Gson().toJson(authReq);
-        String savedReqPath = PropertiesService.getPropertyValue("saved_auth_requests_path") + "/" + password.length();
+        //String savedReqPath = PropertiesService.getPropertyValue("saved_auth_requests_path") + "/" + password.length();
+        String savedReqPath = System.getenv("OPENSHIFT_DATA_DIR")
+                + PropertiesService.getPropertyValue("saved_auth_requests_path") + "/" + password.length();
+        logger.info(System.getenv("OPENSHIFT_DATA_DIR"));
 
         File reqDir = new File(savedReqPath);
         if (!reqDir.exists()) {
@@ -261,6 +274,9 @@ public class Auth extends HttpServlet {
      * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
      */
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    	response.setContentType("application/json");
+    	response.setCharacterEncoding("utf8");
+    	PrintWriter out = response.getWriter(); 
         String login = request.getParameter(REQ_LOGIN_PARAM);
         String password = request.getParameter(REQ_PASSWORD_PARAM);
         boolean isStolen = Boolean.parseBoolean(request.getParameter("isStolen"));
@@ -268,7 +284,7 @@ public class Auth extends HttpServlet {
         String stat = request.getParameter(REQ_STAT_PARAM);
 
         String isTest = request.getParameter("test");
-        String threshold = request.getParameter("threshold");
+        String thresholdParam = request.getParameter("threshold");
         
         String classifierTypeParam = request.getParameter("classifierType");
         if (classifierTypeParam != null && !classifierTypeParam.isEmpty()) {
@@ -299,6 +315,9 @@ public class Auth extends HttpServlet {
         
         if (login == null || login.isEmpty() || password == null  || password.isEmpty()) {
             logger.info("Authentication failed: " + EMPTY_LOGIN_OR_PASSWORD);
+            JSONObject obj = new JSONObject();
+            obj.put("success", "false");
+            out.print(obj);
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, EMPTY_LOGIN_OR_PASSWORD);
             return;
         }
@@ -306,13 +325,19 @@ public class Auth extends HttpServlet {
         User user = UsersService.findByLogin(login);
         if (user == null) {
             logger.info("Authentication failed: " + CAN_NOT_FIND_USER);
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, CAN_NOT_FIND_USER);
+            JSONObject obj = new JSONObject();
+            obj.put("success", "false");
+            out.print(obj);
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
         if (!user.getPassword().equals(password)) {
             logger.info("Authentication failed: " + WRONG_PASSWORD);
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, WRONG_PASSWORD);
+            JSONObject obj = new JSONObject();
+            obj.put("success", "false");
+            out.print(obj);
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
@@ -325,7 +350,10 @@ public class Auth extends HttpServlet {
 
         if (stat == null) {
             logger.info("Authentication failed: " + DYNAMICS_NOT_PASSED);
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, DYNAMICS_NOT_PASSED);
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            JSONObject obj = new JSONObject();
+            obj.put("success", "false");
+            out.print(obj);
             return;
         }
 
@@ -342,13 +370,18 @@ public class Auth extends HttpServlet {
                 user.setAuthenticatedCnt(user.getAuthenticatedCnt() + 1);
                 UsersService.save(user);
             }
+            JSONObject obj = new JSONObject();
+            obj.put("success", "true");
+            out.print(obj);
             response.setStatus(HttpServletResponse.SC_OK);
             return;
         }
         
         // TODO: Refactor
-        boolean isExpectedClass = isThresholdAccepted(statSessions, user,
-                Boolean.parseBoolean(isTest) ? Double.parseDouble(threshold) : CLASS_PREDICTION_THRESHOLD);
+        ClassificationResult classificationResult = getPredictedThreshold(statSessions, user);
+        double threshold = Boolean.parseBoolean(isTest) ? Double.parseDouble(thresholdParam) : CLASS_PREDICTION_THRESHOLD; 
+        logger.info(String.format("User: %s; Threshold: %f; Prob: %f", user.getLogin(), threshold, classificationResult.getProbability()));
+        boolean isExpectedClass = isThresholdAccepted(classificationResult, threshold);
         if (isExpectedClass) {
             logger.info("Authentication has successfuly passed");
             if (!isStolen && updateTemplate) {
@@ -356,10 +389,18 @@ public class Auth extends HttpServlet {
                 user.setAuthenticatedCnt(user.getAuthenticatedCnt() + 1);
                 UsersService.save(user);
             }
+            JSONObject obj = new JSONObject();
+            obj.put("success", "true");
+            obj.put("threshold", classificationResult.getProbability());
+            out.print(obj);
             response.setStatus(HttpServletResponse.SC_OK);
             return;
         }
         
+        JSONObject obj = new JSONObject();
+        obj.put("success", "false");
+        obj.put("threshold", classificationResult.getProbability());
+        out.print(obj);
         logger.info("Authentication failed: " + "keystroke dynamics does not match");
 		response.setStatus(HttpServletResponse.SC_FORBIDDEN);
     }

@@ -12,6 +12,7 @@ import javax.persistence.Table;
 
 import org.apache.log4j.Logger;
 
+import com.google.gson.annotations.Expose;
 import com.m1namoto.service.EventsService;
 import com.m1namoto.service.FeatureSamplesService;
 import com.m1namoto.service.FeaturesService;
@@ -33,9 +34,11 @@ public class User extends DomainSuperClass implements Serializable {
     public static int USER_TYPE_ADMIN = 0;
     public static int USER_TYPE_REGULAR = 1;
     
+    @Expose
 	@Column(name = "name")
 	private String name;
 
+    @Expose
 	@Column(name = "login", unique = true)
     private String login;
     
@@ -323,8 +326,7 @@ public class User extends DomainSuperClass implements Serializable {
             FeaturesSample holdFeaturesSample = FeatureSamplesService.getHoldFeaturesSampleByString(holdFeaturesByString, password);
             FeaturesSample releasePressFeaturesSample = FeatureSamplesService.getReleasePressFeaturesSampleByString(releasePressFeaturesByString, password);
             
-            
-            FeaturesSample xFeaturesSample = null; 
+            FeaturesSample xFeaturesSample = null;
             FeaturesSample yFeaturesSample = null;
             if (FeaturesService.includeMobileFeatures()) {
                 xFeaturesSample = FeatureSamplesService.getCoordFeaturesSampleByString(xFeaturesByString, password);    
@@ -332,15 +334,20 @@ public class User extends DomainSuperClass implements Serializable {
             }
 
             List<Double> featuresSample = new ArrayList<Double>();
-            featuresSample.addAll(holdFeaturesSample.getFeatures());
-            featuresSample.addAll(releasePressFeaturesSample.getFeatures());
+            if (holdFeaturesSample != null) {
+                featuresSample.addAll(holdFeaturesSample.getFeatures());
+            }
+            if (releasePressFeaturesSample != null) {
+                featuresSample.addAll(releasePressFeaturesSample.getFeatures());
+            }
             featuresSample.add(meanKeyPressTime);
             if (FeaturesService.includeMobileFeatures()) {
                 featuresSample.addAll(xFeaturesSample.getFeatures());
                 featuresSample.addAll(yFeaturesSample.getFeatures());    
             }
 
-            isEmptySample = (holdFeaturesSample.isEmpty() && releasePressFeaturesSample.isEmpty());
+            isEmptySample = ( (holdFeaturesSample == null || holdFeaturesSample.isEmpty())
+                    && (releasePressFeaturesSample == null || releasePressFeaturesSample.isEmpty()));
             
             boolean isEnoughElements = (holdFeaturesSample.definedElementsPercentage() >= holdFeaturesMin
                     //&& releasePressFeaturesSample.definedElementsPercentage() >= releasePressMin
