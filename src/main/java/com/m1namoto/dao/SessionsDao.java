@@ -17,22 +17,20 @@ public class SessionsDao extends GenericDAO<com.m1namoto.domain.Session> {
 
     public List<com.m1namoto.domain.Session> getList() {
         String hql = "FROM Session ORDER BY date";
-        Session session = getFactory().openSession();
+        Session session = getFactory().getCurrentSession();
         Query query = session.createQuery(hql);
         List<com.m1namoto.domain.Session> sessions = query.list();
-        session.close();
 
         return sessions;
     }
     
     public List<com.m1namoto.domain.Session> getUserSessions(User user) {
         String hql = "FROM Session WHERE user_id = :user_id";
-        Session session = getFactory().openSession();
+        Session session = getFactory().getCurrentSession();
         Query query = session.createQuery(hql);
         query.setParameter("user_id", user.getId());
         List<com.m1namoto.domain.Session> sessions = query.list(); 
-        session.close();
-        
+
         return sessions;
     }
     
@@ -45,23 +43,17 @@ public class SessionsDao extends GenericDAO<com.m1namoto.domain.Session> {
     
     public void deleteSessionById(long id) {
         String hql = "DELETE FROM Session WHERE id = :id";
-        Session session = getFactory().openSession();
+        Session session = getFactory().getCurrentSession();
         Query query = session.createQuery(hql);
         query.setParameter("id", id);
-        Transaction transaction = session.beginTransaction();
         query.executeUpdate();
-        transaction.commit();
-        session.close();
     }
     
     public void deleteAll() {
-        Session session = getFactory().openSession();
-        session.getTransaction().begin();
+        Session session = getFactory().getCurrentSession();
         String hql = "DELETE FROM Session";
         Query query = session.createQuery(hql);
         query.executeUpdate();
-        session.getTransaction().commit();
-        session.close();
     }
 
 }

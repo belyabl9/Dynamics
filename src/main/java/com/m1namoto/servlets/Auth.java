@@ -245,7 +245,7 @@ public class Auth extends HttpServlet {
         String json = new Gson().toJson(authReq);
         //String savedReqPath = PropertiesService.getPropertyValue("saved_auth_requests_path") + "/" + password.length();
         String savedReqPath = System.getenv("OPENSHIFT_DATA_DIR")
-                + PropertiesService.getPropertyValue("saved_auth_requests_path") + "/" + password.length();
+                + PropertiesService.getDynamicPropertyValue("saved_auth_requests_path") + "/" + password.length();
         logger.info(System.getenv("OPENSHIFT_DATA_DIR"));
 
         File reqDir = new File(savedReqPath);
@@ -291,7 +291,7 @@ public class Auth extends HttpServlet {
             Classifier.setClassifier(Classifiers.valueOf(classifierTypeParam));
         }
         
-        int learningRate = Integer.parseInt(PropertiesService.getPropertyValue("learning_rate"));
+        int learningRate = Integer.parseInt(PropertiesService.getDynamicPropertyValue("learning_rate"));
         
         String learningRateParam = request.getParameter("learningRate");
         if (learningRateParam != null && !learningRateParam.isEmpty()) {
@@ -301,9 +301,9 @@ public class Auth extends HttpServlet {
         System.out.println(learningRateParam);
         System.out.println(learningRate);
         
-        boolean saveRequest = Boolean.valueOf(PropertiesService.getPropertyValue("save_requests"));
+        boolean saveRequest = Boolean.valueOf(PropertiesService.getDynamicPropertyValue("save_requests"));
         boolean updateTemplate = (updateTemplateParam == null || updateTemplateParam.isEmpty()) ?
-                Boolean.valueOf(PropertiesService.getPropertyValue("update_template")) : Boolean.parseBoolean(updateTemplateParam);
+                Boolean.valueOf(PropertiesService.getDynamicPropertyValue("update_template")) : Boolean.parseBoolean(updateTemplateParam);
 
         if (saveRequest) {
             saveRequest(request);
@@ -379,7 +379,7 @@ public class Auth extends HttpServlet {
         
         // TODO: Refactor
         ClassificationResult classificationResult = getPredictedThreshold(statSessions, user);
-        double threshold = Boolean.parseBoolean(isTest) ? Double.parseDouble(thresholdParam) : CLASS_PREDICTION_THRESHOLD; 
+        double threshold = Boolean.parseBoolean(isTest) ? Double.parseDouble(thresholdParam) : Double.parseDouble(PropertiesService.getDynamicPropertyValue("threshold")); 
         logger.info(String.format("User: %s; Threshold: %f; Prob: %f", user.getLogin(), threshold, classificationResult.getProbability()));
         boolean isExpectedClass = isThresholdAccepted(classificationResult, threshold);
         if (isExpectedClass) {

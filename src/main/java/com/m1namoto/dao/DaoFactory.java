@@ -1,12 +1,6 @@
 package com.m1namoto.dao;
 
-import org.hibernate.Session;
-
 public class DaoFactory {
-
-    private Session createSession() {
-        return HibernateUtil.getSessionFactory().openSession();
-    }
 
     public static EventsDao getEventsDAO() {
         return new EventsDao(HibernateUtil.getSessionFactory());

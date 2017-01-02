@@ -31,14 +31,14 @@ public class Session extends DomainSuperClass implements Serializable {
     @Transient
     private String name;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Transient
     private List<Event> events = new ArrayList<Event>();
 
-    @OneToMany(mappedBy="session", fetch=FetchType.EAGER)
+    @OneToMany(mappedBy="session", fetch=FetchType.LAZY)
     @Cascade({CascadeType.DELETE})
     private List<Feature> features = new ArrayList<Feature>();
 

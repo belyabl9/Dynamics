@@ -15,9 +15,8 @@ import org.apache.log4j.Logger;
 import com.google.gson.annotations.Expose;
 import com.m1namoto.service.EventsService;
 import com.m1namoto.service.FeatureSamplesService;
-import com.m1namoto.service.FeaturesService;
 import com.m1namoto.service.FeaturesSample;
-import com.m1namoto.service.SessionsService;
+import com.m1namoto.service.FeaturesService;
 import com.m1namoto.utils.ReleasePressPair;
 
 @Entity

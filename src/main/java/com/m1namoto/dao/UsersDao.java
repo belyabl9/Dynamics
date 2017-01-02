@@ -20,11 +20,10 @@ public class UsersDao extends GenericDAO<User> {
     
     public List<User> getList(int userType) {
         String hql = "FROM User where userType = :userType";
-        Session session = getFactory().openSession();
+        Session session = getFactory().getCurrentSession();
         Query query = session.createQuery(hql);
         query.setString("userType", String.valueOf(userType));
         List<User> users = query.list();
-        session.close();
         
         return users;
     }
@@ -34,7 +33,7 @@ public class UsersDao extends GenericDAO<User> {
     		return null;
     	}
     	String hql = "FROM User where login = :login";
-    	Query query = getFactory().openSession().createQuery(hql);
+    	Query query = getFactory().getCurrentSession().createQuery(hql);
     	query.setString("login", login);
     	
     	List<User> results = query.list(); 
@@ -47,12 +46,9 @@ public class UsersDao extends GenericDAO<User> {
     }
     
     public void deleteAll() {
-        Session session = getFactory().openSession();
-        session.getTransaction().begin();
+        Session session = getFactory().getCurrentSession();
         String hql = "DELETE FROM User";
         Query query = session.createQuery(hql);
         query.executeUpdate();
-        session.getTransaction().commit();
-        session.close();
     }
 }

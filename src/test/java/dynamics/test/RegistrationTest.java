@@ -25,8 +25,8 @@ import com.m1namoto.utils.Utils;
 
 public class RegistrationTest {
 
-    private final static String regRequestsPath = PropertiesService.getPropertyValue("saved_reg_requests_path");
-    private final static int learingRate = Integer.parseInt(PropertiesService.getPropertyValue("learning_rate"));
+    private final static String regRequestsPath = PropertiesService.getDynamicPropertyValue("saved_reg_requests_path");
+    private final static int learingRate = Integer.parseInt(PropertiesService.getDynamicPropertyValue("learning_rate"));
     
     @BeforeClass 
     public static void setUpClass() {

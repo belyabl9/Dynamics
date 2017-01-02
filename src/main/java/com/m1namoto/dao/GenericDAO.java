@@ -34,18 +34,14 @@ public abstract class GenericDAO<T extends DomainSuperClass> {
     }
 
     public T findById(long id) throws PersistenceException {
-        Session session = factory.openSession();
-        session.getTransaction().begin();
+        Session session = getFactory().getCurrentSession();
         T savedEntity = null;
         try {
             savedEntity = (T) session.get(persistentClass, id);
-            session.getTransaction().commit();
         } catch (Exception e) {
             e.printStackTrace();
-            session.getTransaction().rollback();
-        } finally {
-            session.close();
         }
+
         return savedEntity;
     }
 
@@ -53,25 +49,19 @@ public abstract class GenericDAO<T extends DomainSuperClass> {
         if (entity == null) {
             throw new PersistenceException("Entity for deleting cannot be null!");
         }
-        Session session = factory.openSession();
-        session.getTransaction().begin();
+        Session session = getFactory().getCurrentSession();
         try {
             session.delete(entity);
-            session.getTransaction().commit();
         } catch (Exception e) {
-            session.getTransaction().rollback();
             throw new PersistenceException(e);
-        } finally {
-            session.close();
         }
     }
 
     public T save(T entity) throws PersistenceException {
         if (entity == null) {
-            throw new PersistenceException("Entity for saving cannot be null!");
+            throw new PersistenceException("Entity for saving cannot be null");
         }
-        Session session = factory.openSession();
-        session.getTransaction().begin();
+        Session session = getFactory().getCurrentSession();
         T savedEntity = null;
         try {
             if (entity.getId() == 0) {
@@ -80,21 +70,17 @@ public abstract class GenericDAO<T extends DomainSuperClass> {
             } else {
                 savedEntity = (T) session.merge(entity);
             }
-            session.getTransaction().commit();
         } catch (Exception e) {
             e.printStackTrace();
-            session.getTransaction().rollback();
             throw new PersistenceException(e);
-        } finally {
-            session.close();
         }
+
         return savedEntity;
     }
 
     protected <REZ> REZ executeQuery(String queryOrQueryName,
             boolean singleResult, Map<String, Object> args) throws PersistenceException {
-        Session session = factory.openSession();
-        session.getTransaction().begin();
+        Session session = getFactory().getCurrentSession();
         REZ result;
         Query q;
         try {
@@ -109,13 +95,10 @@ public abstract class GenericDAO<T extends DomainSuperClass> {
             } else {
                 result = (REZ) q.list();
             }
-            session.getTransaction().commit();
         } catch (Exception e) {
-            session.getTransaction().rollback();
             throw new PersistenceException(e);
-        } finally {
-            session.close();
         }
+
         return result;
     }
 

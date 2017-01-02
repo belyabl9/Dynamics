@@ -33,7 +33,7 @@ public class FeaturesService {
     private static Map<Long, Map<Integer, List<YFeature>>> userYFeaturesMap;
 
     public static boolean includeMobileFeatures() {
-        return Boolean.valueOf(PropertiesService.getPropertyValue("mobile_features"));
+        return Boolean.valueOf(PropertiesService.getDynamicPropertyValue("mobile_features"));
     }
     
 	public static double getMeanTimeBetweenKeys(List<Event> events) throws Exception {

@@ -30,6 +30,9 @@
                 </li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
+                <li class="${activeMenuItem eq 'settings' ? "active" : ""}">
+                    <a href="/page/settings">Settings</a>
+                </li>
                 <li>
                     <a href="/logout">Sign Out</a>
                 </li>

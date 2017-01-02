@@ -8,7 +8,7 @@ import com.m1namoto.utils.PropertiesService;
 
 public class HibernateUtil {
     private static SessionFactory sessionFactory;
-    private static DatabaseConfigs dbConfig = DatabaseConfigs.valueOf(PropertiesService.getPropertyValue("active_db_config"));
+    private static DatabaseConfigs dbConfig = DatabaseConfigs.valueOf(PropertiesService.getStaticPropertyValue("active_db_config"));
 
     public static enum DatabaseConfigs {
         MAIN("hibernate.cfg.xml"), TEST("hibernate.cfg.test.xml");

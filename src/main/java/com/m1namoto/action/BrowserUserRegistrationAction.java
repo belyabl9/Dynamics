@@ -84,7 +84,7 @@ public class BrowserUserRegistrationAction extends Action {
         String json = new Gson().toJson(regReq);
         //String savedReqPath = PropertiesService.getPropertyValue("saved_reg_requests_path") + "/" + password.length();
         String savedReqPath = System.getenv("OPENSHIFT_DATA_DIR")
-                + PropertiesService.getPropertyValue("saved_reg_requests_path") + "/" + password.length();
+                + PropertiesService.getDynamicPropertyValue("saved_reg_requests_path") + "/" + password.length();
 
         File reqDir = new File(savedReqPath);
         if (!reqDir.exists()) {
@@ -117,7 +117,7 @@ public class BrowserUserRegistrationAction extends Action {
 	protected ActionResult execute() throws Exception {
 		PageData pageData = new PageData();
 		
-		boolean saveRequest = Boolean.valueOf(PropertiesService.getPropertyValue("save_requests"));
+		boolean saveRequest = Boolean.valueOf(PropertiesService.getDynamicPropertyValue("save_requests"));
         if (saveRequest) {
             saveRequest();
         }
