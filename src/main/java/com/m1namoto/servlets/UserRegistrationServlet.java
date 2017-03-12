@@ -70,7 +70,7 @@ public class UserRegistrationServlet extends HttpServlet {
         return statSessions;
     }
 	
-    private void saveSessionEvents(List<Session> statSessions) {
+    private void saveSessionEvents(List<Session> statSessions) throws Exception {
         logger.debug("Save session events");
         logger.debug(statSessions);
         for (Session session : statSessions) {
@@ -151,7 +151,13 @@ public class UserRegistrationServlet extends HttpServlet {
         Type type = new TypeToken<Map<String, List<Event>>>(){}.getType();
         Map<String, List<Event>> sessionsMap = new Gson().fromJson(stat, type);
         List<Session> statSessions = prepareSessions(sessionsMap, user);
-        saveSessionEvents(statSessions);
+
+        try {
+            saveSessionEvents(statSessions);
+        } catch (Exception e) {
+            logger.error(e);
+            throw new ServletException();
+        }
         
         user.setAuthenticatedCnt(user.getAuthenticatedCnt() + 1);
         UsersService.save(user);

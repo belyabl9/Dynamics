@@ -2,6 +2,7 @@ var Dynamics = (function() {
 
 	var statistics = [];
 	var currentId;
+	var ENTER_KEY_CODE = 13;
 	
 	var makeId = function() {
 	    var text = "";
@@ -21,7 +22,10 @@ var Dynamics = (function() {
 			    $("#" + formName + " input[name=" + name + "]").keydown(function(event){
 			    
 			      var code;
-		    	  if(event.keyCode!=16){ // If the pressed key is anything other than SHIFT
+			      if (event.keyCode === ENTER_KEY_CODE) {
+			    	  return;
+			      }
+		    	  if(event.keyCode != 16) { // If the pressed key is anything other than SHIFT
 		    	        var c = String.fromCharCode(event.keyCode);
 		    	        if(event.shiftKey){ // If the SHIFT key is down, return the ASCII code for the capital letter
 		    	            code = event.keyCode;

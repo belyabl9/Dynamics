@@ -21,10 +21,11 @@ import com.google.gson.annotations.Expose;
 @Inheritance(strategy=InheritanceType.JOINED)
 @OnDelete(action = OnDeleteAction.CASCADE)
 public abstract class Feature extends DomainSuperClass implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-	@Expose
+    @Expose
     @Column(name = "value")
-    private double value;
+    protected double value;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

@@ -10,12 +10,18 @@ public class HibernateUtil {
     private static SessionFactory sessionFactory;
     private static DatabaseConfigs dbConfig = DatabaseConfigs.valueOf(PropertiesService.getStaticPropertyValue("active_db_config"));
 
+    private static final String MAIN_DB_CONFIG_FILE = "hibernate.cfg.xml";
+    private static final String TEST_DB_CONFIG_FILE = "hibernate.cfg.test.xml";
+    
     public static enum DatabaseConfigs {
-        MAIN("hibernate.cfg.xml"), TEST("hibernate.cfg.test.xml");
+        MAIN(MAIN_DB_CONFIG_FILE), TEST(TEST_DB_CONFIG_FILE);
+        
         private String stringValue;
+        
         private DatabaseConfigs(String stringValue) {
             this.stringValue = stringValue;
         }
+        
         public String toString() {
             return stringValue;
         }

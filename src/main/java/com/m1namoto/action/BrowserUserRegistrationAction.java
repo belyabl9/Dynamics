@@ -53,7 +53,7 @@ public class BrowserUserRegistrationAction extends Action {
         return statSessions;
     }
     
-    private void saveSessionEvents(List<Session> statSessions) {
+    private void saveSessionEvents(List<Session> statSessions) throws Exception {
         logger.debug("Save session events");
         logger.debug(statSessions);
         for (Session session : statSessions) {

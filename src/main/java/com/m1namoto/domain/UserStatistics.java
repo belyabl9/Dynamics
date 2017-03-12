@@ -31,5 +31,4 @@ public class UserStatistics {
         this.features = features;
     }
 	
-	
 }

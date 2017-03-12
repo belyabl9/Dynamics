@@ -8,13 +8,15 @@ import javax.persistence.Table;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import com.m1namoto.service.AnomalyDetection;
+import com.m1namoto.anomalyDetection.AnomalyDetection;
 
 @Entity
 @Table(name="ReleasePressFeatures")  
 @PrimaryKeyJoinColumn(name="feature_id")
 @OnDelete(action = OnDeleteAction.CASCADE)
 public class ReleasePressFeature extends Feature implements AnomalyDetection {
+
+    private static final long serialVersionUID = 1L;
 
     @Column(name = "releaseCode")
     private int releaseCode;
@@ -53,4 +55,31 @@ public class ReleasePressFeature extends Feature implements AnomalyDetection {
         return String.format("ReleasePressFeature[releaseCode=%d; pressCode=%d; value=%.2f]", releaseCode, pressCode, getValue());
     }
 
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + pressCode;
+        result = prime * result + releaseCode;
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ReleasePressFeature other = (ReleasePressFeature) obj;
+        if (pressCode != other.pressCode)
+            return false;
+        if (releaseCode != other.releaseCode)
+            return false;
+        if (value != other.value)
+            return false;
+        return true;
+    }
+    
 }

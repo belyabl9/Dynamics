@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.persistence.PersistenceException;
 
+import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -12,12 +13,15 @@ import org.hibernate.SessionFactory;
 import com.m1namoto.domain.DomainSuperClass;
 
 public abstract class GenericDAO<T extends DomainSuperClass> {
-
+    final static Logger logger = Logger.getLogger(GenericDAO.class);
+    
     private SessionFactory factory;
     protected Class<T> persistentClass;
 
     private static final String QUERY_SELECT_ALL = "from %s";
 
+    private static final String ENTITY_CAN_NOT_BE_NULL = "Entity can not be null";
+    
     public GenericDAO(Class<T> persistentClass, SessionFactory factory) {
         super();
         this.persistentClass = persistentClass;
@@ -28,18 +32,18 @@ public abstract class GenericDAO<T extends DomainSuperClass> {
         return this.factory;
     }
 
-
     public Collection<T> findAll() throws PersistenceException {
         return executeQuery(String.format(QUERY_SELECT_ALL, persistentClass.getSimpleName()), false, null);
     }
 
+    @SuppressWarnings("unchecked")
     public T findById(long id) throws PersistenceException {
         Session session = getFactory().getCurrentSession();
         T savedEntity = null;
         try {
             savedEntity = (T) session.get(persistentClass, id);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e);
         }
 
         return savedEntity;
@@ -47,7 +51,7 @@ public abstract class GenericDAO<T extends DomainSuperClass> {
 
     public void delete(T entity) throws PersistenceException {
         if (entity == null) {
-            throw new PersistenceException("Entity for deleting cannot be null!");
+            throw new PersistenceException(ENTITY_CAN_NOT_BE_NULL);
         }
         Session session = getFactory().getCurrentSession();
         try {
@@ -57,9 +61,10 @@ public abstract class GenericDAO<T extends DomainSuperClass> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public T save(T entity) throws PersistenceException {
         if (entity == null) {
-            throw new PersistenceException("Entity for saving cannot be null");
+            throw new PersistenceException(ENTITY_CAN_NOT_BE_NULL);
         }
         Session session = getFactory().getCurrentSession();
         T savedEntity = null;
@@ -78,6 +83,7 @@ public abstract class GenericDAO<T extends DomainSuperClass> {
         return savedEntity;
     }
 
+    @SuppressWarnings("unchecked")
     protected <REZ> REZ executeQuery(String queryOrQueryName,
             boolean singleResult, Map<String, Object> args) throws PersistenceException {
         Session session = getFactory().getCurrentSession();
@@ -101,5 +107,4 @@ public abstract class GenericDAO<T extends DomainSuperClass> {
 
         return result;
     }
-
 }

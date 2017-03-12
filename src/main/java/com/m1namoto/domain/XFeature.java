@@ -13,6 +13,8 @@ import org.hibernate.annotations.OnDeleteAction;
 @PrimaryKeyJoinColumn(name="feature_id")
 @OnDelete(action = OnDeleteAction.CASCADE)
 public class XFeature extends Feature {
+    private static final long serialVersionUID = 1L;
+
     public XFeature() {}
     
     @Column(name = "code")

@@ -7,8 +7,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
-import com.m1namoto.etc.AuthRequest;
-
 public class Utils {
     
     public static double mean(List<Double> values) {

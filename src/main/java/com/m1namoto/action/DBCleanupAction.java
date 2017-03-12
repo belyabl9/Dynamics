@@ -14,7 +14,7 @@ public class DBCleanupAction extends Action {
         EventsService.deleteAll();
         UsersService.deleteAll();
 
-        FeaturesService.clearFeaturesMaps();
+        FeaturesService.clearFeatureMaps();
         
         return createAjaxResult(null);
     }

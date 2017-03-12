@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * Abstraction of configuration in .arff format
+ */
 public class Configuration {
 	private String name;
 

@@ -10,6 +10,8 @@ import org.hibernate.annotations.GenericGenerator;
 
 @MappedSuperclass
 public class DomainSuperClass implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(generator="increment")
     @GenericGenerator(name="increment", strategy = "increment")

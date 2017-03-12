@@ -15,13 +15,13 @@ import org.apache.log4j.Logger;
 import com.google.gson.annotations.Expose;
 import com.m1namoto.service.EventsService;
 import com.m1namoto.service.FeatureSamplesService;
-import com.m1namoto.service.FeaturesSample;
 import com.m1namoto.service.FeaturesService;
-import com.m1namoto.utils.ReleasePressPair;
 
 @Entity
 @Table(name = "Users")
 public class User extends DomainSuperClass implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     final static Logger logger = Logger.getLogger(User.class);
 
     private final static int ORIGIN_HOLD_FEATURES_THRESHOLD = 100;
@@ -134,7 +134,11 @@ public class User extends DomainSuperClass implements Serializable {
 		double keyTime = 0,
 			   n = 0;
 		for (Session session : sessions) {
-			keyTime += FeaturesService.getMeanKeyPressTime(session.getEvents());
+			try {
+                keyTime += FeaturesService.getMeanKeyPressTime(session.getEvents());
+            } catch (Exception e) {
+                keyTime += 0;
+            }
 			n++;
 		}
 		

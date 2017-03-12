@@ -12,30 +12,53 @@ import com.m1namoto.domain.User;
 
 public class SessionsService {
 	
+    /**
+     * Returns a list of sessions
+     * @return List of sessions
+     */
     public static List<Session> getList() {
         return DaoFactory.getSessionsDAO().getList();
     }
 
+    /**
+     * Returns a list of user's sessions
+     * @return List of user's sessions
+     */
     public static List<Session> getUserSessions(User user) {
         return DaoFactory.getSessionsDAO().getUserSessions(user);
     }
-    
+
+    /**
+     * Saves a session
+     * @return Saved session
+     */
     public static Session save(Session session) {
         return DaoFactory.getSessionsDAO().save(session);
     }
 
+    /**
+     * Deletes user's sessions
+     */
     public static void deleteUserSessions(User user) {
         DaoFactory.getSessionsDAO().deleteUserSessions(user);
     }
+    
     
     public static void deleteById(long id) {
         DaoFactory.getSessionsDAO().deleteSessionById(id);
     }
     
+    /**
+     * Deletes all sessions
+     */
     public static void deleteAll() {
         DaoFactory.getSessionsDAO().deleteAll();
     }
     
+    /**
+     * Returns a map of sessions. Each sessions is representer by unique id
+     * @return Map of sessions
+     */
     private static Map<String, Session> getSessionsMap() {
         Map<String, Session> sessionsMap = new HashMap<String, Session>();
         for (Event event : EventsService.getList()) {
@@ -51,6 +74,10 @@ public class SessionsService {
         return sessionsMap;
     }
 
+    /**
+     * Returns a map of sessions grouped by user
+     * @return Map of sessions grouped by user
+     */
     public static Map<Long, List<Session>> getSessionsPerUser() {
         Map<Long, List<Session>> sessionsPerUserMap = new HashMap<Long, List<Session>>();
         Map<String, Session> sessionsMap = getSessionsMap();

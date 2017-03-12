@@ -17,11 +17,13 @@ import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.log4j.Logger;
 
-import com.m1namoto.servlets.Auth;
-
 public class PropertiesService {
-    private final static Logger logger = Logger.getLogger(Auth.class);
+    private final static Logger logger = Logger.getLogger(PropertiesService.class);
     private final static String staticPropFileName = "config.properties";
+    
+    private final static String APP_SETTINGS_PATH_PARAM = "app_settings_path";
+    
+    private static Configuration dynamicConfiguration;
     
     private static Properties getStaticProperties() {
         InputStream inputStream = null;
@@ -54,8 +56,6 @@ public class PropertiesService {
         return properties.getProperty(propName);
     }
     
-    private static Configuration dynamicConfiguration;
-
     public static String getDynamicPropertyValue(String propName) {
         if (dynamicConfiguration == null) {
             loadDynamicConfiguration();
@@ -85,8 +85,8 @@ public class PropertiesService {
         FileBasedConfigurationBuilder<FileBasedConfiguration> builder =
             new FileBasedConfigurationBuilder<FileBasedConfiguration>(PropertiesConfiguration.class)
             .configure(params.properties()
-            .setFile(new File(getStaticPropertyValue("app_settings_path"))));
-        
+            .setFile(new File(getStaticPropertyValue(APP_SETTINGS_PATH_PARAM))));
+
         Configuration conf = null;
         try {
             conf = builder.getConfiguration();
@@ -95,7 +95,7 @@ public class PropertiesService {
             }
             builder.save();
         } catch (ConfigurationException e) {
-            e.printStackTrace();
+            logger.error(e);
         }
 
         dynamicConfiguration = conf;
@@ -110,7 +110,7 @@ public class PropertiesService {
         FileBasedConfigurationBuilder<FileBasedConfiguration> builder =
             new FileBasedConfigurationBuilder<FileBasedConfiguration>(PropertiesConfiguration.class)
             .configure(params.properties()
-            .setFile(new File(getStaticPropertyValue("app_settings_path"))));
+            .setFile(new File(getStaticPropertyValue(APP_SETTINGS_PATH_PARAM))));
 
         try {
             dynamicConfiguration = builder.getConfiguration();

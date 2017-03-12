@@ -6,11 +6,19 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import com.m1namoto.utils.ReleasePressPair;
+import com.m1namoto.domain.FeaturesSample;
+import com.m1namoto.domain.ReleasePressPair;
 
 public class FeatureSamplesService {
     final static Logger logger = Logger.getLogger(FeatureSamplesService.class);
 
+    /**
+     * Returns a sample of hold features by string
+     * from a map of feature values grouped by key code
+     * @param holdFeaturesPerCode - Map of feature values grouped by key code
+     * @param password - String which is iterated by symbols to get corresponding features
+     * @return Hold features sample
+     */
     public static FeaturesSample getHoldFeaturesSampleByString(Map<Integer, List<Double>> holdFeaturesPerCode, String password) {
         FeaturesSample sample = new FeaturesSample();
 
@@ -35,6 +43,13 @@ public class FeatureSamplesService {
         return sample;
     }
     
+    /**
+     * Returns a sample of release-press features by string
+     * from a map of feature values grouped by key code
+     * @param holdFeaturesPerCode - Map of feature values grouped by release-press key codes pair
+     * @param password - String which is iterated by symbols to get corresponding features
+     * @return Release-press features sample
+     */
     public static FeaturesSample getReleasePressFeaturesSampleByString(
             Map<ReleasePressPair, List<Double>> releasePressFeaturesPerCode, String password) {
        

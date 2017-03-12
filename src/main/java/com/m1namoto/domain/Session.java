@@ -23,6 +23,7 @@ import com.m1namoto.service.FeaturesService;
 @Entity
 @Table(name = "Sessions")
 public class Session extends DomainSuperClass implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     @Column(name = "date")
     @Type(type="timestamp")
@@ -86,7 +87,7 @@ public class Session extends DomainSuperClass implements Serializable {
         return date;
     }
     
-    public List<HoldFeature> getHoldFeaturesFromEvents() {
+    public List<HoldFeature> getHoldFeaturesFromEvents() throws Exception {
         return FeaturesService.getHoldFeatures(events);
     }
     
@@ -102,7 +103,7 @@ public class Session extends DomainSuperClass implements Serializable {
         return FeaturesService.getYFeatures(events);
     }
 
-    public List<Feature> getFeaturesFromEvents() {
+    public List<Feature> getFeaturesFromEvents() throws Exception {
         List<Feature> features = new ArrayList<Feature>();
         features.addAll(getHoldFeaturesFromEvents());
         features.addAll(getReleasePressFeaturesFromEvents());

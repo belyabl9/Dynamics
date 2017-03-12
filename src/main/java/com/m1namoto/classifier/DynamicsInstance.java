@@ -2,6 +2,10 @@ package com.m1namoto.classifier;
 
 import java.util.List;
 
+/**
+ * Abstraction for classification instance
+ * which has a list of feature values and a class value
+ */
 public class DynamicsInstance {
 	private List<Double> values;
 	private long classValue;

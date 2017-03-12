@@ -14,7 +14,8 @@ import com.google.gson.annotations.SerializedName;
 @Entity
 @Table(name = "Events")
 public class Event extends DomainSuperClass implements Serializable {
-    
+    private static final long serialVersionUID = 1L;
+
     public static String ACTION_PRESS = "press";
     public static String ACTION_RELEASE = "release";
     

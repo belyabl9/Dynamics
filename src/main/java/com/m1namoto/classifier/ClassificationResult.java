@@ -8,6 +8,11 @@ public class ClassificationResult {
         this.probability = probability;
     }
     
+    /**
+     * Returns the similarity percentage in the rage [0-1].
+     * 1 - absolute similarity
+     * @return Similarity percentage
+     */
     public double getProbability() {
         return probability;
     }
