@@ -34,24 +34,6 @@ public class Event extends DomainSuperClass implements Serializable {
     
     @Column(name = "orientation")
     private String orientation;
-    
-    @Column(name = "x")
-    private double x;
-    
-    @Column(name = "y")
-    private double y;
-    
-    @Column(name = "x_acceleration")
-    @SerializedName("x_acceleration")
-    private double accelerationX;
-    
-    @Column(name = "y_acceleration")
-    @SerializedName("y_acceleration")
-    private double accelerationY;
-    
-    @Column(name = "z_acceleration")
-    @SerializedName("z_acceleration")
-    private double accelerationZ;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -63,30 +45,6 @@ public class Event extends DomainSuperClass implements Serializable {
 
     public void setOrientation(String orientation) {
         this.orientation = orientation;
-    }
-
-    public double getAccelerationX() {
-        return accelerationX;
-    }
-
-    public void setAccelerationX(double accelerationX) {
-        this.accelerationX = accelerationX;
-    }
-
-    public double getAccelerationY() {
-        return accelerationY;
-    }
-
-    public void setAccelerationY(double accelerationY) {
-        this.accelerationY = accelerationY;
-    }
-
-    public double getAccelerationZ() {
-        return accelerationZ;
-    }
-
-    public void setAccelerationZ(double accelerationZ) {
-        this.accelerationZ = accelerationZ;
     }
 
     public int getCode() {
@@ -103,22 +61,6 @@ public class Event extends DomainSuperClass implements Serializable {
 
     public void setAction(String action) {
         this.action = action;
-    }
-
-    public double getX() {
-        return x;
-    }
-
-    public void setX(double x) {
-        this.x = x;
-    }
-
-    public double getY() {
-        return y;
-    }
-
-    public void setY(double y) {
-        this.y = y;
     }
     
     public String getSession() {

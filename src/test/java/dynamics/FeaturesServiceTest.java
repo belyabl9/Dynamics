@@ -5,6 +5,7 @@ import java.lang.reflect.Type;
 import java.text.DecimalFormat;
 import java.util.List;
 
+import com.m1namoto.features.FeatureExtractor;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,17 +23,17 @@ public class FeaturesServiceTest {
     public void test() throws Exception {
         List<Event> events = getEvents();
 
-        Assert.assertArrayEquals(getKeyPressTimeList().toArray(), FeaturesService.getKeyPressTimeList(events).toArray());
-        Assert.assertArrayEquals(getTimeBetweenKeysList().toArray(), FeaturesService.getTimeBetweenKeysList(events).toArray());
+        Assert.assertArrayEquals(getKeyPressTimeList().toArray(), FeatureExtractor.getInstance().getKeyPressTimeList(events).toArray());
+        Assert.assertArrayEquals(getTimeBetweenKeysList().toArray(), FeatureExtractor.getInstance().getTimeBetweenKeysList(events).toArray());
         
-        Assert.assertArrayEquals(getHoldFeatures().toArray(), FeaturesService.getHoldFeatures(events).toArray());
-        Assert.assertArrayEquals(getReleasePressFeatures().toArray(), FeaturesService.getReleasePressFeatures(events).toArray());
+        Assert.assertArrayEquals(getHoldFeatures().toArray(), FeatureExtractor.getInstance().getHoldFeatures(events).toArray());
+        Assert.assertArrayEquals(getReleasePressFeatures().toArray(), FeatureExtractor.getInstance().getReleasePressFeatures(events).toArray());
         
         String expectedMeanKeyPressTime = "105.19";
-        Assert.assertEquals(expectedMeanKeyPressTime, new DecimalFormat("###.##").format(FeaturesService.getMeanKeyPressTime(events)) );
+        Assert.assertEquals(expectedMeanKeyPressTime, new DecimalFormat("###.##").format(FeatureExtractor.getInstance().getMeanKeyPressTime(events)) );
         
         String expectedMeanTimeBetweenKeys = "100.05";
-        Assert.assertEquals(expectedMeanTimeBetweenKeys, new DecimalFormat("###.##").format(FeaturesService.getMeanTimeBetweenKeys(events)) );
+        Assert.assertEquals(expectedMeanTimeBetweenKeys, new DecimalFormat("###.##").format(FeatureExtractor.getInstance().getMeanTimeBetweenKeys(events)) );
         
         
     

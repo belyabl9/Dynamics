@@ -12,6 +12,13 @@ import com.m1namoto.domain.ReleasePressPair;
 public class FeatureSamplesService {
     final static Logger logger = Logger.getLogger(FeatureSamplesService.class);
 
+    private static final FeatureSamplesService INSTANCE = new FeatureSamplesService();
+    private FeatureSamplesService() {}
+
+    public static FeatureSamplesService getInstance() {
+        return INSTANCE;
+    }
+
     /**
      * Returns a sample of hold features by string
      * from a map of feature values grouped by key code
@@ -19,7 +26,7 @@ public class FeatureSamplesService {
      * @param password - String which is iterated by symbols to get corresponding features
      * @return Hold features sample
      */
-    public static FeaturesSample getHoldFeaturesSampleByString(Map<Integer, List<Double>> holdFeaturesPerCode, String password) {
+    public FeaturesSample getHoldFeaturesSampleByString(Map<Integer, List<Double>> holdFeaturesPerCode, String password) {
         FeaturesSample sample = new FeaturesSample();
 
         if (holdFeaturesPerCode == null) {
@@ -50,7 +57,7 @@ public class FeatureSamplesService {
      * @param password - String which is iterated by symbols to get corresponding features
      * @return Release-press features sample
      */
-    public static FeaturesSample getReleasePressFeaturesSampleByString(
+    public FeaturesSample getReleasePressFeaturesSampleByString(
             Map<ReleasePressPair, List<Double>> releasePressFeaturesPerCode, String password) {
        
         FeaturesSample sample = new FeaturesSample();
@@ -82,25 +89,5 @@ public class FeatureSamplesService {
         
         return sample;
     }
-    
-    public static FeaturesSample getCoordFeaturesSampleByString(Map<Integer, List<Double>> coordFeaturesPerCode, String password) {
-        FeaturesSample sample = new FeaturesSample();
 
-        List<Double> coordFeaturesSample = new ArrayList<Double>();
-        for (char code : password.toCharArray()) {
-            List<Double> featureValues = coordFeaturesPerCode.get((int)code);
-            Double coordFeatureVal = null;
-            if ((featureValues != null) && (featureValues.size() > 0)) {
-                coordFeatureVal = featureValues.remove(0);
-                sample.setEmpty(false);
-            }
-            coordFeaturesSample.add(coordFeatureVal);
-        }
-        
-        sample.setFeatures(coordFeaturesSample);
-        
-        return sample;
-    }
-    
-    
 }

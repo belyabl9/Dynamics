@@ -12,7 +12,7 @@ import com.m1namoto.utils.PropertiesService;
 import com.m1namoto.utils.Utils;
 
 public class AuthThread extends Thread {
-    private final static String authRequestsPath = PropertiesService.getDynamicPropertyValue("saved_auth_requests_path");
+    private final static String authRequestsPath = PropertiesService.getInstance().getDynamicPropertyValue("saved_auth_requests_path");
     
     private double leftBoundary;
     private double rightBoundary;

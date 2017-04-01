@@ -14,6 +14,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import com.m1namoto.features.FeatureExtractor;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Type;
@@ -88,29 +89,17 @@ public class Session extends DomainSuperClass implements Serializable {
     }
     
     public List<HoldFeature> getHoldFeaturesFromEvents() throws Exception {
-        return FeaturesService.getHoldFeatures(events);
+        return FeatureExtractor.getInstance().getHoldFeatures(events);
     }
     
     public List<ReleasePressFeature> getReleasePressFeaturesFromEvents() {
-        return FeaturesService.getReleasePressFeatures(events);
-    }
-    
-    public List<XFeature> getXFeaturesFromEvents() {
-        return FeaturesService.getXFeatures(events);
-    }
-
-    public List<YFeature> getYFeaturesFromEvents() {
-        return FeaturesService.getYFeatures(events);
+        return FeatureExtractor.getInstance().getReleasePressFeatures(events);
     }
 
     public List<Feature> getFeaturesFromEvents() throws Exception {
         List<Feature> features = new ArrayList<Feature>();
         features.addAll(getHoldFeaturesFromEvents());
         features.addAll(getReleasePressFeaturesFromEvents());
-        if (FeaturesService.includeMobileFeatures()) {
-            features.addAll(getXFeaturesFromEvents());
-            features.addAll(getYFeaturesFromEvents());
-        }
         
         return features;
     }

@@ -18,7 +18,7 @@ import com.m1namoto.utils.Utils;
 
 public class AuthTest {
 
-    private final static String authRequestsPath = PropertiesService.getDynamicPropertyValue("saved_auth_requests_path");
+    private final static String authRequestsPath = PropertiesService.getInstance().getDynamicPropertyValue("saved_auth_requests_path");
     
     private double getFRR(double threshold) throws Exception {
         File requestsRoot = new File(authRequestsPath);

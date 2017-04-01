@@ -1,5 +1,8 @@
 package com.m1namoto.classifier;
 
+import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 
 /**
@@ -7,20 +10,16 @@ import java.util.List;
  * which has a list of feature values and a class value
  */
 public class DynamicsInstance {
-	private List<Double> values;
+	private final List<Double> values;
 	private long classValue;
 	
-    public DynamicsInstance(List<Double> values) {
-        this.values = values; 
+    public DynamicsInstance(@NotNull List<Double> values) {
+        this.values = ImmutableList.copyOf(values);
     }
     
 	public DynamicsInstance(List<Double> values, long classValue) {
 		this(values);
 		this.classValue = classValue;
-	}
-	
-	public void setValues(List<Double> values) {
-		this.values = values;
 	}
 	
 	public List<Double> getValues() {

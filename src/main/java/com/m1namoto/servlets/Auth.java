@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.m1namoto.features.FeatureExtractor;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -120,10 +121,6 @@ public class Auth extends HttpServlet {
         for (Session session : sessions) {
             sessionHoldFeatures.addAll(session.getHoldFeaturesFromEvents());
             sessionReleasePressFeatures.addAll(session.getReleasePressFeaturesFromEvents());
-            if (FeaturesService.includeMobileFeatures()) {
-                sessionXFeatures.addAll(session.getXFeaturesFromEvents());
-                sessionYFeatures.addAll(session.getYFeaturesFromEvents());
-            }
         }
 
         List<Double> featureValues = new ArrayList<Double>();
@@ -154,24 +151,10 @@ public class Auth extends HttpServlet {
             }
         }
 
-        if (FeaturesService.includeMobileFeatures()) {
-            Map<Integer, List<XFeature>> xFeaturesPerCode = FeaturesService.getXFeaturesPerCode(sessionXFeatures);
-            for (char c : passwordCharacters) {
-                List<XFeature> featuresByCode = xFeaturesPerCode.get((int)c);
-                featureValues.add(featuresByCode.get(0).getValue());
-            }
-            
-            Map<Integer, List<YFeature>> yFeaturesPerCode = FeaturesService.getYFeaturesPerCode(sessionYFeatures);
-            for (char c : passwordCharacters) {
-                List<YFeature> featuresByCode = yFeaturesPerCode.get((int)c);
-                featureValues.add(featuresByCode.get(0).getValue());
-            }
-        }
-
         double meanKeyPressTimeSum = 0;
         for (Session session : sessions) {
             List<Event> events = session.getEvents();
-            meanKeyPressTimeSum += FeaturesService.getMeanKeyPressTime(events);
+            meanKeyPressTimeSum += FeatureExtractor.getInstance().getMeanKeyPressTime(events);
         }
         double meanKeyPressTime = sessions.size() == 0 ? 0 : meanKeyPressTimeSum / sessions.size();
         featureValues.add(meanKeyPressTime);
@@ -249,7 +232,7 @@ public class Auth extends HttpServlet {
         AuthRequest authReq = new AuthRequest(login, password, stat);
 
         String json = new Gson().toJson(authReq);
-        String savedReqPath = PropertiesService.getStaticPropertyValue(SAVED_AUTH_REQUESTS_PATH_PROP) + "/" + password.length();
+        String savedReqPath = PropertiesService.getInstance().getStaticPropertyValue(SAVED_AUTH_REQUESTS_PATH_PROP) + "/" + password.length();
         
         /* Should be used if app is deployed to OpenShift
            String savedReqPath = System.getenv(OPENSHIFT_DATA_DIR_VAR)
@@ -284,15 +267,15 @@ public class Auth extends HttpServlet {
         String stat = request.getParameter(REQ_STAT_PARAM);
 
         boolean isStolen = Boolean.parseBoolean(request.getParameter(REQ_IS_STOLEN_PARAM));
-        boolean saveRequest = Boolean.valueOf(PropertiesService.getDynamicPropertyValue(REQ_SAVE_REQUESTS_PARAM));
-        boolean updateTemplate = Boolean.valueOf(PropertiesService.getDynamicPropertyValue(REQ_UPDATE_TEMPLATE_PARAM));
+        boolean saveRequest = Boolean.valueOf(PropertiesService.getInstance().getDynamicPropertyValue(REQ_SAVE_REQUESTS_PARAM));
+        boolean updateTemplate = Boolean.valueOf(PropertiesService.getInstance().getDynamicPropertyValue(REQ_UPDATE_TEMPLATE_PARAM));
 
-        Double threshold = Double.valueOf(PropertiesService.getDynamicPropertyValue(REQ_THRESHOLD_PARAM));
+        Double threshold = Double.valueOf(PropertiesService.getInstance().getDynamicPropertyValue(REQ_THRESHOLD_PARAM));
         if (threshold == null) {
             threshold = CLASS_PREDICTION_THRESHOLD;
         }
 
-        Integer learningRate = Integer.valueOf(PropertiesService.getDynamicPropertyValue(REQ_LEARNING_RATE_PARAM));
+        Integer learningRate = Integer.valueOf(PropertiesService.getInstance().getDynamicPropertyValue(REQ_LEARNING_RATE_PARAM));
         if (learningRate == null) {
             learningRate = TRUSTED_AUTHENTICATION_LIMIT;
         }

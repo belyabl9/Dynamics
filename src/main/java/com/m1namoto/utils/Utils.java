@@ -1,5 +1,7 @@
 package com.m1namoto.utils;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -9,7 +11,11 @@ import java.util.Map;
 
 public class Utils {
     
-    public static double mean(List<Double> values) {
+    public static double mean(@NotNull List<Double> values) {
+        // protection against division by zero
+        if (values.isEmpty()) {
+            return 0;
+        }
         double sum = 0;
         int n = 0;
         for (int i = 0; i < values.size(); i++, n++) {

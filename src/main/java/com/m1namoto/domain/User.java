@@ -10,6 +10,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+import com.m1namoto.features.FeatureExtractor;
 import org.apache.log4j.Logger;
 
 import com.google.gson.annotations.Expose;
@@ -135,7 +136,7 @@ public class User extends DomainSuperClass implements Serializable {
 			   n = 0;
 		for (Session session : sessions) {
 			try {
-                keyTime += FeaturesService.getMeanKeyPressTime(session.getEvents());
+                keyTime += FeatureExtractor.getInstance().getMeanKeyPressTime(session.getEvents());
             } catch (Exception e) {
                 keyTime += 0;
             }
@@ -153,7 +154,7 @@ public class User extends DomainSuperClass implements Serializable {
 		double keyTime = 0,
 			   n = 0;
 		for (Session session : sessions) {
-			keyTime += FeaturesService.getMeanTimeBetweenKeys(session.getEvents());
+			keyTime += FeatureExtractor.getInstance().getMeanTimeBetweenKeys(session.getEvents());
 			n++;
 		}
 		
@@ -316,25 +317,17 @@ public class User extends DomainSuperClass implements Serializable {
         Map<ReleasePressPair, List<Double>> releasePressFeaturesByString = getReleasePressFeaturesByString(password);
         Map<Integer, List<Double>> xFeaturesByString = null;
         Map<Integer, List<Double>> yFeaturesByString = null;
-        if (FeaturesService.includeMobileFeatures()) {
-            xFeaturesByString = getXFeaturesByString(password);
-            yFeaturesByString = getYFeaturesByString(password);
-        }
         
         final int holdFeaturesMin = fullSample ? ORIGIN_HOLD_FEATURES_THRESHOLD : OTHER_HOLD_FEATURES_THRESHOLD;
         final int releasePressMin = fullSample ? ORIGIN_RELEASE_PRESS_FEATURES_THRESHOLD : OTHER_RELEASE_PRESS_FEATURES_THRESHOLD;
         
         boolean isEmptySample = false;
         while (!isEmptySample) {
-            FeaturesSample holdFeaturesSample = FeatureSamplesService.getHoldFeaturesSampleByString(holdFeaturesByString, password);
-            FeaturesSample releasePressFeaturesSample = FeatureSamplesService.getReleasePressFeaturesSampleByString(releasePressFeaturesByString, password);
+            FeaturesSample holdFeaturesSample = FeatureSamplesService.getInstance().getHoldFeaturesSampleByString(holdFeaturesByString, password);
+            FeaturesSample releasePressFeaturesSample = FeatureSamplesService.getInstance().getReleasePressFeaturesSampleByString(releasePressFeaturesByString, password);
             
             FeaturesSample xFeaturesSample = null;
             FeaturesSample yFeaturesSample = null;
-            if (FeaturesService.includeMobileFeatures()) {
-                xFeaturesSample = FeatureSamplesService.getCoordFeaturesSampleByString(xFeaturesByString, password);    
-                yFeaturesSample = FeatureSamplesService.getCoordFeaturesSampleByString(yFeaturesByString, password);
-            }
 
             List<Double> featuresSample = new ArrayList<Double>();
             if (holdFeaturesSample != null) {
@@ -344,10 +337,6 @@ public class User extends DomainSuperClass implements Serializable {
                 featuresSample.addAll(releasePressFeaturesSample.getFeatures());
             }
             featuresSample.add(meanKeyPressTime);
-            if (FeaturesService.includeMobileFeatures()) {
-                featuresSample.addAll(xFeaturesSample.getFeatures());
-                featuresSample.addAll(yFeaturesSample.getFeatures());    
-            }
 
             isEmptySample = ( (holdFeaturesSample == null || holdFeaturesSample.isEmpty())
                     && (releasePressFeaturesSample == null || releasePressFeaturesSample.isEmpty()));

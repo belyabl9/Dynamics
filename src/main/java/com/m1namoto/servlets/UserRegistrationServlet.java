@@ -101,7 +101,7 @@ public class UserRegistrationServlet extends HttpServlet {
         String json = new Gson().toJson(regReq);
         //String savedReqPath = PropertiesService.getPropertyValue("saved_reg_requests_path") + "/" + password.length();
         String savedReqPath = System.getenv("OPENSHIFT_DATA_DIR")
-                + PropertiesService.getDynamicPropertyValue("saved_reg_requests_path") + "/" + password.length();
+                + PropertiesService.getInstance().getDynamicPropertyValue("saved_reg_requests_path") + "/" + password.length();
 
         File reqDir = new File(savedReqPath);
         if (!reqDir.exists()) {
@@ -119,7 +119,7 @@ public class UserRegistrationServlet extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {        
-	    boolean saveRequest = Boolean.valueOf(PropertiesService.getDynamicPropertyValue("save_requests"));
+	    boolean saveRequest = Boolean.valueOf(PropertiesService.getInstance().getDynamicPropertyValue("save_requests"));
         if (saveRequest) {
             saveRequest(request);
         }

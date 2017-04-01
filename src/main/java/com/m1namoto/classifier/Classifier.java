@@ -1,22 +1,19 @@
 package com.m1namoto.classifier;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
-
 import com.m1namoto.domain.User;
-import com.m1namoto.service.FeaturesService;
 import com.m1namoto.service.UsersService;
-
+import org.apache.log4j.Logger;
 import weka.classifiers.Evaluation;
 import weka.classifiers.functions.MultilayerPerceptron;
 import weka.classifiers.trees.J48;
 import weka.classifiers.trees.RandomForest;
 import weka.core.Instance;
 import weka.core.Instances;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Classifier {
     final static Logger logger = Logger.getLogger(Classifier.class);
@@ -29,10 +26,10 @@ public class Classifier {
 	private static String ATTR_Y = "y";
 	private static String ATTR_CLASS = "classVal";
 
-	public static enum Classifiers {
+	public enum Type {
 	    RANDOM_FOREST, MLP, J48
-	};
-	
+	}
+
 	private User userToCheck;
 	private static weka.classifiers.Classifier classifier = new RandomForest();
 	private Instances instances;
@@ -52,7 +49,7 @@ public class Classifier {
         classifier.buildClassifier(instances);
     }
     
-    public static void setClassifier(Classifiers classifierType) {
+    public static void setClassifier(Type classifierType) {
         switch (classifierType) {
             case J48:
                 classifier = new J48();
@@ -71,7 +68,6 @@ public class Classifier {
     
     /**
      * Returns current configuration
-     * @return Configuration
      */
     public Configuration getConfiguration() {
         return configuration;
@@ -93,7 +89,6 @@ public class Classifier {
 	/**
 	 * Creates Weka instances from the passed configuration
 	 * @param input - passed configuration in .arff format
-	 * @return Instances
 	 * @throws IOException
 	 */
 	private Instances createInstances(String input) throws IOException {
@@ -117,25 +112,16 @@ public class Classifier {
 	 */
 	public Configuration createConfiguration(String password) throws Exception {
 	    logger.debug("Create configuration " + CONFIGURATION_NAME);
-	    Configuration conf = new Configuration(CONFIGURATION_NAME);
+        Configuration.Builder confBuilder = new Configuration.Builder().name(CONFIGURATION_NAME);
 
 		for (int i = 0; i < password.length(); i++) {
-		    conf.addAttribute(ATTR_KEY_PRESS + (i + 1));
+            confBuilder.attribute(ATTR_KEY_PRESS + (i + 1));
 		}
 
         for (int i = 1; i < password.length(); i++) {
-            conf.addAttribute(ATTR_BETWEEN_KEYS + i);
+            confBuilder.attribute(ATTR_BETWEEN_KEYS + i);
         }
-        conf.addAttribute(ATTR_MEAN_KEYPRESS_TIME);
-
-        if (FeaturesService.includeMobileFeatures()) {
-            for (int i = 0; i < password.length(); i++) {
-                conf.addAttribute(ATTR_X + Character.toUpperCase(password.charAt(i)) + i);
-            }
-            for (int i = 0; i < password.length(); i++) {
-                conf.addAttribute(ATTR_Y + Character.toUpperCase(password.charAt(i)) + i);
-            }
-        }
+        confBuilder.attribute(ATTR_MEAN_KEYPRESS_TIME);
 
 		List<User> users = UsersService.getList(User.USER_TYPE_REGULAR);
 		List<Integer> allowedValues = new ArrayList<Integer>();
@@ -146,11 +132,13 @@ public class Classifier {
 		    featuresSamples = user.getSamples(password, isUserToCheck);    
 
             for (List<Double> sample : featuresSamples) {
-                conf.addInstance(sample, user.getId());
+                confBuilder.instance(sample, user.getId());
             }
 		    allowedValues.add((int) user.getId());
 		}
-		conf.setClassAttribute(ATTR_CLASS, allowedValues);
+        confBuilder.classAttribute(ATTR_CLASS, allowedValues);
+
+        Configuration conf = confBuilder.build();
 
 		logger.info("Created classifier configuration (.arff):\n" + conf);
 

@@ -14,11 +14,11 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
+import com.m1namoto.classifier.Classifier;
 import org.apache.commons.io.FileUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.m1namoto.classifier.Classifier.Classifiers;
 import com.m1namoto.etc.AuthRequest;
 import com.m1namoto.etc.RegRequest;
 import com.m1namoto.utils.PropertiesService;
@@ -26,10 +26,10 @@ import com.m1namoto.utils.Utils;
 
 public class AccuracyTest {
 
-    private final static String regRequestsPathConf = PropertiesService.getDynamicPropertyValue("saved_reg_requests_path");
-    private final static String authRequestsPathConf = PropertiesService.getDynamicPropertyValue("saved_auth_requests_path");
-    private final static String outputPathConf = PropertiesService.getDynamicPropertyValue("test_results_output");
-    private final static int learingRateConf = Integer.parseInt(PropertiesService.getDynamicPropertyValue("learning_rate"));
+    private final static String regRequestsPathConf = PropertiesService.getInstance().getDynamicPropertyValue("saved_reg_requests_path");
+    private final static String authRequestsPathConf = PropertiesService.getInstance().getDynamicPropertyValue("saved_auth_requests_path");
+    private final static String outputPathConf = PropertiesService.getInstance().getDynamicPropertyValue("test_results_output");
+    private final static int learingRateConf = Integer.parseInt(PropertiesService.getInstance().getDynamicPropertyValue("learning_rate"));
     
     private final static String outputFilePrefix = "dynamics_test";
     
@@ -43,9 +43,9 @@ public class AccuracyTest {
     private double thresholdStep = 0.1;
     private List<Double> thresholds = new ArrayList<Double>();
     
-    private Classifiers classifierType;
+    private Classifier.Type classifierType;
     
-    private void initTest(int passwordLen, int learningRate, Classifiers classifierType) throws Exception {
+    private void initTest(int passwordLen, int learningRate, Classifier.Type classifierType) throws Exception {
         if (passwordLen <= 0) {
             throw new Exception("Password length should be more than 0");
         }
@@ -66,14 +66,14 @@ public class AccuracyTest {
         }
     }
     
-    public AccuracyTest(int passwordLen, int learningRate, Classifiers classifierType) throws Exception {
+    public AccuracyTest(int passwordLen, int learningRate, Classifier.Type classifierType) throws Exception {
         initTest(passwordLen, learningRate, classifierType);
         for (double threshold = thresholdStart; threshold < thresholdEnd; threshold += thresholdStep) {
             thresholds.add(threshold);
         }
     }
     
-    public AccuracyTest(int passwordLen, int learningRate, Classifiers classifierType, List<Double> thresholds) throws Exception {
+    public AccuracyTest(int passwordLen, int learningRate, Classifier.Type classifierType, List<Double> thresholds) throws Exception {
         initTest(passwordLen, learningRate, classifierType);
         this.thresholds = thresholds;
     }
@@ -262,7 +262,7 @@ public class AccuracyTest {
         printResults(results, totalTime);
     }
 
-    private static void accuracyClassifierTestSet(Classifiers classifier) throws Exception {
+    private static void accuracyClassifierTestSet(Classifier.Type classifier) throws Exception {
     	/*AccuracyTest test6_1 = new AccuracyTest(6, 1, classifier);
         test6_1.accuracyTest();
         
@@ -292,7 +292,7 @@ public class AccuracyTest {
     public static void main(String[] args) throws Exception {
     	List<Double> thresholds = new ArrayList<Double>();
     	thresholds.add(0.8);
-        AccuracyTest test12_15 = new AccuracyTest(12, 15, Classifiers.RANDOM_FOREST, thresholds);
+        AccuracyTest test12_15 = new AccuracyTest(12, 15, Classifier.Type.RANDOM_FOREST, thresholds);
         test12_15.accuracyTest();
     	
     	//accuracyClassifierTestSet(Classifiers.MLP);

@@ -21,7 +21,7 @@ public class UpdateSettingsAction extends Action {
         }
 
         try {
-            PropertiesService.setDynamicPropertyValues(settings);
+            PropertiesService.getInstance().setDynamicPropertyValues(settings);
         } catch(Exception e) {
             data.setError(true);
         }

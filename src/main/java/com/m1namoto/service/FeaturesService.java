@@ -1,25 +1,14 @@
 package com.m1namoto.service;
 
+import com.m1namoto.dao.DaoFactory;
+import com.m1namoto.dao.FeaturesDao;
+import com.m1namoto.domain.*;
+import org.apache.log4j.Logger;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.log4j.Logger;
-
-import com.m1namoto.dao.DaoFactory;
-import com.m1namoto.dao.FeaturesDao;
-import com.m1namoto.domain.Event;
-import com.m1namoto.domain.Feature;
-import com.m1namoto.domain.FeaturesSample;
-import com.m1namoto.domain.HoldFeature;
-import com.m1namoto.domain.ReleasePressFeature;
-import com.m1namoto.domain.ReleasePressPair;
-import com.m1namoto.domain.User;
-import com.m1namoto.domain.XFeature;
-import com.m1namoto.domain.YFeature;
-import com.m1namoto.utils.PropertiesService;
-import com.m1namoto.utils.Utils;
 
 public class FeaturesService {
     final static Logger logger = Logger.getLogger(FeaturesService.class);
@@ -28,172 +17,6 @@ public class FeaturesService {
     private static Map<Long, Map<ReleasePressPair, List<ReleasePressFeature>>> userReleasePressFeaturesMap;
     private static Map<Long, Map<Integer, List<XFeature>>> userXFeaturesMap;
     private static Map<Long, Map<Integer, List<YFeature>>> userYFeaturesMap;
-
-    /**
-     * Determines whether mobile features are used for classification
-     * @return true or false
-     */
-    public static boolean includeMobileFeatures() {
-        return Boolean.valueOf(PropertiesService.getDynamicPropertyValue("mobile_features"));
-    }
-    
-    /**
-     * Returns a mean time interval value between release and press events
-     * @param events
-     * @return Mean time interval value between release and press events
-     * @throws Exception
-     */
-	public static double getMeanTimeBetweenKeys(List<Event> events) throws Exception {
-	    if (events.size() == 0) {
-	        return 0;
-	    }
-
-		List<Double> timeDiffs = getTimeBetweenKeysList(events);
-		if (timeDiffs.size() == 0) {
-		    return 0;
-		}
-		
-		return Utils.mean(timeDiffs);
-	}
-
-	/**
-	 * Returns a mean key press time interval value for a list of events
-	 * @param events
-	 * @return Mean key press time interval value for a list of events
-	 * @throws Exception
-	 */
-	public static double getMeanKeyPressTime(List<Event> events) throws Exception {
-		List<Double> timeDiffs = getKeyPressTimeList(events);
-		return Utils.mean(timeDiffs);
-	}
-
-	/**
-	 * Returns a list of key press time interval values for a list of events
-	 * @param events
-	 * @return List of key press time interval values for a list of events
-	 * @throws Exception
-	 */
-	public static List<Double> getKeyPressTimeList(List<Event> events) throws Exception {
-		List<Double> timeDiffs = new ArrayList<Double>();
-
-		for (int i = 0; i < events.size(); i++) {
-			Event pressEvent = events.get(i);
-			if (!pressEvent.getAction().equals(Event.ACTION_PRESS)) {
-			    continue;
-			}
-			int code = pressEvent.getCode();
-			Event releaseEvent = EventsService.getKeyEvent(events, Event.ACTION_RELEASE, code, i + 1);
-			if (releaseEvent == null) {
-			    throw new Exception("Can not find release event for pressed key (" + code + ")");
-			}
-			double timeDiff = releaseEvent.getTime() - pressEvent.getTime();
-			timeDiffs.add(timeDiff);
-		}
-
-		return timeDiffs;
-	}
-	
-	/**
-	 * Returns a list of hold features from the list of events
-	 * @param events - list of events
-	 * @return List of hold features
-	 * @throws Exception
-	 */
-    public static List<HoldFeature> getHoldFeatures(List<Event> events) throws Exception {
-        List<HoldFeature> holdFeatures = new ArrayList<HoldFeature>();
-
-        for (int i = 0; i < events.size(); i++) {
-            Event event = events.get(i);
-            if (event.getAction().equals(Event.ACTION_PRESS)) {
-                int code = event.getCode();
-                Event keyReleaseEvent = EventsService.getKeyEvent(events, Event.ACTION_RELEASE, code, i + 1);
-                if (keyReleaseEvent == null) {
-                    throw new Exception("Can not find release event for pressed key");
-                }
-                double timeDiff = keyReleaseEvent.getTime() - event.getTime();
-                holdFeatures.add(new HoldFeature(timeDiff, code, event.getUser()));
-            }
-        }
-
-        return holdFeatures;
-    }
-	
-    /**
-     * Returns a list of release-press features from the list of events
-     * @param events - list of events
-     * @return List of release-press features
-     */
-    public static List<ReleasePressFeature> getReleasePressFeatures(List<Event> events) {
-        List<ReleasePressFeature> releasePressFeatures = new ArrayList<ReleasePressFeature>();
-
-        for (int i = 0; i < events.size(); i++) {
-            Event releaseEvent = events.get(i);
-            if (!releaseEvent.getAction().equals(Event.ACTION_RELEASE)) {
-                continue;
-            }
-            Event pressEvent = EventsService.getKeyEvent(events, Event.ACTION_PRESS, i + 1);
-            if (pressEvent == null) {
-                continue;
-            }
-            double timeDiff = pressEvent.getTime() - releaseEvent.getTime();
-
-            ReleasePressFeature feature = new ReleasePressFeature(
-                    timeDiff, releaseEvent.getCode(), pressEvent.getCode(), releaseEvent.getUser());
-            releasePressFeatures.add(feature);
-        }
-
-        return releasePressFeatures;
-    }
-    
-    public static List<XFeature> getXFeatures(List<Event> events) {
-        List<XFeature> xFeatures = new ArrayList<XFeature>();
-
-        for (int i = 0; i < events.size(); i++) {
-            Event event = events.get(i);
-            if (event.getAction().equals(Event.ACTION_PRESS)) {
-                xFeatures.add(new XFeature(event.getX(), event.getCode(), event.getUser()));
-            }
-        }
-
-        return xFeatures;
-    }
-    
-    public static List<YFeature> getYFeatures(List<Event> events) {
-        List<YFeature> yFeatures = new ArrayList<YFeature>();
-
-        for (int i = 0; i < events.size(); i++) {
-            Event event = events.get(i);
-            if (event.getAction().equals(Event.ACTION_PRESS)) {
-                yFeatures.add(new YFeature(event.getY(), event.getCode(), event.getUser()));
-            }
-        }
-
-        return yFeatures;
-    }
-	
-    /**
-     * Returns a list of time interval values from a list of events
-     * @param events
-     * @return List of time interval values from a list of events
-     */
-	public static List<Double> getTimeBetweenKeysList(List<Event> events) {
-	    List<Double> timeDiffs = new ArrayList<Double>();
-
-		for (int i = 0; i < events.size(); i++) {
-			Event event = events.get(i);
-			if (!event.getAction().equals(Event.ACTION_RELEASE)) {
-			    continue;
-			}
-			Event pressEvent = EventsService.getKeyEvent(events, Event.ACTION_PRESS, i + 1);
-			if (pressEvent == null) {
-			    continue;
-			}
-			double timeDiff = pressEvent.getTime() - event.getTime();
-			timeDiffs.add(timeDiff);
-		}
-
-		return timeDiffs;
-	}
     
 	/**
 	 * Wrapper around FeaturesDAO.getHoldFeatures()
@@ -678,10 +501,6 @@ public class FeaturesService {
     public static void clearFeatureMaps() {
         userHoldFeaturesMap = null;
         userReleasePressFeaturesMap = null;
-        if (includeMobileFeatures()) {
-            userXFeaturesMap = null;    
-            userYFeaturesMap = null;
-        }
     }
 
     /**

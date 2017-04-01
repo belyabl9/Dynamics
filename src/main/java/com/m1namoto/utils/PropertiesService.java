@@ -19,23 +19,30 @@ import org.apache.log4j.Logger;
 
 public class PropertiesService {
     private final static Logger logger = Logger.getLogger(PropertiesService.class);
-    private final static String staticPropFileName = "config.properties";
-    
+
+    private final static PropertiesService INSTANCE = new PropertiesService();
+    private PropertiesService() {}
+
+    private final static String STATIC_PROP_FILE_NAME = "config.properties";
     private final static String APP_SETTINGS_PATH_PARAM = "app_settings_path";
     
     private static Configuration dynamicConfiguration;
-    
-    private static Properties getStaticProperties() {
+
+    public static PropertiesService getInstance() {
+        return INSTANCE;
+    }
+
+    private Properties getStaticProperties() {
         InputStream inputStream = null;
         Properties prop = null;
         try {
             prop = new Properties();
-            inputStream = PropertiesService.class.getClassLoader().getResourceAsStream(staticPropFileName);
+            inputStream = PropertiesService.class.getClassLoader().getResourceAsStream(STATIC_PROP_FILE_NAME);
             
             if (inputStream != null) {
                 prop.load(inputStream);
             } else {
-                throw new FileNotFoundException("Property file '" + staticPropFileName + "' not found in the classpath");
+                throw new FileNotFoundException("Property file '" + STATIC_PROP_FILE_NAME + "' not found in the classpath");
             }
         } catch (Exception e) {
             logger.error(e);
@@ -51,20 +58,18 @@ public class PropertiesService {
         return prop;
     }
     
-    public static String getStaticPropertyValue(String propName) {
-        Properties properties = getStaticProperties();
-        return properties.getProperty(propName);
+    public String getStaticPropertyValue(String propName) {
+        return getStaticProperties().getProperty(propName);
     }
     
-    public static String getDynamicPropertyValue(String propName) {
+    public String getDynamicPropertyValue(String propName) {
         if (dynamicConfiguration == null) {
             loadDynamicConfiguration();
         }
-
         return dynamicConfiguration.getString(propName);
     }
     
-    public static Map<String, String> getDynamicsPropertyValues() {
+    public Map<String, String> getDynamicsPropertyValues() {
         if (dynamicConfiguration == null) {
             loadDynamicConfiguration();
         }
@@ -72,7 +77,7 @@ public class PropertiesService {
         Map<String, String> properties = new HashMap<String, String>();
         Iterator<String> keys = dynamicConfiguration.getKeys();
         while(keys.hasNext()){
-            String key = (String) keys.next();
+            String key = keys.next();
             String value = dynamicConfiguration.getString(key);
             properties.put(key, value);
         }
@@ -80,7 +85,7 @@ public class PropertiesService {
         return properties;
     }
     
-    public static void setDynamicPropertyValues(Map<String, String> properties) {
+    public void setDynamicPropertyValues(Map<String, String> properties) {
         Parameters params = new Parameters();
         FileBasedConfigurationBuilder<FileBasedConfiguration> builder =
             new FileBasedConfigurationBuilder<FileBasedConfiguration>(PropertiesConfiguration.class)
@@ -101,11 +106,11 @@ public class PropertiesService {
         dynamicConfiguration = conf;
     }
 
-    public static void reloadDynamicConfiguration() {
+    public void reloadDynamicConfiguration() {
         loadDynamicConfiguration();
     }
     
-    private static void loadDynamicConfiguration() {
+    private void loadDynamicConfiguration() {
         Parameters params = new Parameters();
         FileBasedConfigurationBuilder<FileBasedConfiguration> builder =
             new FileBasedConfigurationBuilder<FileBasedConfiguration>(PropertiesConfiguration.class)

@@ -19,8 +19,8 @@ import com.m1namoto.utils.Utils;
 
 public class RegistrationTest {
 
-    private final static String regRequestsPath = PropertiesService.getStaticPropertyValue("saved_reg_requests_path");
-    private final static int learingRate = Integer.parseInt(PropertiesService.getDynamicPropertyValue("learning_rate"));
+    private final static String regRequestsPath = PropertiesService.getInstance().getStaticPropertyValue("saved_reg_requests_path");
+    private final static int learingRate = Integer.parseInt(PropertiesService.getInstance().getDynamicPropertyValue("learning_rate"));
     
     private final static String INIT_DIR_PREFIX = "init";
     

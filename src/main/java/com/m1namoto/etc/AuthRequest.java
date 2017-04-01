@@ -1,6 +1,6 @@
 package com.m1namoto.etc;
 
-import com.m1namoto.classifier.Classifier.Classifiers;
+import com.m1namoto.classifier.Classifier;
 
 public class AuthRequest {
     private String login;
@@ -12,7 +12,7 @@ public class AuthRequest {
     private double threshold;
     private int learningRate;
 
-    private Classifiers classifierType;
+    private Classifier.Type classifierType;
 
     public AuthRequest(String login, String password, String stat) {
         this.login = login;
@@ -68,11 +68,11 @@ public class AuthRequest {
         this.updateTemplate = updateTemplate;
     }
     
-    public Classifiers getClassifierType() {
+    public Classifier.Type getClassifierType() {
         return classifierType;
     }
 
-    public void setClassifierType(Classifiers classifierType) {
+    public void setClassifierType(Classifier.Type classifierType) {
         this.classifierType = classifierType;
     }
     
