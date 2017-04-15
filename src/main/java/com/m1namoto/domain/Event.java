@@ -88,8 +88,7 @@ public class Event extends DomainSuperClass implements Serializable {
     }
     
     public String toString() {
-        char symbol = (char) code;
-        return String.format("Event[action=%s;code=%c;char=%c;time=%d]", action, code, symbol, time);
+        return String.format("Event[action=%s;code=%c;char=%c;time=%d]", action, code, (char) code, time);
     }
     
 }

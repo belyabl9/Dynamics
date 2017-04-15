@@ -15,9 +15,7 @@ public class FeaturesService {
 
     private static Map<Long, Map<Integer, List<HoldFeature>>> userHoldFeaturesMap;
     private static Map<Long, Map<ReleasePressPair, List<ReleasePressFeature>>> userReleasePressFeaturesMap;
-    private static Map<Long, Map<Integer, List<XFeature>>> userXFeaturesMap;
-    private static Map<Long, Map<Integer, List<YFeature>>> userYFeaturesMap;
-    
+
 	/**
 	 * Wrapper around FeaturesDAO.getHoldFeatures()
 	 * @return List of hold features from the storage
@@ -33,14 +31,6 @@ public class FeaturesService {
     public static List<ReleasePressFeature> getReleasePressFeatures() {
         return DaoFactory.getFeaturesDAO().getReleasePressFeatures();
     }   
-	
-    public static List<XFeature> getXFeatures() {
-        return DaoFactory.getFeaturesDAO().getXFeatures(); 
-    }
-
-    public static List<YFeature> getYFeatures() {
-        return DaoFactory.getFeaturesDAO().getYFeatures(); 
-    }
 	
     /**
      * Returns hold features per user map. Key is user id
@@ -303,34 +293,6 @@ public class FeaturesService {
 
         return featuresPerCode;
     }
-    
-    public static Map<Integer, List<XFeature>> getXFeaturesPerCode(List<XFeature> userFeatures) {
-        Map<Integer, List<XFeature>> featuresPerCode = new HashMap<Integer, List<XFeature>>();
-        
-        for (XFeature feature : userFeatures) {
-            int code = feature.getCode();
-            if (!featuresPerCode.containsKey(code)) {
-                featuresPerCode.put(code, new ArrayList<XFeature>());
-            }
-            featuresPerCode.get(code).add(feature);
-        }
-        
-        return featuresPerCode;
-    }
-    
-    public static Map<Integer, List<YFeature>> getYFeaturesPerCode(List<YFeature> userFeatures) {
-        Map<Integer, List<YFeature>> featuresPerCode = new HashMap<Integer, List<YFeature>>();
-        
-        for (YFeature feature : userFeatures) {
-            int code = feature.getCode();
-            if (!featuresPerCode.containsKey(code)) {
-                featuresPerCode.put(code, new ArrayList<YFeature>());
-            }
-            featuresPerCode.get(code).add(feature);
-        }
-        
-        return featuresPerCode;
-    }
 
     /**
      * Returns a map of hold features per user.
@@ -411,50 +373,6 @@ public class FeaturesService {
         }*/
 
         return userReleasePressFeaturesMap;
-    }
-    
-    public static Map<Long, Map<Integer, List<XFeature>>> getUserXFeaturesMap() {
-        if (userXFeaturesMap != null) {
-            return userXFeaturesMap;
-        }
-        userXFeaturesMap = new HashMap<Long, Map<Integer, List<XFeature>>>();
-        List<XFeature> features = getXFeatures();
-        for (XFeature feature : features) {
-            long userId = feature.getUser().getId();
-            if (!userXFeaturesMap.containsKey(userId)) {
-                userXFeaturesMap.put(userId, new HashMap<Integer, List<XFeature>>());
-            }
-            Map<Integer, List<XFeature>> featuresPerCode = userXFeaturesMap.get(userId);
-            int code = feature.getCode();
-            if (!featuresPerCode.containsKey(code)) {
-                featuresPerCode.put(code, new ArrayList<XFeature>());
-            }
-            featuresPerCode.get(code).add(feature);
-        }
-
-        return userXFeaturesMap;
-    }
-    
-    public static Map<Long, Map<Integer, List<YFeature>>> getUserYFeaturesMap() {
-        if (userYFeaturesMap != null) {
-            return userYFeaturesMap;
-        }
-        userYFeaturesMap = new HashMap<Long, Map<Integer, List<YFeature>>>();
-        List<YFeature> features = getYFeatures();
-        for (YFeature feature : features) {
-            long userId = feature.getUser().getId();
-            if (!userYFeaturesMap.containsKey(userId)) {
-                userYFeaturesMap.put(userId, new HashMap<Integer, List<YFeature>>());
-            }
-            Map<Integer, List<YFeature>> featuresPerCode = userYFeaturesMap.get(userId);
-            int code = feature.getCode();
-            if (!featuresPerCode.containsKey(code)) {
-                featuresPerCode.put(code, new ArrayList<YFeature>());
-            }
-            featuresPerCode.get(code).add(feature);
-        }
-
-        return userYFeaturesMap;
     }
 
     /**

@@ -13,7 +13,7 @@ public class HibernateUtil {
     private static final String MAIN_DB_CONFIG_FILE = "hibernate.cfg.xml";
     private static final String TEST_DB_CONFIG_FILE = "hibernate.cfg.test.xml";
     
-    public static enum DatabaseConfigs {
+    public enum DatabaseConfigs {
         MAIN(MAIN_DB_CONFIG_FILE), TEST(TEST_DB_CONFIG_FILE);
         
         private String stringValue;
@@ -35,8 +35,8 @@ public class HibernateUtil {
         if (sessionFactory == null) {
             Configuration configuration = new Configuration();
             configuration.configure(dbConfig.toString());
-            StandardServiceRegistryBuilder ssrb = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties());
-            sessionFactory = configuration.buildSessionFactory(ssrb.build());
+            StandardServiceRegistryBuilder standardServiceRegistryBuilder = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties());
+            sessionFactory = configuration.buildSessionFactory(standardServiceRegistryBuilder.build());
         }
         return sessionFactory;
     }

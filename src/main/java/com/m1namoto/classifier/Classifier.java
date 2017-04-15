@@ -3,6 +3,7 @@ package com.m1namoto.classifier;
 import com.m1namoto.domain.User;
 import com.m1namoto.service.UsersService;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import weka.classifiers.Evaluation;
 import weka.classifiers.functions.MultilayerPerceptron;
 import weka.classifiers.trees.J48;
@@ -30,13 +31,13 @@ public class Classifier {
 	    RANDOM_FOREST, MLP, J48
 	}
 
-	private User userToCheck;
+	private User user;
 	private static weka.classifiers.Classifier classifier = new RandomForest();
 	private Instances instances;
 	private Configuration configuration;
 
-	public Classifier(User userToCheck) throws Exception {
-	    this.userToCheck = userToCheck;
+	public Classifier(@NotNull User user) throws Exception {
+	    this.user = user;
 	    configuration = createConfiguration();
 	    instances = createInstances(configuration.toString());
 	    classifier.buildClassifier(instances);
@@ -99,8 +100,8 @@ public class Classifier {
 	}
 
 	private Configuration createConfiguration() throws Exception {
-	    String password = userToCheck.getPassword();
-	    return createConfiguration(password);
+		String password = user.getPassword();
+		return createConfiguration(password);
 	}
 
 	/**
@@ -128,8 +129,8 @@ public class Classifier {
 
 		for (User user : users) {
 		    List<List<Double>> featuresSamples = null;
-		    boolean isUserToCheck = userToCheck != null ? userToCheck.getId() == user.getId() : false; 
-		    featuresSamples = user.getSamples(password, isUserToCheck);    
+		    boolean isUserToCheck = this.user != null ? this.user.getId() == user.getId() : false;
+		    featuresSamples = user.getSamples(user.getPassword(), isUserToCheck);
 
             for (List<Double> sample : featuresSamples) {
                 confBuilder.instance(sample, user.getId());
@@ -157,7 +158,7 @@ public class Classifier {
 		int n = inst.getValues().size() + 1;
 		List<Double> values = inst.getValues();
 	    Instance instance = new Instance(n);
-		
+
 	    for (int i = 0; i < n - 1; i++) {
 	    	if (values.get(i) == null) {
 	    		instance.setValue(i, Instance.missingValue());
@@ -170,11 +171,11 @@ public class Classifier {
 	    double[] distr = classifier.distributionForInstance(instance);
 
 	    List<Integer> classValues = configuration.getAllowedClassValues();
-	    double probability = distr[classValues.indexOf((int)userToCheck.getId())];
-	    
+	    double probability = distr[classValues.indexOf((int) user.getId())];
+
 	    logger.info("Predicted probability=" + probability);
 	    ClassificationResult result = new ClassificationResult(probability);
-		
+
 		return result;
 	}
 

@@ -10,8 +10,6 @@ import com.m1namoto.domain.Feature;
 import com.m1namoto.domain.HoldFeature;
 import com.m1namoto.domain.ReleasePressFeature;
 import com.m1namoto.domain.User;
-import com.m1namoto.domain.XFeature;
-import com.m1namoto.domain.YFeature;
 
 public class FeaturesDao extends GenericDAO<Feature> {
 
@@ -29,26 +27,6 @@ public class FeaturesDao extends GenericDAO<Feature> {
         Session session = getFactory().getCurrentSession();
         Query query = session.createQuery(hql);
         List<HoldFeature> features = query.list();
-
-        return features;
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<XFeature> getXFeatures() {
-        String hql = "FROM XFeature ORDER BY code";
-        Session session = getFactory().getCurrentSession();
-        Query query = session.createQuery(hql);
-        List<XFeature> features = query.list(); 
-        
-        return features;
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<YFeature> getYFeatures() {
-        String hql = "FROM YFeature ORDER BY code";
-        Session session = getFactory().getCurrentSession();
-        Query query = session.createQuery(hql);
-        List<YFeature> features = query.list();
 
         return features;
     }

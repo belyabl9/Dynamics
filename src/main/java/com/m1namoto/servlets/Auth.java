@@ -15,10 +15,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import com.m1namoto.features.FeatureExtractor;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 
 import com.google.gson.Gson;
@@ -33,8 +36,6 @@ import com.m1namoto.domain.ReleasePressFeature;
 import com.m1namoto.domain.ReleasePressPair;
 import com.m1namoto.domain.Session;
 import com.m1namoto.domain.User;
-import com.m1namoto.domain.XFeature;
-import com.m1namoto.domain.YFeature;
 import com.m1namoto.etc.AuthRequest;
 import com.m1namoto.service.EventsService;
 import com.m1namoto.service.FeaturesService;
@@ -115,8 +116,6 @@ public class Auth extends HttpServlet {
 
         List<HoldFeature> sessionHoldFeatures = new ArrayList<HoldFeature>();
         List<ReleasePressFeature> sessionReleasePressFeatures = new ArrayList<ReleasePressFeature>();
-        List<XFeature> sessionXFeatures = new ArrayList<XFeature>();
-        List<YFeature> sessionYFeatures = new ArrayList<YFeature>();
 
         for (Session session : sessions) {
             sessionHoldFeatures.addAll(session.getHoldFeaturesFromEvents());
@@ -171,13 +170,10 @@ public class Auth extends HttpServlet {
 
     private boolean isThresholdAccepted(ClassificationResult classificationResult, double threshold) {
         boolean isThresholdAccepted = classificationResult.getProbability() >= threshold;
-        
         if (!isThresholdAccepted) {
             logger.info("Predicted probability is lower than can be accepted " + threshold);
-            return false;
         }
-
-        return true;
+        return isThresholdAccepted;
     }
 
     /**
@@ -185,7 +181,7 @@ public class Auth extends HttpServlet {
      * @param sessions
      * @throws Exception
      */
-    private void saveSessions(List<Session> sessions) throws Exception {
+    private void saveSessions(@NotNull List<Session> sessions, @NotNull User user) throws Exception {
         for (Session session : sessions) {
             SessionsService.save(session);
             
@@ -201,6 +197,8 @@ public class Auth extends HttpServlet {
                 FeaturesService.save(feature);
             }
         }
+        user.setAuthenticatedCnt(user.getAuthenticatedCnt() + 1);
+        UsersService.save(user);
     }
 
     private List<Session> prepareSessions(Map<String, List<Event>> sessionsMap, User user) {
@@ -220,26 +218,19 @@ public class Auth extends HttpServlet {
     /**
      * Saves an authentication request to a file in .json format
      * if corresponding property is set in the configuration file
-     * @param request
-     * @throws IOException
      */
-    private void saveRequest(HttpServletRequest request) throws IOException {
-        String login = request.getParameter(REQ_LOGIN_PARAM);
-        String password = request.getParameter(REQ_PASSWORD_PARAM);
-        String stat = request.getParameter(REQ_STAT_PARAM);
-        boolean isStolen = Boolean.parseBoolean(request.getParameter("isStolen"));
-
-        AuthRequest authReq = new AuthRequest(login, password, stat);
+    private void saveRequest(@NotNull AuthContext context) throws IOException {
+        AuthRequest authReq = new AuthRequest(context.getLogin(), context.getPassword(), context.getStat());
 
         String json = new Gson().toJson(authReq);
-        String savedReqPath = PropertiesService.getInstance().getStaticPropertyValue(SAVED_AUTH_REQUESTS_PATH_PROP) + "/" + password.length();
+        String savedReqPath = PropertiesService.getInstance().getStaticPropertyValue(SAVED_AUTH_REQUESTS_PATH_PROP) + "/" + context.getPassword().length();
         
         /* Should be used if app is deployed to OpenShift
            String savedReqPath = System.getenv(OPENSHIFT_DATA_DIR_VAR)
                + PropertiesService.getStaticPropertyValue(SAVED_AUTH_REQUESTS_PATH_PROP) + "/" + password.length();
         */
 
-        String dirPath = String.join("/", new String[] { savedReqPath, login, (isStolen ? STOLEN_DIR_PREFIX : OWN_DIR_PREFIX) });
+        String dirPath = String.join("/", new String[] { savedReqPath, context.getLogin(), (context.isStolen() ? STOLEN_DIR_PREFIX : OWN_DIR_PREFIX) });
         File ownershipDir = new File(dirPath);
         if (!ownershipDir.exists()) {
             ownershipDir.mkdirs();
@@ -252,7 +243,7 @@ public class Auth extends HttpServlet {
     private String getResponseMessage(String status, String msg) {
         return String.format("%s: %s", status, msg);
     }
-    
+
     /**
      * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
      */
@@ -262,33 +253,21 @@ public class Auth extends HttpServlet {
     	response.setCharacterEncoding("utf8");
     	PrintWriter out = response.getWriter();
 
-        String login = request.getParameter(REQ_LOGIN_PARAM);
-        String password = request.getParameter(REQ_PASSWORD_PARAM);
-        String stat = request.getParameter(REQ_STAT_PARAM);
+        authenticate(request, response, out);
+    }
 
-        boolean isStolen = Boolean.parseBoolean(request.getParameter(REQ_IS_STOLEN_PARAM));
-        boolean saveRequest = Boolean.valueOf(PropertiesService.getInstance().getDynamicPropertyValue(REQ_SAVE_REQUESTS_PARAM));
-        boolean updateTemplate = Boolean.valueOf(PropertiesService.getInstance().getDynamicPropertyValue(REQ_UPDATE_TEMPLATE_PARAM));
+    private void authenticate(HttpServletRequest request, HttpServletResponse response, PrintWriter out) throws IOException, ServletException {
+        AuthContext context = new AuthContext(request);
 
-        Double threshold = Double.valueOf(PropertiesService.getInstance().getDynamicPropertyValue(REQ_THRESHOLD_PARAM));
-        if (threshold == null) {
-            threshold = CLASS_PREDICTION_THRESHOLD;
+        if (context.isSaveRequest()) {
+            saveRequest(context);
         }
 
-        Integer learningRate = Integer.valueOf(PropertiesService.getInstance().getDynamicPropertyValue(REQ_LEARNING_RATE_PARAM));
-        if (learningRate == null) {
-            learningRate = TRUSTED_AUTHENTICATION_LIMIT;
-        }
-        
-        if (saveRequest) {
-            saveRequest(request);
-        }
+        logger.info(String.format("Authentication (%s, %s)", context.getLogin(), context.getPassword()));
 
-        logger.info(String.format("Authentication (%s, %s)", login, password));
-        
         JSONObject responseObj = new JSONObject();
-        
-        if (StringUtils.isBlank(login) || StringUtils.isBlank(password)) {
+
+        if (Strings.isNullOrEmpty(context.getLogin()) || Strings.isNullOrEmpty(context.getPassword())) {
             logger.info(getResponseMessage(AUTHENTICATION_FAILED, EMPTY_LOGIN_OR_PASSWORD));
             responseObj.put(RESP_SUCCESS_PARAM, false);
             out.print(responseObj);
@@ -296,61 +275,38 @@ public class Auth extends HttpServlet {
             return;
         }
 
-        User user = UsersService.findByLogin(login);
+        User user = UsersService.findByLogin(context.getLogin());
         if (user == null) {
-            logger.info(getResponseMessage(AUTHENTICATION_FAILED, CAN_NOT_FIND_USER));
-            responseObj.put(RESP_SUCCESS_PARAM, false);
-            out.print(responseObj);
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            processUnknownUser(response, out, responseObj);
             return;
         }
+        context.setUser(user);
 
-        if (!user.getPassword().equals(password)) {
-            logger.info(getResponseMessage(AUTHENTICATION_FAILED, WRONG_PASSWORD));
-            responseObj.put(RESP_SUCCESS_PARAM, false);
-            out.print(responseObj);
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        if (!user.getPassword().equals(context.getPassword())) {
+            processWrongPassword(response, out, responseObj);
             return;
         }
 
         if (user.getUserType() == User.USER_TYPE_ADMIN) {
-            logger.info(getResponseMessage(AUTHENTICATION_PASSED, "Administrator"));
-            request.getSession();
-            response.sendRedirect("/");
+            processAdminAccess(request, response);
             return;
         }
 
-        if (stat == null) {
-            logger.info(getResponseMessage(AUTHENTICATION_FAILED, DYNAMICS_NOT_PASSED));
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            responseObj.put(RESP_SUCCESS_PARAM, false);
-            out.print(responseObj);
+        if (context.getStat() == null) {
+            processStatAbsence(response, out, responseObj);
             return;
         }
 
         // TODO: Consider using only one session per request
         Type type = new TypeToken<Map<String, List<Event>>>(){}.getType();
-        Map<String, List<Event>> sessionsMap = new Gson().fromJson(stat, type);
+        Map<String, List<Event>> sessionsMap = new Gson().fromJson(context.getStat(), type);
         List<Session> statSessions = prepareSessions(sessionsMap, user);
-
-        int authenticatedCnt = user.getAuthenticatedCnt();
+        context.setStatSessions(statSessions);
 
         // First <learningRate> authentication attempts are considered genuine
-        if (!isStolen && authenticatedCnt < learningRate) {
-            logger.info(SUCCESSFUL_AUTH_MSG);
-            if (updateTemplate) {
-                try {
-                    saveSessions(statSessions);
-                } catch (Exception e) {
-                    logger.error(e);
-                    throw new ServletException();
-                }
-                user.setAuthenticatedCnt(user.getAuthenticatedCnt() + 1);
-                UsersService.save(user);
-            }
-            responseObj.put(RESP_SUCCESS_PARAM, true);
-            out.print(responseObj);
-            response.setStatus(HttpServletResponse.SC_OK);
+        boolean trustedAuthenticationsExpired = user.getAuthenticatedCnt() < context.getLearningRate();
+        if (!trustedAuthenticationsExpired) {
+            processTrustedAuth(response, out, responseObj, context);
             return;
         }
 
@@ -359,34 +315,158 @@ public class Auth extends HttpServlet {
             classificationResult = getPredictedThreshold(statSessions, user);
         } catch (Exception e) {
             logger.error(e);
-            throw new ServletException();
+            throw new ServletException(e);
         }
 
-        boolean isExpectedClass = isThresholdAccepted(classificationResult, threshold);
+        boolean isExpectedClass = isThresholdAccepted(classificationResult, context.getThreshold());
         if (isExpectedClass) {
-            logger.info(SUCCESSFUL_AUTH_MSG);
-            if (!isStolen && updateTemplate) {
-                try {
-                    saveSessions(statSessions);
-                } catch (Exception e) {
-                    logger.error(e);
-                    throw new ServletException();
-                }
-                user.setAuthenticatedCnt(user.getAuthenticatedCnt() + 1);
-                UsersService.save(user);
-            }
-            responseObj.put(RESP_SUCCESS_PARAM, true);
-            responseObj.put(RESP_THRESHOLD_PARAM, classificationResult.getProbability());
-            out.print(responseObj);
-            response.setStatus(HttpServletResponse.SC_OK);
+            processExpectedClass(response, out, responseObj, context, classificationResult);
             return;
         }
-        
+
         responseObj.put(RESP_SUCCESS_PARAM, false);
         responseObj.put(RESP_THRESHOLD_PARAM, classificationResult.getProbability());
         out.print(responseObj);
         logger.info(getResponseMessage(AUTHENTICATION_FAILED, DYNAMICS_DOES_NOT_MATCH));
-		response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+    }
+
+    private void processExpectedClass(HttpServletResponse response, PrintWriter out, JSONObject responseObj,  AuthContext context, ClassificationResult classificationResult) throws ServletException {
+        logger.info(SUCCESSFUL_AUTH_MSG);
+        if (!context.isStolen() && context.isUpdateTemplate()) {
+            try {
+                saveSessions(context.getStatSessions(), context.getUser());
+            } catch (Exception e) {
+                logger.error(e);
+                throw new ServletException();
+            }
+        }
+        responseObj.put(RESP_SUCCESS_PARAM, true);
+        responseObj.put(RESP_THRESHOLD_PARAM, classificationResult.getProbability());
+        out.print(responseObj);
+        response.setStatus(HttpServletResponse.SC_OK);
+    }
+
+    private void processTrustedAuth(HttpServletResponse response, PrintWriter out, JSONObject responseObj, AuthContext context) throws ServletException {
+        logger.info(SUCCESSFUL_AUTH_MSG);
+        if (context.isUpdateTemplate()) {
+            try {
+                saveSessions(context.getStatSessions(), context.getUser());
+            } catch (Exception e) {
+                logger.error(e);
+                throw new ServletException(e);
+            }
+        }
+        responseObj.put(RESP_SUCCESS_PARAM, true);
+        out.print(responseObj);
+        response.setStatus(HttpServletResponse.SC_OK);
+    }
+
+    private void processStatAbsence(HttpServletResponse response, PrintWriter out, JSONObject responseObj) {
+        logger.info(getResponseMessage(AUTHENTICATION_FAILED, DYNAMICS_NOT_PASSED));
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        responseObj.put(RESP_SUCCESS_PARAM, false);
+        out.print(responseObj);
+    }
+
+    private void processAdminAccess(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        logger.info(getResponseMessage(AUTHENTICATION_PASSED, "Administrator"));
+        request.getSession();
+        response.sendRedirect("/");
+    }
+
+    private void processWrongPassword(HttpServletResponse response, PrintWriter out, JSONObject responseObj) {
+        logger.info(getResponseMessage(AUTHENTICATION_FAILED, WRONG_PASSWORD));
+        responseObj.put(RESP_SUCCESS_PARAM, false);
+        out.print(responseObj);
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+    }
+
+    private void processUnknownUser(HttpServletResponse response, PrintWriter out, JSONObject responseObj) {
+        logger.info(getResponseMessage(AUTHENTICATION_FAILED, CAN_NOT_FIND_USER));
+        responseObj.put(RESP_SUCCESS_PARAM, false);
+        out.print(responseObj);
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+    }
+
+    class AuthContext {
+        private final String login;
+        private final String password;
+        private final String stat;
+        private final boolean stolen;
+        private final boolean saveRequest;
+        private final boolean updateTemplate;
+        private final int learningRate;
+        private final double threshold;
+
+        private User user;
+        private List<Session> statSessions;
+
+        public AuthContext(HttpServletRequest req) {
+            login    = req.getParameter(REQ_LOGIN_PARAM);
+            password = req.getParameter(REQ_PASSWORD_PARAM);
+            stat     = req.getParameter(REQ_STAT_PARAM);
+
+            // used for test purposes only
+            stolen = Boolean.parseBoolean(req.getParameter(REQ_IS_STOLEN_PARAM));
+
+            saveRequest = Boolean.valueOf(PropertiesService.getInstance().getDynamicPropertyValue(REQ_SAVE_REQUESTS_PARAM));
+            updateTemplate = Boolean.valueOf(PropertiesService.getInstance().getDynamicPropertyValue(REQ_UPDATE_TEMPLATE_PARAM));
+
+            String thresholdStr = PropertiesService.getInstance().getDynamicPropertyValue(REQ_THRESHOLD_PARAM);
+            threshold = Strings.isNullOrEmpty(thresholdStr) ? CLASS_PREDICTION_THRESHOLD : Double.valueOf(thresholdStr);
+
+            String learningRateStr = PropertiesService.getInstance().getDynamicPropertyValue(REQ_LEARNING_RATE_PARAM);
+            learningRate = Strings.isNullOrEmpty(learningRateStr) ? TRUSTED_AUTHENTICATION_LIMIT : Integer.valueOf(learningRateStr);
+        }
+
+        public String getLogin() {
+            return login;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public String getStat() {
+            return stat;
+        }
+
+        public boolean isStolen() {
+            return stolen;
+        }
+
+        public boolean isSaveRequest() {
+            return saveRequest;
+        }
+
+        public boolean isUpdateTemplate() {
+            return updateTemplate;
+        }
+
+        public int getLearningRate() {
+            return learningRate;
+        }
+
+        public double getThreshold() {
+            return threshold;
+        }
+
+        public User getUser() {
+            return user;
+        }
+
+        public void setUser(User user) {
+            this.user = user;
+        }
+
+        public List<Session> getStatSessions() {
+            return statSessions;
+        }
+
+        public void setStatSessions(List<Session> statSessions) {
+            this.statSessions = statSessions;
+        }
     }
 
 }

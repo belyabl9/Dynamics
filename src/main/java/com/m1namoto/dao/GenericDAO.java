@@ -76,7 +76,6 @@ public abstract class GenericDAO<T extends DomainSuperClass> {
                 savedEntity = (T) session.merge(entity);
             }
         } catch (Exception e) {
-            e.printStackTrace();
             throw new PersistenceException(e);
         }
 
