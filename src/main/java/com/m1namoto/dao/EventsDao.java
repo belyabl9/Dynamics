@@ -8,70 +8,61 @@ import org.hibernate.SessionFactory;
 
 import com.m1namoto.domain.Event;
 import com.m1namoto.domain.User;
+import org.jetbrains.annotations.NotNull;
 
 public class EventsDao extends GenericDAO<Event> {
 
-    public EventsDao(SessionFactory factory) {
+    private static final String EVENTS_QUERY = "FROM Event ORDER BY time";
+    private static final String EVENTS_BY_USER_QUERY = "FROM Event WHERE user_id = :id ORDER BY time";
+    private static final String DELETE_USER_EVENTS_QUERY = "DELETE Event WHERE user_id = :id";
+    private static final String DELETE_EVENTS_QUERY = "DELETE FROM Event";
+
+    public EventsDao(@NotNull SessionFactory factory) {
         super(Event.class, factory);
     }
 
     /**
-     * Returns a list of events
-     * @return List of events
+     * Returns a list of events ordered by timestamp
      */
-    @SuppressWarnings("unchecked")
     public List<Event> getList() {
-        String hql = "FROM Event ORDER BY time";
-        Session session = getFactory().getCurrentSession(); 
-        Query query = session.createQuery(hql);
-        List<Event> events = query.list();
-        
-        return events;
+        Session session = getFactory().getCurrentSession();
+        Query query = session.createQuery(EVENTS_QUERY);
+        return query.list();
     }
     
     /**
      * Returns a list of user events by id
-     * @param id
-     * @return List of user events
      */
-    @SuppressWarnings("unchecked")
-    public List<Event> getListByUser(long id) {
-        String hql = "FROM Event WHERE user_id = :id ORDER BY time";
-        Session session = getFactory().getCurrentSession(); 
-        Query query = session.createQuery(hql);
-        query.setParameter("id", id);
-        List<Event> events = query.list();
-
-        return events;
+    public List<Event> getList(long userId) {
+        Session session = getFactory().getCurrentSession();
+        Query query = session.createQuery(EVENTS_BY_USER_QUERY);
+        query.setParameter("id", userId);
+        return query.list();
     }
 
     /**
-     * Deletes user events
-     * @param user
+     * Removes user events
      */
-    public void deleteUserEvents(User user) {
+    public void removeAll(@NotNull User user) {
         Session session = getFactory().getCurrentSession(); 
-    	Query query = session.createQuery("DELETE Event WHERE user_id = :id");
+    	Query query = session.createQuery(DELETE_USER_EVENTS_QUERY);
     	query.setParameter("id", user.getId());
     	query.executeUpdate();
     }
     
     /**
-     * Create an event
-     * @param event
-     * @return Created event
+     * Creates an event
      */
-    public Event createEvent(Event event) {
+    public Event createEvent(@NotNull Event event) {
         return save(event);
     }
     
     /**
-     * Deletes all events
+     * Removes all events
      */
-    public void deleteAll() {
+    public void removeAll() {
         Session session = getFactory().getCurrentSession();
-        String hql = "DELETE FROM Event";
-        Query query = session.createQuery(hql);
+        Query query = session.createQuery(DELETE_EVENTS_QUERY);
         query.executeUpdate();
     }
 }

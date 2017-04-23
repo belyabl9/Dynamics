@@ -11,8 +11,8 @@ public class DBCleanupAction extends Action {
     protected ActionResult execute() throws Exception {
         FeaturesService.deleteAll();
         SessionsService.deleteAll();
-        EventsService.deleteAll();
-        UsersService.deleteAll();
+        EventsService.removeAll();
+        UsersService.removeAll();
 
         FeaturesService.clearFeatureMaps();
         

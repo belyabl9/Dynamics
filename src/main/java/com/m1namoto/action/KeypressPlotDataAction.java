@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Optional;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import com.google.gson.Gson;
@@ -22,9 +23,11 @@ public class KeypressPlotDataAction extends Action {
         
         Map<Long, List<HoldFeature>> holdFeaturesMap = FeaturesService.getHoldFeaturesPerUser();
         for (Long userId : holdFeaturesMap.keySet()) {
-            User user = UsersService.findById(userId);
-            UserStatistics userStat = new UserStatistics(user, holdFeaturesMap.get(userId));
-            statList.add(userStat);
+            Optional<User> userOpt = UsersService.findById(userId);
+            if (userOpt.isPresent()) {
+                UserStatistics userStat = new UserStatistics(userOpt.get(), holdFeaturesMap.get(userId));
+                statList.add(userStat);
+            }
         }
         
         return statList;

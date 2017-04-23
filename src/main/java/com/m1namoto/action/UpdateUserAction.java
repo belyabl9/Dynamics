@@ -1,5 +1,6 @@
 package com.m1namoto.action;
 
+import com.google.common.base.Optional;
 import com.m1namoto.domain.User;
 import com.m1namoto.page.UserInfoPageData;
 import com.m1namoto.service.UsersService;
@@ -14,7 +15,7 @@ public class UpdateUserAction extends Action {
         String surname = getRequestParamValue("surname");
         
         if (userType != null) {
-            user.setUserType(Integer.valueOf(userType));
+            user.setUserType(User.Type.fromInt(Integer.valueOf(userType)));
         }
         
         if (login != null) {
@@ -38,12 +39,12 @@ public class UpdateUserAction extends Action {
             throw new Exception("User ID was not passed");
         }
         
-        User user = UsersService.findById(Long.valueOf(id));
-        if (user == null) {
+        Optional<User> userOpt = UsersService.findById(Long.valueOf(id));
+        if (!userOpt.isPresent()) {
             throw new Exception("User with specified ID was not found");
         }
         
-        user = updateUser(user);
+        User user = updateUser(userOpt.get());
         
         UserInfoPageData data = new UserInfoPageData();
         data.setUser(user);

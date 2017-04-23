@@ -275,11 +275,12 @@ public class Auth extends HttpServlet {
             return;
         }
 
-        User user = UsersService.findByLogin(context.getLogin());
-        if (user == null) {
+        Optional<User> userOpt = UsersService.findByLogin(context.getLogin());
+        if (!userOpt.isPresent()) {
             processUnknownUser(response, out, responseObj);
             return;
         }
+        User user = userOpt.get();
         context.setUser(user);
 
         if (!user.getPassword().equals(context.getPassword())) {
@@ -287,7 +288,7 @@ public class Auth extends HttpServlet {
             return;
         }
 
-        if (user.getUserType() == User.USER_TYPE_ADMIN) {
+        if (user.getUserType() == User.Type.ADMIN) {
             processAdminAccess(request, response);
             return;
         }

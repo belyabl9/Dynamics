@@ -4,6 +4,7 @@ import java.util.List;
 import com.m1namoto.dao.DaoFactory;
 import com.m1namoto.domain.Event;
 import com.m1namoto.domain.User;
+import org.jetbrains.annotations.NotNull;
 
 public class EventsService {
     
@@ -17,8 +18,8 @@ public class EventsService {
     /**
      * Returns a list of user's events
      */
-    public static List<Event> getListByUser(User user) {
-        return DaoFactory.getEventsDAO().getListByUser(user.getId());
+    public static List<Event> getList(@NotNull User user) {
+        return DaoFactory.getEventsDAO().getList(user.getId());
     }
     
     /**
@@ -29,17 +30,17 @@ public class EventsService {
     }
     
     /**
-     * Deletes user's events
+     * Removes user's events
      */
-    public static void deleteUserEvents(User user) {
-    	DaoFactory.getEventsDAO().deleteUserEvents(user);
+    public static void removeAll(@NotNull User user) {
+    	DaoFactory.getEventsDAO().removeAll(user);
     }
     
     /**
-     * Deletes all events
+     * Removes all events
      */
-    public static void deleteAll() {
-        DaoFactory.getEventsDAO().deleteAll();
+    public static void removeAll() {
+        DaoFactory.getEventsDAO().removeAll();
     }
 
 }

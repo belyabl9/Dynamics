@@ -124,7 +124,7 @@ public class Classifier {
         }
         confBuilder.attribute(ATTR_MEAN_KEYPRESS_TIME);
 
-		List<User> users = UsersService.getList(User.USER_TYPE_REGULAR);
+		List<User> users = UsersService.getList(User.Type.REGULAR);
 		List<Integer> allowedValues = new ArrayList<Integer>();
 
 		for (User user : users) {

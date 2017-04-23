@@ -11,7 +11,7 @@ public class DelUserAction extends Action {
         String userId = getRequestParamValue("id");
         User user = new User();
         user.setId(Long.valueOf(userId));
-        UsersService.del(user);
+        UsersService.remove(user);
 
         return createAjaxResult(new PageData());
     }

@@ -2,6 +2,7 @@ package com.m1namoto.action;
 
 import java.util.List;
 
+import com.google.common.base.Optional;
 import com.m1namoto.domain.Session;
 import com.m1namoto.domain.User;
 import com.m1namoto.page.UserSessionsPageData;
@@ -13,12 +14,13 @@ public class UserSessionsAction extends Action {
     @Override
     protected ActionResult execute() {
         String userId = getRequestParamValue("userId");
-        User user = UsersService.findById(Long.parseLong(userId));
-        List<Session> sessions = SessionsService.getUserSessions(user);
-        
-        System.out.println("Sessions Count: " + sessions.size());
-        UserSessionsPageData data = new UserSessionsPageData(sessions, user);
-        
+        Optional<User> userOpt = UsersService.findById(Long.parseLong(userId));
+        if (!userOpt.isPresent()) {
+            return null;
+        }
+        List<Session> sessions = SessionsService.getUserSessions(userOpt.get());
+        UserSessionsPageData data = new UserSessionsPageData(sessions, userOpt.get());
+
         return createShowPageResult(Const.ViewURIs.USER_SESSIONS, data);
     }
 }

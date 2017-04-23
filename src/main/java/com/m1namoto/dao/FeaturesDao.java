@@ -10,120 +10,93 @@ import com.m1namoto.domain.Feature;
 import com.m1namoto.domain.HoldFeature;
 import com.m1namoto.domain.ReleasePressFeature;
 import com.m1namoto.domain.User;
+import org.jetbrains.annotations.NotNull;
 
 public class FeaturesDao extends GenericDAO<Feature> {
 
-    public FeaturesDao(SessionFactory factory) {
+    private static final String HOLD_FEATURES_BY_CODE_QUERY = "FROM HoldFeature ORDER BY code";
+    private static final String RELEASE_PRESS_FEATURES_QUERY = "FROM ReleasePressFeature ORDER BY releaseCode, pressCode";
+    private static final String FEATURES_BY_USER_QUERY = "FROM Feature WHERE user_id = :user_id";
+    private static final String HOLD_FEATURES_BY_USER_QUERY = "FROM HoldFeature WHERE user_id = :user_id";
+    private static final String RELEASE_PRESS_FEATURES_BY_USER_QUERY = "FROM ReleasePressFeature WHERE user_id = :user_id";
+    private static final String SESSION_FEATURES_QUERY = "FROM Feature WHERE session_id = :session_id";
+
+    public FeaturesDao(@NotNull SessionFactory factory) {
         super(Feature.class, factory);
     }
 
     /**
      * Returns a list of hold features
-     * @return List of hold features
      */
-    @SuppressWarnings("unchecked")
     public List<HoldFeature> getHoldFeatures() {
-        String hql = "FROM HoldFeature ORDER BY code";
         Session session = getFactory().getCurrentSession();
-        Query query = session.createQuery(hql);
-        List<HoldFeature> features = query.list();
-
-        return features;
+        Query query = session.createQuery(HOLD_FEATURES_BY_CODE_QUERY);
+        return query.list();
     }
 
     /**
      * Returns a list of release-press features
-     * @return List of release-press features
      */
-    @SuppressWarnings("unchecked")
     public List<ReleasePressFeature> getReleasePressFeatures() {
-        String hql = "FROM ReleasePressFeature ORDER BY releaseCode, pressCode";
         Session session = getFactory().getCurrentSession();
-        Query query = session.createQuery(hql);
-        List<ReleasePressFeature> features = query.list();
-
-        return features;
+        Query query = session.createQuery(RELEASE_PRESS_FEATURES_QUERY);
+        return query.list();
     }
 
     /**
      * Returns a list of user features
-     * @param user
-     * @return List of user features
      */
-    @SuppressWarnings("unchecked")
-    public List<Feature> getUserFeatures(User user) {
-        String hql = "FROM Feature WHERE user_id = :user_id";
+    public List<Feature> getList(@NotNull User user) {
         Session session = getFactory().getCurrentSession();
-        Query query = session.createQuery(hql);
+        Query query = session.createQuery(FEATURES_BY_USER_QUERY);
         query.setParameter("user_id", user.getId());
-        List<Feature> features = query.list(); 
-        
-        return features;
+        return query.list();
     }
 
     /**
      * Returns a list of user hold features
-     * @param user
-     * @return List of user hold features
      */
-    @SuppressWarnings("unchecked")
-    public List<HoldFeature> getUserHoldFeatures(User user) {
-        String hql = "FROM HoldFeature WHERE user_id = :user_id";
+    public List<HoldFeature> getHoldFeatures(@NotNull User user) {
         Session session = getFactory().getCurrentSession();
-        Query query = session.createQuery(hql);
+        Query query = session.createQuery(HOLD_FEATURES_BY_USER_QUERY);
         query.setParameter("user_id", user.getId());
-        List<HoldFeature> features = query.list(); 
-        
-        return features;
+        return query.list();
     }
     
     /**
      * Returns a list of user release-press features
-     * @param user
-     * @return List of user release-press features
      */
-    @SuppressWarnings("unchecked")
-    public List<ReleasePressFeature> getUserReleasePressFeatures(User user) {
-        String hql = "FROM ReleasePressFeature WHERE user_id = :user_id";
+    public List<ReleasePressFeature> getReleasePressFeatures(@NotNull User user) {
         Session session = getFactory().getCurrentSession();
-        Query query = session.createQuery(hql);
+        Query query = session.createQuery(RELEASE_PRESS_FEATURES_BY_USER_QUERY);
         query.setParameter("user_id", user.getId());
-        List<ReleasePressFeature> features = query.list(); 
-
-        return features;
+        return query.list();
     }
     
     /**
      * Returns a list of session features
-     * @param session
-     * @return List of session features
      */
-    @SuppressWarnings("unchecked")
-    public List<Feature> getSessionFeatures(com.m1namoto.domain.Session session) {
-        String hql = "FROM Feature WHERE session_id = :session_id";
+    public List<Feature> getSessionFeatures(@NotNull com.m1namoto.domain.Session session) {
         Session hibSession = getFactory().getCurrentSession();
-        Query query = hibSession.createQuery(hql);
+        Query query = hibSession.createQuery(SESSION_FEATURES_QUERY);
         query.setParameter("session_id", session.getId());
-        List<Feature> features = query.list(); 
-        
-        return features;
+        return query.list();
     }
     
     /**
-     * Deletes user features
-     * @param user
+     * Removes user features
      */
-    public void deleteFeatures(User user) {
-        List<Feature> features = getUserFeatures(user);
+    public void removeAll(@NotNull User user) {
+        List<Feature> features = getList(user);
         for (Feature feature : features) {
             delete(feature);
         }
     }
     
     /**
-     * Deletes all features
+     * Removes all features
      */
-    public void deleteAll() {
+    public void removeAll() {
         Session session = getFactory().getCurrentSession();
         String[] tables = new String[] { "HoldFeature", "ReleasePressFeature", "Feature" };
         for (int i = 0; i < tables.length; i++) {

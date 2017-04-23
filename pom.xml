@@ -5,7 +5,19 @@
 	<artifactId>dynamics</artifactId>
 	<packaging>war</packaging>
 	<version>1.0</version>
-	<name>dynamics</name>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <name>dynamics</name>
 	<repositories>
 		<repository>
 			<id>eap</id>

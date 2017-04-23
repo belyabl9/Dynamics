@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.common.base.Optional;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.m1namoto.dao.DaoFactory;
@@ -51,15 +52,16 @@ public class Sessions extends HttpServlet {
         
         UsersDao usersDao = DaoFactory.getUsersDAO();
         EventsDao eventsDao = DaoFactory.getEventsDAO();
-        User user = usersDao.findByLogin(login);
-        Type type = new TypeToken<List<Event>>(){}.getType();
-        List<Event> events = new Gson().fromJson(eventsJson, type);
-        for (Event event : events) {
-            event.setSession(session);
-            event.setUser(user);
-            eventsDao.save(event);
+        Optional<User> userOpt = usersDao.findByLogin(login);
+        if (userOpt.isPresent()) {
+            Type type = new TypeToken<List<Event>>() {}.getType();
+            List<Event> events = new Gson().fromJson(eventsJson, type);
+            for (Event event : events) {
+                event.setSession(session);
+                event.setUser(userOpt.get());
+                eventsDao.save(event);
+            }
         }
-        
 	}
 
 }

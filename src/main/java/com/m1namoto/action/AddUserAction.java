@@ -17,7 +17,7 @@ public class AddUserAction extends Action {
         user.setName(fullName);
         user.setLogin(getRequestParamValue("login"));
         user.setPassword(getRequestParamValue("password"));
-        user.setUserType(Integer.parseInt(getRequestParamValue("userType")));
+        user.setUserType(User.Type.fromInt(Integer.parseInt(getRequestParamValue("userType"))));
 
         return UsersService.save(user);
     }

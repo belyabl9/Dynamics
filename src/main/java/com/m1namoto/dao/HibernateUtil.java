@@ -14,11 +14,12 @@ public class HibernateUtil {
     private static final String TEST_DB_CONFIG_FILE = "hibernate.cfg.test.xml";
     
     public enum DatabaseConfigs {
-        MAIN(MAIN_DB_CONFIG_FILE), TEST(TEST_DB_CONFIG_FILE);
+        MAIN(MAIN_DB_CONFIG_FILE),
+        TEST(TEST_DB_CONFIG_FILE);
         
         private String stringValue;
         
-        private DatabaseConfigs(String stringValue) {
+        DatabaseConfigs(String stringValue) {
             this.stringValue = stringValue;
         }
         

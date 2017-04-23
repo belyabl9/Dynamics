@@ -31,9 +31,31 @@ public class User extends DomainSuperClass implements Serializable {
     private final static int ORIGIN_RELEASE_PRESS_FEATURES_THRESHOLD = 100;
     private final static int OTHER_RELEASE_PRESS_FEATURES_THRESHOLD = 30;
 
-    public static int USER_TYPE_ADMIN = 0;
-    public static int USER_TYPE_REGULAR = 1;
-    
+    public enum Type {
+        ADMIN(0),
+        REGULAR(1),
+        ;
+
+        private final int value;
+
+        Type(int value) {
+            this.value = value;
+        }
+
+        public static Type fromInt(int value) {
+            for (Type type : values()) {
+                if (type.getValue() == value) {
+                    return type;
+                }
+            }
+            throw new IllegalArgumentException("Unsupported type.");
+        }
+
+        public int getValue() {
+            return value;
+        }
+    }
+
     @Expose
 	@Column(name = "name")
 	private String name;
@@ -93,16 +115,16 @@ public class User extends DomainSuperClass implements Serializable {
 		this.password = password;
 	}
 
-    public int getUserType() {
-        return userType;
+    public Type getUserType() {
+        return Type.fromInt(userType);
     }
 
-    public void setUserType(int userType) {
-        this.userType = userType;
+    public void setUserType(User.Type userType) {
+        this.userType = userType.getValue();
     }
 	
     public List<Session> getSessions() {
-        List<Event> events = EventsService.getListByUser(this);
+        List<Event> events = EventsService.getList(this);
         Map<String, List<Event>> sessionsMap = new HashMap<String, List<Event>>();
 
         for (Event event : events) {

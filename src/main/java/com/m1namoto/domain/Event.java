@@ -31,21 +31,10 @@ public class Event extends DomainSuperClass implements Serializable {
 
     @Column(name = "time")
     private long time;
-    
-    @Column(name = "orientation")
-    private String orientation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-    
-    public String getOrientation() {
-        return orientation;
-    }
-
-    public void setOrientation(String orientation) {
-        this.orientation = orientation;
-    }
 
     public int getCode() {
         return code;

@@ -376,21 +376,21 @@ public class FeaturesService {
     }
 
     /**
-     * Wrapper around FeaturesDAO.getUserHoldFeatures()
+     * Wrapper around FeaturesDAO.getHoldFeatures()
      * @param user
      * @return List of user hold features
      */
     public static List<HoldFeature> getUserHoldFeatures(User user) {
-        return DaoFactory.getFeaturesDAO().getUserHoldFeatures(user);
+        return DaoFactory.getFeaturesDAO().getHoldFeatures(user);
     }
     
     /**
-     * Wrapper around FeaturesDAO.getUserReleasePressFeatures()
+     * Wrapper around FeaturesDAO.getReleasePressFeatures()
      * @param user
      * @return List of user release-press features
      */
     public static List<ReleasePressFeature> getUserReleasePressFeatures(User user) {
-        return DaoFactory.getFeaturesDAO().getUserReleasePressFeatures(user);
+        return DaoFactory.getFeaturesDAO().getReleasePressFeatures(user);
     }
 	
     /**
@@ -409,8 +409,8 @@ public class FeaturesService {
      */
     public static void deleteFeatures(User user) {
         FeaturesDao dao = DaoFactory.getFeaturesDAO();
-        dao.deleteFeatures(user);
-        EventsService.deleteUserEvents(user);
+        dao.removeAll(user);
+        EventsService.removeAll(user);
     }
 
     /**
@@ -425,7 +425,7 @@ public class FeaturesService {
      * Deletes all features and clears cached feature maps
      */
     public static void deleteAll() {
-        DaoFactory.getFeaturesDAO().deleteAll();
+        DaoFactory.getFeaturesDAO().removeAll();
         clearFeatureMaps();
     }
 

@@ -25,7 +25,7 @@ public class SessionsService {
      * @return List of user's sessions
      */
     public static List<Session> getUserSessions(User user) {
-        return DaoFactory.getSessionsDAO().getUserSessions(user);
+        return DaoFactory.getSessionsDAO().getList(user);
     }
 
     /**
@@ -40,19 +40,19 @@ public class SessionsService {
      * Deletes user's sessions
      */
     public static void deleteUserSessions(User user) {
-        DaoFactory.getSessionsDAO().deleteUserSessions(user);
+        DaoFactory.getSessionsDAO().removeAll(user);
     }
     
     
     public static void deleteById(long id) {
-        DaoFactory.getSessionsDAO().deleteSessionById(id);
+        DaoFactory.getSessionsDAO().remove(id);
     }
     
     /**
      * Deletes all sessions
      */
     public static void deleteAll() {
-        DaoFactory.getSessionsDAO().deleteAll();
+        DaoFactory.getSessionsDAO().removeAll();
     }
     
     /**

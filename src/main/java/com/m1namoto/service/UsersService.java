@@ -2,32 +2,32 @@ package com.m1namoto.service;
 
 import java.util.List;
 
+import com.google.common.base.Optional;
 import com.m1namoto.dao.DaoFactory;
 import com.m1namoto.domain.User;
+import org.jetbrains.annotations.NotNull;
 
 public class UsersService {
 
-    /**
-     * Finds a user by login
-     * @param login
-     * @return User or null
-     */
-    public static User findByLogin(String login) {
+    public static Optional<User> findByLogin(@NotNull String login) {
+        if (login.isEmpty()) {
+            throw new IllegalArgumentException("Login can not be empty.");
+        }
         return DaoFactory.getUsersDAO().findByLogin(login);
     }
 
     /**
      * Finds a user by id
-     * @param userId
-     * @return User or null
      */
-    public static User findById(long userId) {
-        return DaoFactory.getUsersDAO().findById(userId);
+    public static Optional<User> findById(long userId) {
+        if (userId < 0) {
+            throw new IllegalArgumentException("User id must be >= 0.");
+        }
+        return Optional.fromNullable(DaoFactory.getUsersDAO().findById(userId));
     }
 
     /**
      * Returns a list of users
-     * @return List of users
      */
     public static List<User> getList() {
     	return (List<User>) DaoFactory.getUsersDAO().findAll();
@@ -36,37 +36,33 @@ public class UsersService {
     /**
      * Returns a list of users by type
      * @param type Type of user [regular, admin]
-     * @return List of users
      */
-    public static List<User> getList(int type) {
-        return (List<User>) DaoFactory.getUsersDAO().getList(type);
+    public static List<User> getList(@NotNull User.Type type) {
+        return DaoFactory.getUsersDAO().getList(type);
     }
 
     /**
      * Saves a user
-     * @param user
-     * @return Saved user
      */
-    public static User save(User user) {
+    public static User save(@NotNull User user) {
     	return DaoFactory.getUsersDAO().save(user);
     }
 
     /**
-     * Deletes a user with all related data
-     * @param user
+     * Removes a user with all related data
      */
-    public static void del(User user) {
-        DaoFactory.getFeaturesDAO().deleteFeatures(user);
-        DaoFactory.getSessionsDAO().deleteUserSessions(user);
-        DaoFactory.getEventsDAO().deleteUserEvents(user);
+    public static void remove(@NotNull User user) {
+        DaoFactory.getFeaturesDAO().removeAll(user);
+        DaoFactory.getSessionsDAO().removeAll(user);
+        DaoFactory.getEventsDAO().removeAll(user);
     	DaoFactory.getUsersDAO().delete(user);
     }
 
     /**
      * Deletes all users
      */
-    public static void deleteAll() {
-        DaoFactory.getUsersDAO().deleteAll();
+    public static void removeAll() {
+        DaoFactory.getUsersDAO().removeAll();
     }
 
 }

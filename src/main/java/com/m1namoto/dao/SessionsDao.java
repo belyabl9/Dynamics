@@ -7,73 +7,63 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import com.m1namoto.domain.User;
+import org.jetbrains.annotations.NotNull;
 
 public class SessionsDao extends GenericDAO<com.m1namoto.domain.Session> {
 
-    public SessionsDao(SessionFactory factory) {
+    private static final String SESSIONS_BY_DATE_QUERY = "FROM Session ORDER BY date";
+    private static final String SESSIONS_BY_USER_QUERY = "FROM Session WHERE user_id = :user_id";
+    private static final String DEL_SESSION_BY_ID_QUERY = "DELETE FROM Session WHERE id = :id";
+    private static final String DELETE_SESSIONS_QUERY = "DELETE FROM Session";
+
+    public SessionsDao(@NotNull SessionFactory factory) {
         super(com.m1namoto.domain.Session.class, factory);
     }
 
     /**
      * Returns a list of sessions
-     * @return List of sessions
      */
-    @SuppressWarnings("unchecked")
     public List<com.m1namoto.domain.Session> getList() {
-        String hql = "FROM Session ORDER BY date";
         Session session = getFactory().getCurrentSession();
-        Query query = session.createQuery(hql);
-        List<com.m1namoto.domain.Session> sessions = query.list();
-
-        return sessions;
+        Query query = session.createQuery(SESSIONS_BY_DATE_QUERY);
+        return query.list();
     }
     
     /**
      * Returns a list of user sessions
-     * @param user
-     * @return List of user sessions
      */
-    @SuppressWarnings("unchecked")
-    public List<com.m1namoto.domain.Session> getUserSessions(User user) {
-        String hql = "FROM Session WHERE user_id = :user_id";
+    public List<com.m1namoto.domain.Session> getList(@NotNull User user) {
         Session session = getFactory().getCurrentSession();
-        Query query = session.createQuery(hql);
+        Query query = session.createQuery(SESSIONS_BY_USER_QUERY);
         query.setParameter("user_id", user.getId());
-        List<com.m1namoto.domain.Session> sessions = query.list(); 
-
-        return sessions;
+        return query.list();
     }
     
     /**
      * Deletes user sessions
-     * @param user
      */
-    public void deleteUserSessions(User user) {
-        List<com.m1namoto.domain.Session> sessions = getUserSessions(user);
-        for (com.m1namoto.domain.Session session : sessions) {
+    public void removeAll(@NotNull User user) {
+        for (com.m1namoto.domain.Session session : getList(user)) {
             delete(session);
         }
     }
     
     /**
-     * Deletes a session by id
-     * @param id
+     * Removes a session by id
      */
-    public void deleteSessionById(long id) {
-        String hql = "DELETE FROM Session WHERE id = :id";
+    public void remove(long id) {
         Session session = getFactory().getCurrentSession();
-        Query query = session.createQuery(hql);
+        Query query = session.createQuery(DEL_SESSION_BY_ID_QUERY);
         query.setParameter("id", id);
         query.executeUpdate();
     }
     
     /**
-     * Deletes all sessions
+     * Removes all sessions
      */
-    public void deleteAll() {
+    public void removeAll() {
         Session session = getFactory().getCurrentSession();
-        String hql = "DELETE FROM Session";
-        Query query = session.createQuery(hql);
+        Query query = session.createQuery(DELETE_SESSIONS_QUERY);
         query.executeUpdate();
     }
 

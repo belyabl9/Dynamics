@@ -108,7 +108,7 @@ public class BrowserUserRegistrationAction extends Action {
         user.setName(name + " " + surname);
         user.setLogin(login);
         user.setPassword(password);
-        user.setUserType(User.USER_TYPE_REGULAR);
+        user.setUserType(User.Type.REGULAR);
         
         return user;
 	}
