@@ -15,9 +15,8 @@ import com.google.gson.reflect.TypeToken;
 import com.m1namoto.domain.Event;
 import com.m1namoto.domain.HoldFeature;
 import com.m1namoto.domain.ReleasePressFeature;
-import com.m1namoto.service.FeaturesService;
 
-public class FeaturesServiceTest {
+public class FeatureServiceTest {
 
     @Test
     public void test() throws Exception {

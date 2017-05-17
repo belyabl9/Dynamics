@@ -1,17 +1,21 @@
 package com.m1namoto.service;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
 import com.m1namoto.dao.DaoFactory;
 import com.m1namoto.dao.FeaturesDao;
 import com.m1namoto.domain.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public class FeaturesService {
-    final static Logger logger = Logger.getLogger(FeaturesService.class);
+public class FeatureService {
+    private final static Logger logger = Logger.getLogger(FeatureService.class);
+
+    private static final String PASSWORD_MUST_BE_SPECIFIED = "Password must be specified.";
 
     private static Map<Long, Map<Integer, List<HoldFeature>>> userHoldFeaturesMap;
     private static Map<Long, Map<ReleasePressPair, List<ReleasePressFeature>>> userReleasePressFeaturesMap;
@@ -38,16 +42,12 @@ public class FeaturesService {
      */
 	public static Map<Long, List<HoldFeature>> getHoldFeaturesPerUser() {
 	    List<HoldFeature> features = getHoldFeatures();
-	    Map<Long, List<HoldFeature>> featuresPerUser = new HashMap<Long, List<HoldFeature>>();
-	    for (HoldFeature feature : features) {
+        ListMultimap<Long, HoldFeature> featuresPerUser = ArrayListMultimap.create();
+        for (HoldFeature feature : features) {
 	        long userId = feature.getUser().getId();
-	        if (!featuresPerUser.containsKey(userId)) {
-	            featuresPerUser.put(userId, new ArrayList<HoldFeature>());
-	        }
-	        featuresPerUser.get(userId).add(feature);
+            featuresPerUser.put(userId, feature);
 	    }
-	    
-	    return featuresPerUser;
+	    return Multimaps.asMap(featuresPerUser);
 	}
 	
     /**
@@ -55,27 +55,21 @@ public class FeaturesService {
      * @param features List of hold features
      * @return Map of hold features per code
      */
-	public static Map<Integer, List<HoldFeature>> getHoldFeaturesPerCode(List<HoldFeature> features) {
-	    Map<Integer, List<HoldFeature>> featuresPerCode = new HashMap<Integer, List<HoldFeature>>();
-
+    @NotNull
+	public static Map<Integer, List<HoldFeature>> extractHoldFeaturesPerCode(@NotNull List<HoldFeature> features) {
+        ListMultimap<Integer, HoldFeature> featuresPerCode = ArrayListMultimap.create();
 	    for (HoldFeature feature : features) {
 	        int code = feature.getCode();
-	        if (!featuresPerCode.containsKey(code)) {
-	            featuresPerCode.put(code, new ArrayList<HoldFeature>());
-	        }
-	        featuresPerCode.get(code).add(feature);
+	        featuresPerCode.put(code, feature);
 	    }
-
-	    return featuresPerCode;
+	    return Multimaps.asMap(featuresPerCode);
 	}
 
 	/**
 	 * Returns a list of user hold features by code
-	 * @param user
-	 * @param code
 	 * @return List of user hold features by code
 	 */
-    public static List<HoldFeature> getUserHoldFeaturesByCode(User user, int code) {
+    public static List<HoldFeature> getHoldFeatures(@NotNull User user, int code) {
         long userId = user.getId();
         Map<Long, List<HoldFeature>> featuresPerUser = getHoldFeaturesPerUser();
         List<HoldFeature> userHoldFeatures = featuresPerUser.get(userId);
@@ -91,22 +85,26 @@ public class FeaturesService {
      * @param password
      * @return Map of user hold features by string
      */
-    public static Map<Integer, List<Double>> getUserHoldFeaturesByString(User user, String password) {
-        Map<Integer, List<Double>> userFeaturesByString = new HashMap<Integer, List<Double>>();
+    public static Map<Integer, List<Double>> getUserHoldFeaturesByString(@NotNull User user, @NotNull String password) {
+        if (password.isEmpty()) {
+            throw new IllegalArgumentException(PASSWORD_MUST_BE_SPECIFIED);
+        }
+
+        Map<Integer, List<Double>> userFeaturesByString = new HashMap<>();
         long userId = user.getId();
         Map<Integer, List<HoldFeature>> userHoldFeaturesPerCode = getUserHoldFeaturesMap().get(userId);
 
         if (userHoldFeaturesPerCode == null) {
-            return null;
+            return Collections.emptyMap();
         }
 
         for (char code : password.toCharArray()) {
             List<HoldFeature> userHoldFeaturesByCode = userHoldFeaturesPerCode.get((int)code);
-            if (userHoldFeaturesByCode == null || userHoldFeaturesByCode.size() == 0) {
+            if (CollectionUtils.isEmpty(userHoldFeaturesByCode)) {
                 userFeaturesByString.put((int)code, null);
                 continue;
             }
-            List<Double> featureValuesByCode = new ArrayList<Double>();
+            List<Double> featureValuesByCode = new ArrayList<>();
             for (int i = 0; i < userHoldFeaturesByCode.size(); i++) {
                 featureValuesByCode.add(userHoldFeaturesByCode.get(i).getValue());
             }
@@ -121,8 +119,8 @@ public class FeaturesService {
      * @param userFeatures
      * @return Map of user hold features per code
      */
-    public static Map<Integer, List<HoldFeature>> getUserHoldFeaturesPerCode(List<HoldFeature> userFeatures) {
-        Map<Integer, List<HoldFeature>> featuresPerCode = new HashMap<Integer, List<HoldFeature>>();
+    public static Map<Integer, List<HoldFeature>> getUserHoldFeaturesPerCode(@NotNull List<HoldFeature> userFeatures) {
+        Map<Integer, List<HoldFeature>> featuresPerCode = new HashMap<>();
         
         for (HoldFeature feature : userFeatures) {
             int code = feature.getCode();
@@ -141,10 +139,15 @@ public class FeaturesService {
      * @param password
      * @return Hold features sample
      */
-    private static FeaturesSample getHoldFeaturesSampleByString(Map<Integer, List<Double>> holdFeaturesPerCode, String password) {
+    private static FeaturesSample getHoldFeaturesSampleByString(@NotNull Map<Integer, List<Double>> holdFeaturesPerCode,
+                                                                @NotNull String password) {
+        if (password.isEmpty()) {
+            throw new IllegalArgumentException(PASSWORD_MUST_BE_SPECIFIED);
+        }
+
         FeaturesSample sample = new FeaturesSample();
         
-        List<Double> holdFeaturesSample = new ArrayList<Double>();
+        List<Double> holdFeaturesSample = new ArrayList<>();
         for (char code : password.toCharArray()) {
             List<Double> featureValues = holdFeaturesPerCode.get((int)code);
             Double holdFeatureVal = null;
@@ -162,23 +165,21 @@ public class FeaturesService {
 
     /**
      * Returns release-press features per key codes. Map key is key codes pair (release and press)
-     * @param features List of release-press features
+     * @param userFeatures List of release-press features
      * @return Map of release-press features per key codes
      */
-    public static Map<ReleasePressPair, List<ReleasePressFeature>> getReleasePressFeaturesPerCode(List<ReleasePressFeature> userFeatures) {
-        Map<ReleasePressPair, List<ReleasePressFeature>> featuresPerCode = new HashMap<ReleasePressPair, List<ReleasePressFeature>>();
-
+    @NotNull
+    public static Map<ReleasePressPair, List<ReleasePressFeature>> extractReleasePressFeaturesPerCode(
+            @NotNull List<ReleasePressFeature> userFeatures
+    ) {
+        ListMultimap<ReleasePressPair, ReleasePressFeature> featuresPerCode = ArrayListMultimap.create();
         for (ReleasePressFeature feature : userFeatures) {
             int releaseCode = feature.getReleaseCode(),
                 pressCode = feature.getPressCode();
             ReleasePressPair codePair = new ReleasePressPair(releaseCode, pressCode);
-            if (!featuresPerCode.containsKey(codePair)) {
-                featuresPerCode.put(codePair, new ArrayList<ReleasePressFeature>());
-            }
-            featuresPerCode.get(codePair).add(feature);
+            featuresPerCode.put(codePair, feature);
         }
-
-        return featuresPerCode;
+        return Multimaps.asMap(featuresPerCode);
     }
     
     /**
@@ -188,13 +189,19 @@ public class FeaturesService {
      * @param password
      * @return Map of user release-press features by string.
      */
-    public static Map<ReleasePressPair, List<Double>> getUserReleasePressFeaturesByString(User user, String password) {
-        Map<ReleasePressPair, List<Double>> userFeaturesByString = new HashMap<ReleasePressPair, List<Double>>();
+    @NotNull
+    public static Map<ReleasePressPair, List<Double>> getUserReleasePressFeaturesByString(@NotNull User user,
+                                                                                          @NotNull String password) {
+        if (password.isEmpty()) {
+            throw new IllegalArgumentException(PASSWORD_MUST_BE_SPECIFIED);
+        }
+
+        Map<ReleasePressPair, List<Double>> userFeaturesByString = new HashMap<>();
         long userId = user.getId();
         Map<ReleasePressPair, List<ReleasePressFeature>> userReleasePressFeaturesPerCode = getUserReleasePressFeaturesMap().get(userId);
 
         if (userReleasePressFeaturesPerCode == null) {
-            return null;
+            return Collections.emptyMap();
         }
 
         char[] passwordCharacters = password.toCharArray();
@@ -205,19 +212,19 @@ public class FeaturesService {
             ReleasePressPair codePair = new ReleasePressPair(releaseCode, pressCode);
 
             List<ReleasePressFeature> userReleasePressFeaturesByCode = userReleasePressFeaturesPerCode.get(codePair);
-            if (userReleasePressFeaturesByCode == null || userReleasePressFeaturesByCode.size() == 0) {
+            if (CollectionUtils.isEmpty(userReleasePressFeaturesByCode)) {
                 logger.debug(String.format("Can not find release-press features for codes: %c - %c", releaseCode, pressCode));
                 userFeaturesByString.put(codePair, null);
                 continue;
             }
-            List<Double> featureValuesByCode = new ArrayList<Double>();
+            List<Double> featureValuesByCode = new ArrayList<>();
             for (int j = 0; j < userReleasePressFeaturesByCode.size(); j++) {
                 featureValuesByCode.add(userReleasePressFeaturesByCode.get(j).getValue());
             }
             userFeaturesByString.put(codePair, featureValuesByCode);
         }
 
-        return userFeaturesByString;
+        return Collections.unmodifiableMap(userFeaturesByString);
     }
 
     /**
@@ -226,9 +233,15 @@ public class FeaturesService {
      * @param password
      * @return Release-press features sample
      */
+    @NotNull
     private static FeaturesSample getReleasePressFeaturesSampleByString(
-            Map<ReleasePressPair, List<Double>> releasePressFeaturesPerCode, String password) {
-       
+            @NotNull Map<ReleasePressPair, List<Double>> releasePressFeaturesPerCode,
+            @NotNull String password
+    ) {
+        if (password.isEmpty()) {
+            throw new IllegalArgumentException(PASSWORD_MUST_BE_SPECIFIED);
+        }
+
         FeaturesSample sample = new FeaturesSample();
 
         char[] passwordCharacters = password.toCharArray();
@@ -241,7 +254,7 @@ public class FeaturesService {
             
             Double releasePressValue = null;
             
-            if (releasePressValues != null && releasePressValues.size() > 0) {
+            if (CollectionUtils.isNotEmpty(releasePressValues)) {
                 releasePressValue = releasePressValues.remove(0);
                 sample.setEmpty(false);
             }
@@ -253,9 +266,14 @@ public class FeaturesService {
         
         return sample;
     }
-    
-    public static List<List<Double>> getUserSamples(User user, String password) {
-        List<List<Double>> samples = new ArrayList<List<Double>>();
+
+    @NotNull
+    public static List<List<Double>> getUserSamples(@NotNull User user, @NotNull String password) {
+        if (password.isEmpty()) {
+            throw new IllegalArgumentException(PASSWORD_MUST_BE_SPECIFIED);
+        }
+
+        List<List<Double>> samples = new ArrayList<>();
 
         Map<Integer, List<Double>> holdFeaturesByString =  getUserHoldFeaturesByString(user, password);
         Map<ReleasePressPair, List<Double>> releasePressFeaturesByString = getUserReleasePressFeaturesByString(user, password);
@@ -265,7 +283,7 @@ public class FeaturesService {
             FeaturesSample holdFeaturesSample = getHoldFeaturesSampleByString(holdFeaturesByString, password);
             FeaturesSample releasePressFeaturesSample = getReleasePressFeaturesSampleByString(releasePressFeaturesByString, password);
 
-            List<Double> featuresSample = new ArrayList<Double>();
+            List<Double> featuresSample = new ArrayList<>();
             featuresSample.addAll(holdFeaturesSample.getFeatures());
             featuresSample.addAll(releasePressFeaturesSample.getFeatures());
 
@@ -275,23 +293,22 @@ public class FeaturesService {
             isEmptySample = (holdFeaturesSample.isEmpty() && releasePressFeaturesSample.isEmpty());
         }
 
-        return samples;
+        return Collections.unmodifiableList(samples);
     }
-    
-    public static Map<ReleasePressPair, List<ReleasePressFeature>> getUserReleasePressFeaturesPerCode(List<ReleasePressFeature> userFeatures) {
-        Map<ReleasePressPair, List<ReleasePressFeature>> featuresPerCode = new HashMap<ReleasePressPair, List<ReleasePressFeature>>();
 
+    @NotNull
+    public static Map<ReleasePressPair, List<ReleasePressFeature>> getUserReleasePressFeaturesPerCode(
+            @NotNull List<ReleasePressFeature> userFeatures
+    ) {
+        ListMultimap<ReleasePressPair, ReleasePressFeature> featuresPerCode = ArrayListMultimap.create();
         for (ReleasePressFeature feature : userFeatures) {
             int releaseCode = feature.getReleaseCode(),
                 pressCode = feature.getPressCode();
             ReleasePressPair codePair = new ReleasePressPair(releaseCode, pressCode);
-            if (!featuresPerCode.containsKey(codePair)) {
-                featuresPerCode.put(codePair, new ArrayList<ReleasePressFeature>());
-            }
-            featuresPerCode.get(codePair).add(feature);
+            featuresPerCode.put(codePair, feature);
         }
 
-        return featuresPerCode;
+        return Collections.unmodifiableMap(Multimaps.asMap(featuresPerCode));
     }
 
     /**
@@ -305,9 +322,9 @@ public class FeaturesService {
 	        return userHoldFeaturesMap;
 	    }
 
-	    userHoldFeaturesMap = new HashMap<Long, Map<Integer, List<HoldFeature>>>();
+	    userHoldFeaturesMap = new HashMap<>();
 	    List<HoldFeature> features = getHoldFeatures();
-	    getHoldFeaturesPerCode(features);
+	    extractHoldFeaturesPerCode(features);
 	    for (HoldFeature feature : features) {
 	        long userId = feature.getUser().getId();
 	        if (!userHoldFeaturesMap.containsKey(userId)) {
@@ -345,7 +362,7 @@ public class FeaturesService {
         if (userReleasePressFeaturesMap != null) {
             return userReleasePressFeaturesMap;
         }
-        userReleasePressFeaturesMap = new HashMap<Long, Map<ReleasePressPair, List<ReleasePressFeature>>>();
+        userReleasePressFeaturesMap = new HashMap<>();
         List<ReleasePressFeature> features = getReleasePressFeatures();
         for (ReleasePressFeature feature : features) {
             long userId = feature.getUser().getId();
@@ -380,7 +397,7 @@ public class FeaturesService {
      * @param user
      * @return List of user hold features
      */
-    public static List<HoldFeature> getUserHoldFeatures(User user) {
+    public static List<HoldFeature> getHoldFeatures(@NotNull User user) {
         return DaoFactory.getFeaturesDAO().getHoldFeatures(user);
     }
     
@@ -389,7 +406,8 @@ public class FeaturesService {
      * @param user
      * @return List of user release-press features
      */
-    public static List<ReleasePressFeature> getUserReleasePressFeatures(User user) {
+    @NotNull
+    public static List<ReleasePressFeature> getReleasePressFeatures(@NotNull User user) {
         return DaoFactory.getFeaturesDAO().getReleasePressFeatures(user);
     }
 	
@@ -407,10 +425,10 @@ public class FeaturesService {
      * Deletes user features
      * @param user
      */
-    public static void deleteFeatures(User user) {
+    public static void remove(@NotNull User user) {
         FeaturesDao dao = DaoFactory.getFeaturesDAO();
         dao.removeAll(user);
-        EventsService.removeAll(user);
+        EventService.removeAll(user);
     }
 
     /**
@@ -424,7 +442,7 @@ public class FeaturesService {
     /**
      * Deletes all features and clears cached feature maps
      */
-    public static void deleteAll() {
+    public static void removeAll() {
         DaoFactory.getFeaturesDAO().removeAll();
         clearFeatureMaps();
     }

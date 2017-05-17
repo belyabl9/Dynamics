@@ -6,7 +6,7 @@ import com.google.common.base.Optional;
 import com.m1namoto.domain.Session;
 import com.m1namoto.domain.User;
 import com.m1namoto.page.UserSessionsPageData;
-import com.m1namoto.service.SessionsService;
+import com.m1namoto.service.SessionService;
 import com.m1namoto.service.UsersService;
 import com.m1namoto.utils.Const;
 
@@ -18,7 +18,7 @@ public class UserSessionsAction extends Action {
         if (!userOpt.isPresent()) {
             return null;
         }
-        List<Session> sessions = SessionsService.getUserSessions(userOpt.get());
+        List<Session> sessions = SessionService.getUserSessions(userOpt.get());
         UserSessionsPageData data = new UserSessionsPageData(sessions, userOpt.get());
 
         return createShowPageResult(Const.ViewURIs.USER_SESSIONS, data);

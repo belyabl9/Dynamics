@@ -6,17 +6,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import com.m1namoto.features.FeatureExtractor;
 import org.apache.log4j.Logger;
 
 import com.google.gson.annotations.Expose;
-import com.m1namoto.service.EventsService;
-import com.m1namoto.service.FeatureSamplesService;
-import com.m1namoto.service.FeaturesService;
+import com.m1namoto.service.EventService;
+import com.m1namoto.service.FeatureSampleService;
+import com.m1namoto.service.FeatureService;
 
 @Entity
 @Table(name = "Users")
@@ -48,7 +46,7 @@ public class User extends DomainSuperClass implements Serializable {
                     return type;
                 }
             }
-            throw new IllegalArgumentException("Unsupported type.");
+            throw new IllegalArgumentException("Unsupported user type.");
         }
 
         public int getValue() {
@@ -68,7 +66,8 @@ public class User extends DomainSuperClass implements Serializable {
     private String password;
 
     @Column(name = "userType", nullable=false)
-    private int userType;
+    @Enumerated(EnumType.ORDINAL)
+    private Type userType;
 
     @Column(name = "authenticatedCnt", columnDefinition = "int default 0", nullable=false)
     private int authenticatedCnt;
@@ -116,15 +115,15 @@ public class User extends DomainSuperClass implements Serializable {
 	}
 
     public Type getUserType() {
-        return Type.fromInt(userType);
+        return userType;
     }
 
-    public void setUserType(User.Type userType) {
-        this.userType = userType.getValue();
+    public void setUserType(Type userType) {
+        this.userType = userType;
     }
 	
     public List<Session> getSessions() {
-        List<Event> events = EventsService.getList(this);
+        List<Event> events = EventService.getList(this);
         Map<String, List<Event>> sessionsMap = new HashMap<String, List<Event>>();
 
         for (Event event : events) {
@@ -185,9 +184,9 @@ public class User extends DomainSuperClass implements Serializable {
 	
     public List<HoldFeature> getHoldFeaturesByCode(int code) {
         long userId = this.getId();
-        Map<Long, List<HoldFeature>> featuresPerUser = FeaturesService.getHoldFeaturesPerUser();
+        Map<Long, List<HoldFeature>> featuresPerUser = FeatureService.getHoldFeaturesPerUser();
         List<HoldFeature> userHoldFeatures = featuresPerUser.get(userId);
-        Map<Integer, List<HoldFeature>> featuresPerCode = FeaturesService.getHoldFeaturesPerCode(userHoldFeatures);
+        Map<Integer, List<HoldFeature>> featuresPerCode = FeatureService.extractHoldFeaturesPerCode(userHoldFeatures);
         
         return featuresPerCode.get(code);
     }
@@ -195,7 +194,7 @@ public class User extends DomainSuperClass implements Serializable {
     public Map<Integer, List<Double>> getHoldFeaturesByString(String password) {
         Map<Integer, List<Double>> userFeaturesByString = new HashMap<Integer, List<Double>>();
         long userId = this.getId();
-        Map<Integer, List<HoldFeature>> userHoldFeaturesPerCode = FeaturesService.getUserHoldFeaturesMap().get(userId);
+        Map<Integer, List<HoldFeature>> userHoldFeaturesPerCode = FeatureService.getUserHoldFeaturesMap().get(userId);
 
         if (userHoldFeaturesPerCode == null) {
             logger.debug("User Hold Featuers Per Code Map is null");
@@ -226,7 +225,7 @@ public class User extends DomainSuperClass implements Serializable {
         Map<ReleasePressPair, List<Double>> userFeaturesByString = new HashMap<ReleasePressPair, List<Double>>();
         long userId = this.getId();
         Map<ReleasePressPair, List<ReleasePressFeature>> userReleasePressFeaturesPerCode
-            = FeaturesService.getUserReleasePressFeaturesMap().get(userId);
+            = FeatureService.getUserReleasePressFeaturesMap().get(userId);
 
         if (userReleasePressFeaturesPerCode == null) {
             return null;
@@ -259,11 +258,11 @@ public class User extends DomainSuperClass implements Serializable {
     }
     
     public List<HoldFeature> getHoldFeatures() {
-        return FeaturesService.getUserHoldFeatures(this);
+        return FeatureService.getHoldFeatures(this);
     }
     
     public List<ReleasePressFeature> getReleasePressFeatures() {
-        return FeaturesService.getUserReleasePressFeatures(this);
+        return FeatureService.getReleasePressFeatures(this);
     }
     
     public List<List<Double>> getSamples(User user, String password) {
@@ -285,8 +284,8 @@ public class User extends DomainSuperClass implements Serializable {
         
         boolean isEmptySample = false;
         while (!isEmptySample) {
-            FeaturesSample holdFeaturesSample = FeatureSamplesService.getInstance().getHoldFeaturesSampleByString(holdFeaturesByString, password);
-            FeaturesSample releasePressFeaturesSample = FeatureSamplesService.getInstance().getReleasePressFeaturesSampleByString(releasePressFeaturesByString, password);
+            FeaturesSample holdFeaturesSample = FeatureSampleService.getInstance().getHoldFeaturesSampleByString(holdFeaturesByString, password);
+            FeaturesSample releasePressFeaturesSample = FeatureSampleService.getInstance().getReleasePressFeaturesSampleByString(releasePressFeaturesByString, password);
             
             FeaturesSample xFeaturesSample = null;
             FeaturesSample yFeaturesSample = null;

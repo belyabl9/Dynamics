@@ -6,7 +6,7 @@ import com.m1namoto.domain.Event;
 import com.m1namoto.domain.User;
 import org.jetbrains.annotations.NotNull;
 
-public class EventsService {
+public class EventService {
     
     /**
      * Returns a list of events

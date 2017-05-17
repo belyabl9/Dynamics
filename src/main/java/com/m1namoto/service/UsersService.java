@@ -9,9 +9,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class UsersService {
 
+    private static final String LOGIN_CAN_NOT_BE_EMPTY = "Login can not be empty.";
+    private static final String INVALID_USER_ID = "User id must be >= 0.";
+
     public static Optional<User> findByLogin(@NotNull String login) {
         if (login.isEmpty()) {
-            throw new IllegalArgumentException("Login can not be empty.");
+            throw new IllegalArgumentException(LOGIN_CAN_NOT_BE_EMPTY);
         }
         return DaoFactory.getUsersDAO().findByLogin(login);
     }
@@ -21,7 +24,7 @@ public class UsersService {
      */
     public static Optional<User> findById(long userId) {
         if (userId < 0) {
-            throw new IllegalArgumentException("User id must be >= 0.");
+            throw new IllegalArgumentException(INVALID_USER_ID);
         }
         return Optional.fromNullable(DaoFactory.getUsersDAO().findById(userId));
     }
@@ -41,9 +44,6 @@ public class UsersService {
         return DaoFactory.getUsersDAO().getList(type);
     }
 
-    /**
-     * Saves a user
-     */
     public static User save(@NotNull User user) {
     	return DaoFactory.getUsersDAO().save(user);
     }
@@ -59,7 +59,7 @@ public class UsersService {
     }
 
     /**
-     * Deletes all users
+     * Removes all users
      */
     public static void removeAll() {
         DaoFactory.getUsersDAO().removeAll();

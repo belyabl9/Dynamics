@@ -6,8 +6,8 @@
 	<label for="test" class="control-label col-sm-3">User Type</label>
 	<div class="col-sm-9">
 		<select id="test" name="userType" class="form-control">
-			<option ${user.userType == 0 ? 'selected' : '' } value="0">Admin</option>
-			<option ${user.userType == 1 ? 'selected' : '' } value="1">Regular User</option>
+			<option ${user.userType eq 'ADMIN'   ? 'selected' : '' } value="0">Admin</option>
+			<option ${user.userType eq 'REGULAR' ? 'selected' : '' } value="1">Regular User</option>
 		</select>
 	</div>
 </div>

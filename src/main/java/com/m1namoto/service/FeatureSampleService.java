@@ -9,13 +9,13 @@ import org.apache.log4j.Logger;
 import com.m1namoto.domain.FeaturesSample;
 import com.m1namoto.domain.ReleasePressPair;
 
-public class FeatureSamplesService {
-    final static Logger logger = Logger.getLogger(FeatureSamplesService.class);
+public class FeatureSampleService {
+    final static Logger logger = Logger.getLogger(FeatureSampleService.class);
 
-    private static final FeatureSamplesService INSTANCE = new FeatureSamplesService();
-    private FeatureSamplesService() {}
+    private static final FeatureSampleService INSTANCE = new FeatureSampleService();
+    private FeatureSampleService() {}
 
-    public static FeatureSamplesService getInstance() {
+    public static FeatureSampleService getInstance() {
         return INSTANCE;
     }
 

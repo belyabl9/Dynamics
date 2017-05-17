@@ -19,7 +19,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.m1namoto.features.FeatureExtractor;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
@@ -37,9 +36,9 @@ import com.m1namoto.domain.ReleasePressPair;
 import com.m1namoto.domain.Session;
 import com.m1namoto.domain.User;
 import com.m1namoto.etc.AuthRequest;
-import com.m1namoto.service.EventsService;
-import com.m1namoto.service.FeaturesService;
-import com.m1namoto.service.SessionsService;
+import com.m1namoto.service.EventService;
+import com.m1namoto.service.FeatureService;
+import com.m1namoto.service.SessionService;
 import com.m1namoto.service.UsersService;
 import com.m1namoto.utils.PropertiesService;
 
@@ -124,7 +123,7 @@ public class Auth extends HttpServlet {
 
         List<Double> featureValues = new ArrayList<Double>();
 
-        Map<Integer, List<HoldFeature>> holdFeaturesPerCode = FeaturesService.getHoldFeaturesPerCode(sessionHoldFeatures);
+        Map<Integer, List<HoldFeature>> holdFeaturesPerCode = FeatureService.extractHoldFeaturesPerCode(sessionHoldFeatures);
         char[] passwordCharacters = userToCheck.getPassword().toCharArray();  
         for (char c : passwordCharacters) {
             List<HoldFeature> featuresByCode = holdFeaturesPerCode.get((int)c);
@@ -136,7 +135,7 @@ public class Auth extends HttpServlet {
             }
         }
 
-        Map<ReleasePressPair, List<ReleasePressFeature>> releasePressFeaturesPerCode = FeaturesService.getReleasePressFeaturesPerCode(sessionReleasePressFeatures);
+        Map<ReleasePressPair, List<ReleasePressFeature>> releasePressFeaturesPerCode = FeatureService.extractReleasePressFeaturesPerCode(sessionReleasePressFeatures);
         for (int i = 1; i < passwordCharacters.length; i++) {
             int releaseCode = passwordCharacters[i-1],
                 pressCode = passwordCharacters[i];
@@ -183,18 +182,18 @@ public class Auth extends HttpServlet {
      */
     private void saveSessions(@NotNull List<Session> sessions, @NotNull User user) throws Exception {
         for (Session session : sessions) {
-            SessionsService.save(session);
+            SessionService.save(session);
             
             List<Event> events = session.getEvents();
             if (events.isEmpty()) {
                 continue;
             }
             for (Event event : events) {
-                EventsService.save(event);
+                EventService.save(event);
             }
             for (Feature feature : session.getFeaturesFromEvents()) {
                 feature.setSession(session);
-                FeaturesService.save(feature);
+                FeatureService.save(feature);
             }
         }
         user.setAuthenticatedCnt(user.getAuthenticatedCnt() + 1);
@@ -403,7 +402,7 @@ public class Auth extends HttpServlet {
         private User user;
         private List<Session> statSessions;
 
-        public AuthContext(HttpServletRequest req) {
+        public AuthContext(@NotNull HttpServletRequest req) {
             login    = req.getParameter(REQ_LOGIN_PARAM);
             password = req.getParameter(REQ_PASSWORD_PARAM);
             stat     = req.getParameter(REQ_STAT_PARAM);

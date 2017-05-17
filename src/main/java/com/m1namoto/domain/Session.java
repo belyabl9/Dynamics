@@ -1,25 +1,15 @@
 package com.m1namoto.domain;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-
 import com.m1namoto.features.FeatureExtractor;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Type;
 
-import com.m1namoto.service.FeaturesService;
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "Sessions")
@@ -88,7 +78,7 @@ public class Session extends DomainSuperClass implements Serializable {
         return date;
     }
     
-    public List<HoldFeature> getHoldFeaturesFromEvents() throws Exception {
+    public List<HoldFeature> getHoldFeaturesFromEvents() {
         return FeatureExtractor.getInstance().getHoldFeatures(events);
     }
     
@@ -96,8 +86,8 @@ public class Session extends DomainSuperClass implements Serializable {
         return FeatureExtractor.getInstance().getReleasePressFeatures(events);
     }
 
-    public List<Feature> getFeaturesFromEvents() throws Exception {
-        List<Feature> features = new ArrayList<Feature>();
+    public List<Feature> getFeaturesFromEvents() {
+        List<Feature> features = new ArrayList<>();
         features.addAll(getHoldFeaturesFromEvents());
         features.addAll(getReleasePressFeaturesFromEvents());
         

@@ -16,15 +16,19 @@ var Users = (function() {
                     {
                     	data: 'userType',
                         "render": function ( data, type, row ) {
-                            return data ? 'U' : 'A';
+                            return row.userType === 'ADMIN' ? 'Admin' : 'Regular';
                         }
                     },
-                    { data: 'name' },
-                    { data: 'login' },
+                    {
+                        data: 'name'
+                    },
+                    {
+                        data: 'login'
+                    },
                     {
                         data: 'authenticatedCnt',
                         "render": function ( data, type, row ) {
-                            return row.userType === ADMIN_USER_TYPE ? '' : data;
+                            return row.userType === 'ADMIN' ? '' : data;
                         }
                     },
                     {

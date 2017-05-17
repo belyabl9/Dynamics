@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Utils {
-    
+
     public static double mean(@NotNull List<Double> values) {
         // protection against division by zero
         if (values.isEmpty()) {
@@ -22,21 +22,33 @@ public class Utils {
             sum += values.get(i);
         }
 
-        return sum/n;
+        return sum / n;
     }
-    
-    public static void checkMandatoryParams(Map<String, String[]> paramsMap, String[] paramNames) throws Exception {
+
+    public static void checkMandatoryParams(@NotNull Map<String, String[]> paramsMap, @NotNull List<String> paramNames) {
+        checkMandatoryParams(
+                paramsMap,
+                paramNames.toArray(new String[paramNames.size()])
+        );
+    }
+
+    public static void checkMandatoryParams(Map<String, String[]> paramsMap, String[] paramNames) {
         for (String paramName : paramNames) {
-            if ( paramsMap.get(paramName) == null ) {
-                throw new Exception(String.format("Parameter '%s' is mandatory", paramName));
+            String[] valuesArray = paramsMap.get(paramName);
+            if (valuesArray == null || valuesArray[0] == null) {
+                throw new NullPointerException(String.format("Parameter '%s' is mandatory", paramName));
             }
         }
     }
-    
-    public static String readFile(String path, Charset encoding) 
+
+    public static String readFile(String path, Charset encoding)
             throws IOException {
         byte[] encoded = Files.readAllBytes(Paths.get(path));
         return new String(encoded, encoding);
+    }
+
+    public static boolean isOpenShift() {
+        return System.getenv("OPENSHIFT_DATA_DIR") != null;
     }
 
 }

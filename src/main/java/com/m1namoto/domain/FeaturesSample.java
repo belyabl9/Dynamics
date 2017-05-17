@@ -2,9 +2,6 @@ package com.m1namoto.domain;
 
 import java.util.List;
 
-/**
- * This class is an abstraction of features list
- */
 public class FeaturesSample {
     private List<Double> features;
     private boolean isEmpty = true;

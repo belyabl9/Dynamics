@@ -12,6 +12,8 @@ import java.util.List;
 // TODO: String action to enum
 public class FeatureExtractor {
 
+    private static final String NO_RELEASE_EVENT_FOR_PRESS = "Can not find release event for pressed key";
+
     private FeatureExtractor() {}
     private static final FeatureExtractor INSTANCE = new FeatureExtractor();
 
@@ -105,8 +107,8 @@ public class FeatureExtractor {
      * Returns a list of hold features from the list of events
      */
     @NotNull
-    public List<HoldFeature> getHoldFeatures(@NotNull List<Event> events) throws Exception {
-        List<HoldFeature> holdFeatures = new ArrayList<HoldFeature>();
+    public List<HoldFeature> getHoldFeatures(@NotNull List<Event> events) {
+        List<HoldFeature> holdFeatures = new ArrayList<>();
 
         for (int i = 0; i < events.size(); i++) {
             Event event = events.get(i);
@@ -114,7 +116,7 @@ public class FeatureExtractor {
                 int code = event.getCode();
                 Event keyReleaseEvent = getKeyEvent(events, Event.ACTION_RELEASE, code, i + 1);
                 if (keyReleaseEvent == null) {
-                    throw new Exception("Can not find release event for pressed key");
+                    throw new RuntimeException(NO_RELEASE_EVENT_FOR_PRESS);
                 }
                 double timeDiff = keyReleaseEvent.getTime() - event.getTime();
                 holdFeatures.add(new HoldFeature(timeDiff, code, event.getUser()));

@@ -19,9 +19,9 @@ import com.m1namoto.domain.Session;
 import com.m1namoto.domain.User;
 import com.m1namoto.etc.RegRequest;
 import com.m1namoto.page.PageData;
-import com.m1namoto.service.EventsService;
-import com.m1namoto.service.FeaturesService;
-import com.m1namoto.service.SessionsService;
+import com.m1namoto.service.EventService;
+import com.m1namoto.service.FeatureService;
+import com.m1namoto.service.SessionService;
 import com.m1namoto.service.UsersService;
 import com.m1namoto.utils.PropertiesService;
 import com.m1namoto.utils.Utils;
@@ -57,18 +57,18 @@ public class BrowserUserRegistrationAction extends Action {
         logger.debug("Save session events");
         logger.debug(statSessions);
         for (Session session : statSessions) {
-            SessionsService.save(session);
+            SessionService.save(session);
             List<Event> events = session.getEvents();
             if (events.size() == 0) {
                 continue;
             }
             for (Event event : events) {
-                EventsService.save(event);
+                EventService.save(event);
             }
             for (Feature feature : session.getFeaturesFromEvents()) {
                 logger.debug("Save feature: " + feature);
                 feature.setSession(session);
-                FeaturesService.save(feature);
+                FeatureService.save(feature);
             }
         }
     }
