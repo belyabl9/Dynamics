@@ -25,7 +25,7 @@ public class EventService {
     /**
      * Saves an event
      */
-    public static Event save(Event event) {
+    public static Event save(@NotNull Event event) {
     	return DaoFactory.getEventsDAO().save(event);
     }
     

@@ -1,5 +1,6 @@
 package com.m1namoto.classifier;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -14,9 +15,9 @@ public class Configuration {
 
 	static class Builder {
 		private String name;
-		private List<String> attributes = new ArrayList<String>();
-		private List<Integer> allowedClassValues = new ArrayList<Integer>();
-		private List<DynamicsInstance> instances = new ArrayList<DynamicsInstance>();
+		private List<String> attributes = new ArrayList<>();
+		private List<Integer> allowedClassValues = new ArrayList<>();
+		private List<DynamicsInstance> instances = new ArrayList<>();
 
 		public Builder name(@NotNull String name) {
 			this.name = name;
@@ -38,7 +39,7 @@ public class Configuration {
 			if (features.size() != attributes.size()) {
 				throw new IllegalArgumentException("Features amount is not equal to attributes");
 			}
-			instances.add(new DynamicsInstance(features, classVal));
+			instances.add(new DynamicsInstance(features, Optional.of(classVal)));
 			return this;
 		}
 

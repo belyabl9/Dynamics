@@ -28,11 +28,11 @@ public class Session extends DomainSuperClass implements Serializable {
     private User user;
 
     @Transient
-    private List<Event> events = new ArrayList<Event>();
+    private List<Event> events = new ArrayList<>();
 
     @OneToMany(mappedBy="session", fetch=FetchType.LAZY)
     @Cascade({CascadeType.DELETE})
-    private List<Feature> features = new ArrayList<Feature>();
+    private List<Feature> features = new ArrayList<>();
 
     public Session(String name, List<Event> events, User user) {
 		this.name = name;

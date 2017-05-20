@@ -11,7 +11,7 @@ import com.m1namoto.utils.Const;
 */
 public class ActionFactory {
  
-    private static HashMap<String, Class<? extends Action>> actionMappings = new HashMap<String, Class<? extends Action>>();
+    private static HashMap<String, Class<? extends Action>> actionMappings = new HashMap<>();
  
     static {
         map(Const.ActionURIs.USERS_PAGE, UsersPageAction.class);

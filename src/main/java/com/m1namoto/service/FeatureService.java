@@ -2,6 +2,7 @@ package com.m1namoto.service;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.m1namoto.dao.DaoFactory;
 import com.m1namoto.dao.FeaturesDao;
@@ -120,17 +121,12 @@ public class FeatureService {
      * @return Map of user hold features per code
      */
     public static Map<Integer, List<HoldFeature>> getUserHoldFeaturesPerCode(@NotNull List<HoldFeature> userFeatures) {
-        Map<Integer, List<HoldFeature>> featuresPerCode = new HashMap<>();
-        
+        ListMultimap<Integer, HoldFeature> featuresPerCode = ArrayListMultimap.create();
         for (HoldFeature feature : userFeatures) {
             int code = feature.getCode();
-            if (!featuresPerCode.containsKey(code)) {
-                featuresPerCode.put(code, new ArrayList<HoldFeature>());
-            }
-            featuresPerCode.get(code).add(feature);
+            featuresPerCode.put(code, feature);
         }
-        
-        return featuresPerCode;
+        return Multimaps.asMap(featuresPerCode);
     }
     
     /**
@@ -151,7 +147,7 @@ public class FeatureService {
         for (char code : password.toCharArray()) {
             List<Double> featureValues = holdFeaturesPerCode.get((int)code);
             Double holdFeatureVal = null;
-            if ((featureValues != null) && (featureValues.size() > 0)) {
+            if (CollectionUtils.isNotEmpty(featureValues)) {
                 holdFeatureVal = featureValues.remove(0);
                 sample.setEmpty(false);
             }
@@ -187,7 +183,7 @@ public class FeatureService {
      * Features are grouped by key release-press key codes
      * @param user
      * @param password
-     * @return Map of user release-press features by string.
+     * @return Map of user release-press features by string
      */
     @NotNull
     public static Map<ReleasePressPair, List<Double>> getUserReleasePressFeaturesByString(@NotNull User user,
@@ -245,23 +241,21 @@ public class FeatureService {
         FeaturesSample sample = new FeaturesSample();
 
         char[] passwordCharacters = password.toCharArray();
-        List<Double> releasePressSample = new ArrayList<Double>();
+        List<Double> releasePressSample = new ArrayList<>();
         for (int i = 1; i < passwordCharacters.length; i++) {
             char releaseCode = passwordCharacters[i-1],
                  pressCode = passwordCharacters[i];
             ReleasePressPair codePair = new ReleasePressPair(releaseCode, pressCode);
             List<Double> releasePressValues = releasePressFeaturesPerCode.get(codePair);
-            
+
             Double releasePressValue = null;
-            
             if (CollectionUtils.isNotEmpty(releasePressValues)) {
                 releasePressValue = releasePressValues.remove(0);
                 sample.setEmpty(false);
             }
-
             releasePressSample.add(releasePressValue);
         }
-        
+
         sample.setFeatures(releasePressSample);
         
         return sample;
@@ -338,16 +332,16 @@ public class FeatureService {
 	        featuresPerCode.get(code).add(feature);
 	    }
 	    
-	  /*  for (Entry<Long, Map<Integer, List<HoldFeature>>> userFeaturesEntry: userHoldFeaturesMap.entrySet()) {
-	    	long userId = userFeaturesEntry.getKey();
-	    	for (Entry<Integer, List<HoldFeature>> holdFeaturesEntry : userFeaturesEntry.getValue().entrySet()) {
-		        int code = holdFeaturesEntry.getKey();
-	    		List<HoldFeature> anomalyDetectionList = holdFeaturesEntry.getValue();
-		        String description = String.format("[HoldFeature] Code: %d; User: %d", code, userId);
-		        AnomalyDetector anomalyDetector = new AnomalyDetector(anomalyDetectionList, description);
-		        anomalyDetector.removeAnomalies();
-	    	}
-	    }*/
+//	    for (Entry<Long, Map<Integer, List<HoldFeature>>> userFeaturesEntry: userHoldFeaturesMap.entrySet()) {
+//	    	long userId = userFeaturesEntry.getKey();
+//	    	for (Entry<Integer, List<HoldFeature>> holdFeaturesEntry : userFeaturesEntry.getValue().entrySet()) {
+//		        int code = holdFeaturesEntry.getKey();
+//	    		List<HoldFeature> anomalyDetectionList = holdFeaturesEntry.getValue();
+//		        String description = String.format("[HoldFeature] Code: %d; User: %d", code, userId);
+//		        AnomalyDetector anomalyDetector = new AnomalyDetector(anomalyDetectionList, description);
+//		        anomalyDetector.removeAnomalies();
+//	    	}
+//	    }
 	    
 	    return userHoldFeaturesMap;
 	}
@@ -377,17 +371,17 @@ public class FeatureService {
             featuresPerCode.get(codePair).add(feature);
         }
         
-       /* logger.info("Check Release Press Anomalies");
-        for (Map<ReleasePressPair, List<ReleasePressFeature>> userReleasePressFeatures : userReleasePressFeaturesMap.values()) {
-        	for (Entry<ReleasePressPair, List<ReleasePressFeature>> releasePressPairEntry : userReleasePressFeatures.entrySet()) {
-        		ReleasePressPair releasePressPair = releasePressPairEntry.getKey();
-        		List<ReleasePressFeature> releasePressFeaturesList = releasePressPairEntry.getValue();
-        		String description = String.format("[ReleasePressFeature] Release code: %d; Press code: %d; User: %s",
-        				releasePressPair.getReleaseCode(), releasePressPair.getPressCode(), releasePressFeaturesList.get(0).getUser().getLogin());
-        		AnomalyDetector anomalyDetector = new AnomalyDetector(releasePressFeaturesList, description);
-        		anomalyDetector.removeAnomalies();
-        	}
-        }*/
+//        logger.info("Check Release Press Anomalies");
+//        for (Map<ReleasePressPair, List<ReleasePressFeature>> userReleasePressFeatures : userReleasePressFeaturesMap.values()) {
+//        	for (Entry<ReleasePressPair, List<ReleasePressFeature>> releasePressPairEntry : userReleasePressFeatures.entrySet()) {
+//        		ReleasePressPair releasePressPair = releasePressPairEntry.getKey();
+//        		List<ReleasePressFeature> releasePressFeaturesList = releasePressPairEntry.getValue();
+//        		String description = String.format("[ReleasePressFeature] Release code: %d; Press code: %d; User: %s",
+//        				releasePressPair.getReleaseCode(), releasePressPair.getPressCode(), releasePressFeaturesList.get(0).getUser().getLogin());
+//        		AnomalyDetector anomalyDetector = new AnomalyDetector(releasePressFeaturesList, description);
+//        		anomalyDetector.removeAnomalies();
+//        	}
+//        }
 
         return userReleasePressFeaturesMap;
     }

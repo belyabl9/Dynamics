@@ -1,19 +1,18 @@
 package com.m1namoto.service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.m1namoto.dao.DaoFactory;
 import com.m1namoto.domain.Event;
 import com.m1namoto.domain.Session;
 import com.m1namoto.domain.User;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SessionService {
 
@@ -64,7 +63,7 @@ public class SessionService {
      * @return Map of sessions
      */
     private static Map<String, Session> getSessionsMap() {
-        Map<String, Session> sessionsMap = new HashMap<String, Session>();
+        Map<String, Session> sessionsMap = new HashMap<>();
         for (Event event : EventService.getList()) {
             String sessionName = event.getSession();
             
@@ -84,15 +83,12 @@ public class SessionService {
      */
     public static Map<Long, List<Session>> getSessionsPerUser() {
         ListMultimap<Long, Session> sessionsPerUserMap = ArrayListMultimap.create();
-
-        //Map<Long, List<Session>> sessionsPerUserMap = new HashMap<Long, List<Session>>();
         Map<String, Session> sessionsMap = getSessionsMap();
-        
         for (Session session : sessionsMap.values()) {
             long userId = session.getUser().getId();
             sessionsPerUserMap.put(userId, session);
         }
-        
+
         return Multimaps.asMap(sessionsPerUserMap);
     }
 	

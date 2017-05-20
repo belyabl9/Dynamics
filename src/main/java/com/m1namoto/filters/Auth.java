@@ -18,23 +18,24 @@ import javax.servlet.http.HttpSession;
 @WebFilter("/*")
 public class Auth implements Filter {
 
-	public static String[] PAGES_WITHOUT_REG = {
-		"/login", "/login.jsp"
+	private static String[] PAGES_WITHOUT_REG = {
+		"/login", "/auth", "/reg", "/dynamics.jsp"
 	};
-	
+
     /**
-     * Default constructor. 
+     * Default constructor.
      */
-    public Auth() {
-        // TODO Auto-generated constructor stub
-    }
+    public Auth() {}
+
+	/**
+	 * @see Filter#init(FilterConfig)
+	 */
+	public void init(FilterConfig fConfig) throws ServletException {}
 
 	/**
 	 * @see Filter#destroy()
 	 */
-	public void destroy() {
-		// TODO Auto-generated method stub
-	}
+	public void destroy() {}
 
 	/**
 	 * @see Filter#doFilter(ServletRequest, ServletResponse, FilterChain)
@@ -61,13 +62,6 @@ public class Auth implements Filter {
             // pass the request along the filter chain
             chain.doFilter(request, response);
         }
-	}
-
-	/**
-	 * @see Filter#init(FilterConfig)
-	 */
-	public void init(FilterConfig fConfig) throws ServletException {
-		// TODO Auto-generated method stub
 	}
 
 }

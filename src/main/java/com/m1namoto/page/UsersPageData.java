@@ -6,8 +6,6 @@ import com.m1namoto.domain.User;
 
 public class UsersPageData extends PageData {
     private List<User> users;
-    
-    
     public UsersPageData() {
         super();
     }
@@ -15,7 +13,6 @@ public class UsersPageData extends PageData {
     public List<User> getUsers() {
         return users;
     }
-
 
     public void setUsers(List<User> users) {
         this.users = users;

@@ -19,15 +19,15 @@ public class HoldFeature extends Feature implements AnomalyDetection {
     private static final long serialVersionUID = 1L;
 
     public HoldFeature() {}
-    
-    @Expose
-    @Column(name = "code")
-    private int code;
 
     public HoldFeature(double value, int code, User user) {
         super(value, user);
         this.code = code;
     }
+
+    @Expose
+    @Column(name = "code")
+    private int code;
 
     public int getCode() {
         return code;

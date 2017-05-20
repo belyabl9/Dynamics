@@ -15,7 +15,6 @@ import com.m1namoto.anomalyDetection.AnomalyDetection;
 @PrimaryKeyJoinColumn(name="feature_id")
 @OnDelete(action = OnDeleteAction.CASCADE)
 public class ReleasePressFeature extends Feature implements AnomalyDetection {
-
     private static final long serialVersionUID = 1L;
 
     @Column(name = "releaseCode")
@@ -47,13 +46,6 @@ public class ReleasePressFeature extends Feature implements AnomalyDetection {
     public void setPressCode(int pressCode) {
         this.pressCode = pressCode;
     }
-    
-    public String toString() {
-        if (releaseCode > 0 && pressCode > 0) {
-            return String.format("ReleasePressFeature[releaseCode=%c; pressCode=%c; value=%.2f]", releaseCode, pressCode, getValue());
-        }
-        return String.format("ReleasePressFeature[releaseCode=%d; pressCode=%d; value=%.2f]", releaseCode, pressCode, getValue());
-    }
 
     @Override
     public int hashCode() {
@@ -81,5 +73,11 @@ public class ReleasePressFeature extends Feature implements AnomalyDetection {
             return false;
         return true;
     }
-    
+
+    public String toString() {
+        if (releaseCode > 0 && pressCode > 0) {
+            return String.format("ReleasePressFeature[releaseCode=%c; pressCode=%c; value=%.2f]", releaseCode, pressCode, getValue());
+        }
+        return String.format("ReleasePressFeature[releaseCode=%d; pressCode=%d; value=%.2f]", releaseCode, pressCode, getValue());
+    }
 }

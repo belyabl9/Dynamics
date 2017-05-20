@@ -1,8 +1,8 @@
 package com.m1namoto.domain;
 
 public class ReleasePressPair {
-    private int releaseCode;
-    private int pressCode;
+    private final int releaseCode;
+    private final int pressCode;
     
     public ReleasePressPair(int releaseCode, int pressCode) {
         this.releaseCode = releaseCode;
@@ -13,16 +13,8 @@ public class ReleasePressPair {
         return releaseCode;
     }
 
-    public void setReleaseCode(int releaseCode) {
-        this.releaseCode = releaseCode;
-    }
-
     public int getPressCode() {
         return pressCode;
-    }
-
-    public void setPressCode(int pressCode) {
-        this.pressCode = pressCode;
     }
     
     @Override
@@ -48,5 +40,13 @@ public class ReleasePressPair {
         if (releaseCode != other.releaseCode)
             return false;
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "ReleasePressPair{" +
+                "releaseCode=" + releaseCode +
+                ", pressCode=" + pressCode +
+                '}';
     }
 }
