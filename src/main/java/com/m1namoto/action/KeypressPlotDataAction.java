@@ -14,7 +14,7 @@ import com.m1namoto.domain.User;
 import com.m1namoto.domain.UserStatistics;
 import com.m1namoto.page.StatisticsJsonPageData;
 import com.m1namoto.service.FeatureService;
-import com.m1namoto.service.UsersService;
+import com.m1namoto.service.UserService;
 
 public class KeypressPlotDataAction extends Action {
 
@@ -23,7 +23,7 @@ public class KeypressPlotDataAction extends Action {
         
         Map<Long, List<HoldFeature>> holdFeaturesMap = FeatureService.getHoldFeaturesPerUser();
         for (Long userId : holdFeaturesMap.keySet()) {
-            Optional<User> userOpt = UsersService.findById(userId);
+            Optional<User> userOpt = UserService.findById(userId);
             if (userOpt.isPresent()) {
                 UserStatistics userStat = new UserStatistics(userOpt.get(), holdFeaturesMap.get(userId));
                 statList.add(userStat);

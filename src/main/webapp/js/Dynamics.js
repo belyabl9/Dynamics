@@ -2,8 +2,11 @@ var Dynamics = (function() {
 
 	var statistics = [];
 	var currentId;
-	var ENTER_KEY_CODE = 13;
-	
+	var SKIP_CODES = [
+		13, // ENTER
+		9  // TAB
+	];
+
 	var makeId = function() {
 	    var text = "";
 	    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -19,20 +22,20 @@ var Dynamics = (function() {
 		setKeyListeners: function(formName, inputNames) {
 			for (var i = 0; i < inputNames.length; i++) {
 				var name = inputNames[i];
-			    $("#" + formName + " input[name=" + name + "]").keydown(function(event){
+			    $("#" + formName + " :input[name=" + name + "]").keydown(function(event){
 			    
 			      var code;
-			      if (event.keyCode === ENTER_KEY_CODE) {
+			      if (SKIP_CODES.indexOf(event.keyCode) !== -1) {
 			    	  return;
 			      }
 		    	  if(event.keyCode != 16) { // If the pressed key is anything other than SHIFT
 		    	        var c = String.fromCharCode(event.keyCode);
-		    	        if(event.shiftKey){ // If the SHIFT key is down, return the ASCII code for the capital letter
-		    	            code = event.keyCode;
-		    	        } else { // If the SHIFT key is not down, convert to the ASCII code for the lowecase letter
+		    	       // if(event.shiftKey){ // If the SHIFT key is down, return the ASCII code for the capital letter
+		    	       //     code = event.keyCode;
+		    	       // } else { // If the SHIFT key is not down, convert to the ASCII code for the lowecase letter
 		    	            c = c.toLowerCase(c);
 		    	            code = c.charCodeAt(0);
-		    	        }
+		    	       // }
 		    	  }
 		    	  
 			    	var keydownData = {
@@ -41,11 +44,13 @@ var Dynamics = (function() {
 			        	time: event.timeStamp
 			        };
 			        statistics[currentId].push(keydownData);
-			        //console.log(keydownData);
 			    });
 			    
-			    $("#" + formName + " input[name=" + name + "]").keyup(function(event){
+			    $("#" + formName + " :input[name=" + name + "]").keyup(function(event){
 				      var code;
+                      if (SKIP_CODES.indexOf(event.keyCode) !== -1) {
+                        return;
+                      }
 			    	  if(event.keyCode!=16){ // If the pressed key is anything other than SHIFT
 			    	        var c = String.fromCharCode(event.keyCode);
 			    	        if(event.shiftKey){ // If the SHIFT key is down, return the ASCII code for the capital letter
@@ -62,7 +67,6 @@ var Dynamics = (function() {
 			        	time: event.timeStamp
 			        };
 			        statistics[currentId].push(keyupData);
-			        //console.log(keyupData);
 			    });
 			}
 		},
@@ -114,7 +118,7 @@ var Dynamics = (function() {
                     $('#pleaseWaitDialog').modal();
                 },
                 success: function(data) {
-                	console.log(data);
+                    $('#pleaseWaitDialog').modal('hide');
                 },
                 error: function() {
                 	console.error("Can not register user");
@@ -126,7 +130,7 @@ var Dynamics = (function() {
         	  self.initStatistics();
 			  
 			});
-			$('#authForm').submit(function( event ) {
+			$('#authForm').submit(function(event) {
 				  event.preventDefault();
 				  
 				  var login = $(this).find('[name=login]').val();
@@ -163,7 +167,6 @@ var Dynamics = (function() {
 	                    $('#pleaseWaitDialog').modal('hide');
 	                  },
 	                  error: function(data) {
-	                	  console.log(data);
 		            	var response = $.parseJSON(data.responseText);
 	                    $("#statusMessage").addClass("alert alert-danger");
 	                    var text = "Authentication failed";

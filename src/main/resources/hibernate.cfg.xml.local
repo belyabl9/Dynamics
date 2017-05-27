@@ -13,7 +13,7 @@
  <property name="hibernate.current_session_context_class">thread</property>
 
  <!--  <property name="hbm2ddl.auto">update</property> -->
- <property name="hbm2ddl.auto">update</property>
+ <property name="hbm2ddl.auto">create</property>
 
 <mapping class="com.m1namoto.domain.ReleasePressFeature" />
 <mapping class="com.m1namoto.domain.HoldFeature" />

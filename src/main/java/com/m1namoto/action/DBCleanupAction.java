@@ -3,7 +3,7 @@ package com.m1namoto.action;
 import com.m1namoto.service.EventService;
 import com.m1namoto.service.FeatureService;
 import com.m1namoto.service.SessionService;
-import com.m1namoto.service.UsersService;
+import com.m1namoto.service.UserService;
 
 public class DBCleanupAction extends Action {
 
@@ -12,7 +12,7 @@ public class DBCleanupAction extends Action {
         FeatureService.removeAll();
         SessionService.removeAll();
         EventService.removeAll();
-        UsersService.removeAll();
+        UserService.removeAll();
 
         FeatureService.clearFeatureMaps();
         

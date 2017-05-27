@@ -2,7 +2,7 @@ package com.m1namoto.servlets;
 
 import com.google.common.base.Optional;
 import com.m1namoto.domain.User;
-import com.m1namoto.service.UsersService;
+import com.m1namoto.service.UserService;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +33,7 @@ public class DelUserServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String userId = request.getParameter("id");
         long userIdNum = validateId(userId);
-        Optional<User> userOpt = UsersService.findById(userIdNum);
+        Optional<User> userOpt = UserService.findById(userIdNum);
         if (!userOpt.isPresent()) {
             throw new ServletException("User with specified id must exists: " + userId);
         }
@@ -57,11 +57,11 @@ public class DelUserServlet extends HttpServlet {
     }
 
     private boolean delUser(@NotNull String userId) {
-        Optional<User> userOpt = UsersService.findById(Long.parseLong(userId));
+        Optional<User> userOpt = UserService.findById(Long.parseLong(userId));
         if (!userOpt.isPresent()) {
             return false;
         }
-        UsersService.remove(userOpt.get());
+        UserService.remove(userOpt.get());
 
         return true;
     }

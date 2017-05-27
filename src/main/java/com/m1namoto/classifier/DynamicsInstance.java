@@ -1,14 +1,16 @@
 package com.m1namoto.classifier;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
- * Abstraction for classification instance
- * which has a list of feature values and a class value
+ * <p>Classification instance that contains a list of feature values and a class value.</p>
+ *
+ * <p>Class value may be absent for instances which are going to be classified</p>
+ *
  */
 public class DynamicsInstance {
 	@NotNull
@@ -22,7 +24,7 @@ public class DynamicsInstance {
     
 	public DynamicsInstance(@NotNull List<Double> values,
 							@NotNull Optional<Long> classValue) {
-		this.values = ImmutableList.copyOf(values);
+		this.values = Collections.unmodifiableList(values);
 		this.classValue = classValue;
 	}
 

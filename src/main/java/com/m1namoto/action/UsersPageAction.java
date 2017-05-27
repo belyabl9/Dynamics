@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.m1namoto.domain.User;
 import com.m1namoto.page.UsersPageData;
+import com.m1namoto.service.UserService;
 import com.m1namoto.utils.Const;
 
 public class UsersPageAction extends Action {
@@ -11,7 +12,7 @@ public class UsersPageAction extends Action {
     @Override
     protected ActionResult execute() {
         UsersPageData usersData = new UsersPageData();
-        List<User> users = com.m1namoto.service.UsersService.getList();
+        List<User> users = UserService.getList();
         usersData.setUsers(users);
         
         return createShowPageResult(Const.ViewURIs.USERS, usersData);

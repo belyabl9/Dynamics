@@ -3,7 +3,7 @@ package com.m1namoto.action;
 import com.google.common.base.Optional;
 import com.m1namoto.domain.User;
 import com.m1namoto.page.UserInfoPageData;
-import com.m1namoto.service.UsersService;
+import com.m1namoto.service.UserService;
 
 public class UpdateUserAction extends Action {
 
@@ -28,7 +28,7 @@ public class UpdateUserAction extends Action {
             user.setName(firstName + " " + surname);
         }
         
-        return UsersService.save(user);
+        return UserService.save(user);
     }
     
     @Override
@@ -39,7 +39,7 @@ public class UpdateUserAction extends Action {
             throw new Exception("User ID was not passed");
         }
         
-        Optional<User> userOpt = UsersService.findById(Long.valueOf(id));
+        Optional<User> userOpt = UserService.findById(Long.valueOf(id));
         if (!userOpt.isPresent()) {
             throw new Exception("User with specified ID was not found");
         }

@@ -2,7 +2,7 @@ package com.m1namoto.servlets.user;
 
 import com.google.common.base.Optional;
 import com.m1namoto.domain.User;
-import com.m1namoto.service.UsersService;
+import com.m1namoto.service.UserService;
 import com.m1namoto.utils.Const;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +39,7 @@ public class UsersServlet extends HttpServlet {
 		if (StringUtils.isNotEmpty(userId)) {
 			if (!userId.equals("New")) {
                 long userIdNum = validateId(userId);
-                Optional<User> userOpt = UsersService.findById(userIdNum);
+                Optional<User> userOpt = UserService.findById(userIdNum);
 				if (userOpt.isPresent()) {
 					request.setAttribute("user", userOpt.get());
 					request.getRequestDispatcher(Const.ViewURIs.USER_INFO).forward(request, response);
@@ -50,7 +50,7 @@ public class UsersServlet extends HttpServlet {
 			return;
 		}
 
-		List<User> users = UsersService.getList();
+		List<User> users = UserService.getList();
 		request.setAttribute("users", users);
 		request.getRequestDispatcher(Const.ViewURIs.USERS).forward(request, response);
 	}

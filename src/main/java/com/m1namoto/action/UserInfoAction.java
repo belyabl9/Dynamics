@@ -3,7 +3,7 @@ package com.m1namoto.action;
 import com.google.common.base.Optional;
 import com.m1namoto.domain.User;
 import com.m1namoto.page.UserInfoPageData;
-import com.m1namoto.service.UsersService;
+import com.m1namoto.service.UserService;
 import com.m1namoto.utils.Const;
 
 public class UserInfoAction extends Action {
@@ -16,7 +16,7 @@ public class UserInfoAction extends Action {
             return null;
         }
         
-        Optional<User> userOpt = UsersService.findById(Long.valueOf(userId));
+        Optional<User> userOpt = UserService.findById(Long.valueOf(userId));
         if (!userOpt.isPresent()) {
             return null;
         }

@@ -9,12 +9,14 @@ import java.util.Map;
 import javax.persistence.*;
 
 import com.m1namoto.features.FeatureExtractor;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 
 import com.google.gson.annotations.Expose;
 import com.m1namoto.service.EventService;
 import com.m1namoto.service.FeatureSampleService;
 import com.m1namoto.service.FeatureService;
+import org.jetbrains.annotations.NotNull;
 
 @Entity
 @Table(name = "Users")
@@ -191,8 +193,8 @@ public class User extends DomainSuperClass implements Serializable {
         return featuresPerCode.get(code);
     }
 
-    public Map<Integer, List<Double>> getHoldFeaturesByString(String password) {
-        Map<Integer, List<Double>> userFeaturesByString = new HashMap<Integer, List<Double>>();
+    public Map<Integer, List<Double>> getHoldFeaturesByString(@NotNull String password) {
+        Map<Integer, List<Double>> userFeaturesByString = new HashMap<>();
         long userId = this.getId();
         Map<Integer, List<HoldFeature>> userHoldFeaturesPerCode = FeatureService.getUserHoldFeaturesMap().get(userId);
 
@@ -206,12 +208,12 @@ public class User extends DomainSuperClass implements Serializable {
         
         for (char code : password.toCharArray()) {
             List<HoldFeature> userHoldFeaturesByCode = userHoldFeaturesPerCode.get((int)code);
-            if (userHoldFeaturesByCode == null || userHoldFeaturesByCode.size() == 0) {
+            if (CollectionUtils.isEmpty(userHoldFeaturesByCode)) {
                 logger.debug("Null Code: " + code);
                 userFeaturesByString.put((int)code, null);
                 continue;
             }
-            List<Double> featureValuesByCode = new ArrayList<Double>();
+            List<Double> featureValuesByCode = new ArrayList<>();
             for (int i = 0; i < userHoldFeaturesByCode.size(); i++) {
                 featureValuesByCode.add(userHoldFeaturesByCode.get(i).getValue());
             }
@@ -271,26 +273,27 @@ public class User extends DomainSuperClass implements Serializable {
 
     public List<List<Double>> getSamples(String password, boolean fullSample) {
         logger.debug("Get User Samples");
-        List<List<Double>> samples = new ArrayList<List<Double>>();
+        List<List<Double>> samples = new ArrayList<>();
         double meanKeyPressTime = getMeanKeypressTime();
         
         Map<Integer, List<Double>> holdFeaturesByString = getHoldFeaturesByString(password);
         Map<ReleasePressPair, List<Double>> releasePressFeaturesByString = getReleasePressFeaturesByString(password);
-        Map<Integer, List<Double>> xFeaturesByString = null;
-        Map<Integer, List<Double>> yFeaturesByString = null;
         
         final int holdFeaturesMin = fullSample ? ORIGIN_HOLD_FEATURES_THRESHOLD : OTHER_HOLD_FEATURES_THRESHOLD;
         final int releasePressMin = fullSample ? ORIGIN_RELEASE_PRESS_FEATURES_THRESHOLD : OTHER_RELEASE_PRESS_FEATURES_THRESHOLD;
         
         boolean isEmptySample = false;
         while (!isEmptySample) {
-            FeaturesSample holdFeaturesSample = FeatureSampleService.getInstance().getHoldFeaturesSampleByString(holdFeaturesByString, password);
-            FeaturesSample releasePressFeaturesSample = FeatureSampleService.getInstance().getReleasePressFeaturesSampleByString(releasePressFeaturesByString, password);
+            FeaturesSample holdFeaturesSample = null;
+            if (holdFeaturesByString != null) {
+                holdFeaturesSample = FeatureSampleService.getInstance().getHoldFeaturesSampleByString(holdFeaturesByString, password);
+            }
+            FeaturesSample releasePressFeaturesSample = null;
+            if (releasePressFeaturesByString != null) {
+                releasePressFeaturesSample = FeatureSampleService.getInstance().getReleasePressFeaturesSampleByString(releasePressFeaturesByString, password);
+            }
             
-            FeaturesSample xFeaturesSample = null;
-            FeaturesSample yFeaturesSample = null;
-
-            List<Double> featuresSample = new ArrayList<Double>();
+            List<Double> featuresSample = new ArrayList<>();
             if (holdFeaturesSample != null) {
                 featuresSample.addAll(holdFeaturesSample.getFeatures());
             }
@@ -301,16 +304,16 @@ public class User extends DomainSuperClass implements Serializable {
 
             isEmptySample = ( (holdFeaturesSample == null || holdFeaturesSample.isEmpty())
                     && (releasePressFeaturesSample == null || releasePressFeaturesSample.isEmpty()));
-            
-            boolean isEnoughElements = (holdFeaturesSample.definedElementsPercentage() >= holdFeaturesMin
-                    //&& releasePressFeaturesSample.definedElementsPercentage() >= releasePressMin
-                    );
 
-            logger.debug("Add sample: " + featuresSample);
-            if (!isEmptySample && isEnoughElements) {
-                samples.add(featuresSample);
+            if (!isEmptySample) {
+                boolean isEnoughElements = (holdFeaturesSample.definedElementsPercentage() >= holdFeaturesMin
+                        //&& releasePressFeaturesSample.definedElementsPercentage() >= releasePressMin
+                );
+                if (isEnoughElements) {
+                    logger.debug("Add sample: " + featuresSample);
+                    samples.add(featuresSample);
+                }
             }
-            
         }
 
         return samples;

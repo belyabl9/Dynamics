@@ -22,13 +22,14 @@ import com.m1namoto.page.PageData;
 import com.m1namoto.service.EventService;
 import com.m1namoto.service.FeatureService;
 import com.m1namoto.service.SessionService;
-import com.m1namoto.service.UsersService;
+import com.m1namoto.service.UserService;
 import com.m1namoto.utils.PropertiesService;
 import com.m1namoto.utils.Utils;
+import org.jetbrains.annotations.NotNull;
 
 public class BrowserUserRegistrationAction extends Action {
 
-	private final static Logger logger = Logger.getLogger(BrowserUserRegistrationAction.class);
+    private final static Logger logger = Logger.getLogger(BrowserUserRegistrationAction.class);
     
 	private static final String REQ_NAME_PARAM = "name";
 	private static final String REQ_SURNAME_PARAM = "surname";
@@ -38,9 +39,11 @@ public class BrowserUserRegistrationAction extends Action {
     private static final String REQ_STAT_PARAM = "stat";
     
     private static final String REQ_SAVE = "saveRequest";
-	
+    private static final String USER_WAS_NOT_CREATED = "User was not created";
+    private static final String USER_ALREADY_EXISTS = "User with such login already exists";
+
     private List<Session> prepareSessions(Map<String, List<Event>> sessionsMap, User user) {
-        List<Session> statSessions = new ArrayList<Session>();
+        List<Session> statSessions = new ArrayList<>();
         for (String uuid : sessionsMap.keySet()) {
             List<Event> events = sessionsMap.get(uuid);
             for (Event event : events) {
@@ -57,11 +60,11 @@ public class BrowserUserRegistrationAction extends Action {
         logger.debug("Save session events");
         logger.debug(statSessions);
         for (Session session : statSessions) {
-            SessionService.save(session);
             List<Event> events = session.getEvents();
-            if (events.size() == 0) {
+            if (events.isEmpty()) {
                 continue;
             }
+            SessionService.save(session);
             for (Event event : events) {
                 EventService.save(event);
             }
@@ -97,17 +100,13 @@ public class BrowserUserRegistrationAction extends Action {
         File reqFile = new File(loginDir + "/req-" + new Date().getTime());
         FileUtils.writeStringToFile(reqFile, json);
     }
-    
-	private User createUser() {
-        String name = requestParameters.get(REQ_NAME_PARAM)[0];
-        String surname = requestParameters.get(REQ_SURNAME_PARAM)[0];
-        String login = requestParameters.get(REQ_LOGIN_PARAM)[0];
-        String password = requestParameters.get(REQ_PASSWORD_PARAM)[0];
-        
+
+    @NotNull
+	private User createUser(@NotNull RegistrationContext context) {
         User user = new User();
-        user.setName(name + " " + surname);
-        user.setLogin(login);
-        user.setPassword(password);
+        user.setName(context.getName() + " " + context.getSurname());
+        user.setLogin(context.getLogin());
+        user.setPassword(context.getPassword());
         user.setUserType(User.Type.REGULAR);
         
         return user;
@@ -123,38 +122,87 @@ public class BrowserUserRegistrationAction extends Action {
         }
 	    
 	    try {
-            Utils.checkMandatoryParams(
-                    requestParameters, new String[] { "name", "surname", "login", "password", "stat" });
+            Utils.checkMandatoryParams(requestParameters, new String[] { "name", "surname", "login", "password", "stat" });
         } catch (Exception e) {
-            logger.error(e);
+            logger.debug(e);
             pageData.setError(true);
             return createAjaxResult(pageData);
         }
 
-        if (UsersService.findByLogin(requestParameters.get(REQ_LOGIN_PARAM)[0]) != null) {
-            logger.info("User with such login already exists");
+        RegistrationContext context = RegistrationContext.fromRequestParameters(requestParameters);
+        if (UserService.findByLogin(context.getLogin()).isPresent()) {
+            logger.info(USER_ALREADY_EXISTS);
             pageData.setError(true);
             return createAjaxResult(pageData);
         }
 
-        User user = createUser();
-        user = UsersService.save(user);
+        User user = createUser(context);
+        user = UserService.save(user);
         if (user.getId() == 0) {
-            logger.error("User was not created");
+            logger.error(USER_WAS_NOT_CREATED);
             pageData.setError(true);
             return createAjaxResult(pageData);
         }
         
-        String stat = requestParameters.get(REQ_STAT_PARAM)[0];
         Type type = new TypeToken<Map<String, List<Event>>>(){}.getType();
-        Map<String, List<Event>> sessionsMap = new Gson().fromJson(stat, type);
+        Map<String, List<Event>> sessionsMap = new Gson().fromJson(context.getStat(), type);
         List<Session> statSessions = prepareSessions(sessionsMap, user);
         saveSessionEvents(statSessions);
         
         user.setAuthenticatedCnt(user.getAuthenticatedCnt() + 1);
-        UsersService.save(user);
+        UserService.save(user);
         
-        return createAjaxResult(null);
+        return createAjaxResult(pageData);
 	}
+
+	private static class RegistrationContext {
+        private final String name;
+        private final String surname;
+        private final String login;
+        private final String password;
+        private final String stat;
+
+        public RegistrationContext(@NotNull String name,
+                                   @NotNull String surname,
+                                   @NotNull String login,
+                                   @NotNull String password,
+                                   @NotNull String stat) {
+            this.name = name;
+            this.surname = surname;
+            this.login = login;
+            this.password = password;
+            this.stat = stat;
+        }
+
+        public static RegistrationContext fromRequestParameters(Map<String, String[]> requestParameters) {
+            return new RegistrationContext(
+                    requestParameters.get(REQ_NAME_PARAM)[0],
+                    requestParameters.get(REQ_SURNAME_PARAM)[0],
+                    requestParameters.get(REQ_LOGIN_PARAM)[0],
+                    requestParameters.get(REQ_PASSWORD_PARAM)[0],
+                    requestParameters.get(REQ_STAT_PARAM)[0]
+            );
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getSurname() {
+            return surname;
+        }
+
+        public String getLogin() {
+            return login;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public String getStat() {
+            return stat;
+        }
+    }
 	
 }

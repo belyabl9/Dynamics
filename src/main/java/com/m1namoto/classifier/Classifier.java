@@ -1,7 +1,7 @@
 package com.m1namoto.classifier;
 
 import com.m1namoto.domain.User;
-import com.m1namoto.service.UsersService;
+import com.m1namoto.service.UserService;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import weka.classifiers.Evaluation;
@@ -17,59 +17,55 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Classifier {
-    final static Logger logger = Logger.getLogger(Classifier.class);
+	private final static Logger logger = Logger.getLogger(Classifier.class);
+
+	private static final String NOT_ENOUGH_USERS = "Can not create configuration if there are less than two users.";
+	private static final String NOT_ENOUGH_COLLECTED_DYNAMICS = "Not enough keystroke dynamics has been collected to classify.";
 
 	private static String CONFIGURATION_NAME = "Dynamics";
+
 	private static String ATTR_KEY_PRESS = "keypress";
 	private static String ATTR_BETWEEN_KEYS = "betweenKeys";
 	private static String ATTR_MEAN_KEYPRESS_TIME = "meanKeypressTime";
-	private static String ATTR_X = "x";
-	private static String ATTR_Y = "y";
 	private static String ATTR_CLASS = "classVal";
 
 	public enum Type {
-	    RANDOM_FOREST, MLP, J48
+	    RANDOM_FOREST,
+		MLP,
+		J48,
+		;
 	}
 
-	private User user;
-	private static weka.classifiers.Classifier classifier = new RandomForest();
-	private Instances instances;
-	private Configuration configuration;
+	private final User user;
+	private weka.classifiers.Classifier classifier = new RandomForest();
+	private final Instances instances;
+	private final Configuration configuration;
 
-	public Classifier(@NotNull User user) throws Exception {
+	public Classifier(@NotNull Type type, @NotNull User user) throws Exception {
 	    this.user = user;
-	    configuration = createConfiguration();
+	    this.classifier = createClassifierInstance(type);
+	    configuration = createConfiguration(user.getPassword());
 	    instances = createInstances(configuration.toString());
 	    classifier.buildClassifier(instances);
-	    evaluateClassifier();
 	}
-	
-    public Classifier(String password) throws Exception {
-        configuration = createConfiguration(password);
-        instances = createInstances(configuration.toString());
-        classifier.buildClassifier(instances);
-    }
-    
-    public static void setClassifier(Type classifierType) {
+
+	public Classifier(@NotNull User user) throws Exception {
+		this(Type.J48, user);
+	}
+
+    public static weka.classifiers.Classifier createClassifierInstance(@NotNull Type classifierType) {
         switch (classifierType) {
             case J48:
-                classifier = new J48();
-                logger.info("Classifier was changed to " + classifierType);
-                break;
+                return new J48();
             case MLP:
-                classifier = new MultilayerPerceptron();
-                logger.info("Classifier was changed to " + classifierType);
-                break;
+                return new MultilayerPerceptron();
             case RANDOM_FOREST:
-                classifier = new RandomForest();
-                logger.info("Classifier was changed to " + classifierType);
-                break;
+                return new RandomForest();
+			default:
+				throw new UnsupportedOperationException("Specified classifier is not supported.");
         }
     }
-    
-    /**
-     * Returns current configuration
-     */
+
     public Configuration getConfiguration() {
         return configuration;
     }
@@ -92,16 +88,11 @@ public class Classifier {
 	 * @param input - passed configuration in .arff format
 	 * @throws IOException
 	 */
-	private Instances createInstances(String input) throws IOException {
+	private Instances createInstances(@NotNull String input) throws IOException {
 		Instances instances = new Instances(new StringReader(input));
 		instances.setClassIndex(instances.numAttributes() - 1);
 
 		return instances;
-	}
-
-	private Configuration createConfiguration() throws Exception {
-		String password = user.getPassword();
-		return createConfiguration(password);
 	}
 
 	/**
@@ -111,50 +102,53 @@ public class Classifier {
 	 * @return Configuration in .arff format
 	 * @throws Exception
 	 */
-	public Configuration createConfiguration(String password) throws Exception {
+	public Configuration createConfiguration(@NotNull String password) throws Exception {
 	    logger.debug("Create configuration " + CONFIGURATION_NAME);
         Configuration.Builder confBuilder = new Configuration.Builder().name(CONFIGURATION_NAME);
 
 		for (int i = 0; i < password.length(); i++) {
             confBuilder.attribute(ATTR_KEY_PRESS + (i + 1));
 		}
-
         for (int i = 1; i < password.length(); i++) {
             confBuilder.attribute(ATTR_BETWEEN_KEYS + i);
         }
         confBuilder.attribute(ATTR_MEAN_KEYPRESS_TIME);
 
-		List<User> users = UsersService.getList(User.Type.REGULAR);
-		List<Integer> allowedValues = new ArrayList<Integer>();
-
+		List<User> users = UserService.getList(User.Type.REGULAR);
+		if (users.size() < 2) {
+			throw new Exception(NOT_ENOUGH_USERS);
+		}
+		List<Integer> allowedValues = new ArrayList<>();
 		for (User user : users) {
-		    List<List<Double>> featuresSamples = null;
-		    boolean isUserToCheck = this.user != null ? this.user.getId() == user.getId() : false;
-		    featuresSamples = user.getSamples(user.getPassword(), isUserToCheck);
+		    boolean isUserToCheck = this.user.getId() == user.getId();
+			List<List<Double>> featuresSamples = user.getSamples(password, isUserToCheck);
 
             for (List<Double> sample : featuresSamples) {
                 confBuilder.instance(sample, user.getId());
             }
-		    allowedValues.add((int) user.getId());
+            if (!featuresSamples.isEmpty()) {
+				allowedValues.add((int) user.getId());
+			}
+		}
+		if (allowedValues.isEmpty()) {
+			throw new Exception(NOT_ENOUGH_COLLECTED_DYNAMICS);
 		}
         confBuilder.classAttribute(ATTR_CLASS, allowedValues);
 
         Configuration conf = confBuilder.build();
-
-		logger.info("Created classifier configuration (.arff):\n" + conf);
+		logger.debug("Created classifier configuration (.arff):" + System.lineSeparator() + conf);
 
 		return conf;
 	}
 
 	/**
 	 * Returns a classification result for passed instance.
-	 * Classification result contains information
-	 * about similarity percentage to the expected class
+	 * Classification result contains information about similarity percentage to the expected class
 	 * @param inst
 	 * @return Classification result for the passed instance
 	 * @throws Exception
 	 */
-	public ClassificationResult getClassForInstance(DynamicsInstance inst) throws Exception {
+	public ClassificationResult getClassForInstance(@NotNull DynamicsInstance inst) throws Exception {
 		int n = inst.getValues().size() + 1;
 		List<Double> values = inst.getValues();
 	    Instance instance = new Instance(n);
@@ -169,14 +163,12 @@ public class Classifier {
 	    instance.setDataset(instances);
 
 	    double[] distr = classifier.distributionForInstance(instance);
-
 	    List<Integer> classValues = configuration.getAllowedClassValues();
 	    double probability = distr[classValues.indexOf((int) user.getId())];
 
-	    logger.info("Predicted probability=" + probability);
-	    ClassificationResult result = new ClassificationResult(probability);
+	    logger.debug("Predicted probability=" + probability);
 
-		return result;
+		return new ClassificationResult(probability);
 	}
 
 }

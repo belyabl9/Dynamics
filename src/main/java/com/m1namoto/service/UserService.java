@@ -7,7 +7,7 @@ import com.m1namoto.dao.DaoFactory;
 import com.m1namoto.domain.User;
 import org.jetbrains.annotations.NotNull;
 
-public class UsersService {
+public class UserService {
 
     private static final String LOGIN_CAN_NOT_BE_EMPTY = "Login can not be empty.";
     private static final String INVALID_USER_ID = "User id must be >= 0.";

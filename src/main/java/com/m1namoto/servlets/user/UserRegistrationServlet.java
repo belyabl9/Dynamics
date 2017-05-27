@@ -28,7 +28,7 @@ import com.m1namoto.etc.RegRequest;
 import com.m1namoto.service.EventService;
 import com.m1namoto.service.FeatureService;
 import com.m1namoto.service.SessionService;
-import com.m1namoto.service.UsersService;
+import com.m1namoto.service.UserService;
 import com.m1namoto.utils.PropertiesService;
 import com.m1namoto.utils.Utils;
 import org.jetbrains.annotations.NotNull;
@@ -75,14 +75,14 @@ public class UserRegistrationServlet extends HttpServlet {
             saveRequest(regContext);
         }
 
-        if (UsersService.findByLogin(regContext.getLogin()) != null) {
+        if (UserService.findByLogin(regContext.getLogin()) != null) {
             logger.info(Message.LOGIN_ALREADY_EXISTS);
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 
         User user = makeUser(regContext);
-        user = UsersService.save(user);
+        user = UserService.save(user);
         if (user.getId() == 0) {
             logger.error(Message.USER_WAS_NOT_CREATED);
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -94,7 +94,7 @@ public class UserRegistrationServlet extends HttpServlet {
         List<Session> statSessions = prepareSessions(sessionsMap, user);
         saveSessionEvents(statSessions);
 
-        UsersService.save(user);
+        UserService.save(user);
         
         response.setStatus(HttpServletResponse.SC_OK);
 	}

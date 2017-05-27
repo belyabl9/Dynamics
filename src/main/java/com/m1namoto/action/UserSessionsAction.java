@@ -7,14 +7,14 @@ import com.m1namoto.domain.Session;
 import com.m1namoto.domain.User;
 import com.m1namoto.page.UserSessionsPageData;
 import com.m1namoto.service.SessionService;
-import com.m1namoto.service.UsersService;
+import com.m1namoto.service.UserService;
 import com.m1namoto.utils.Const;
 
 public class UserSessionsAction extends Action {
     @Override
     protected ActionResult execute() {
         String userId = getRequestParamValue("userId");
-        Optional<User> userOpt = UsersService.findById(Long.parseLong(userId));
+        Optional<User> userOpt = UserService.findById(Long.parseLong(userId));
         if (!userOpt.isPresent()) {
             return null;
         }

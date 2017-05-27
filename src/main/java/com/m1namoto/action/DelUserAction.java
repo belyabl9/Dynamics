@@ -2,7 +2,7 @@ package com.m1namoto.action;
 
 import com.m1namoto.domain.User;
 import com.m1namoto.page.PageData;
-import com.m1namoto.service.UsersService;
+import com.m1namoto.service.UserService;
 
 public class DelUserAction extends Action {
 
@@ -11,7 +11,7 @@ public class DelUserAction extends Action {
         String userId = getRequestParamValue("id");
         User user = new User();
         user.setId(Long.valueOf(userId));
-        UsersService.remove(user);
+        UserService.remove(user);
 
         return createAjaxResult(new PageData());
     }

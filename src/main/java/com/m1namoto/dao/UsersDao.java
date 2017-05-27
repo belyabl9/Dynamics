@@ -34,7 +34,7 @@ public class UsersDao extends GenericDAO<User> {
     public List<User> getList(@NotNull User.Type userType) {
         Session session = getFactory().getCurrentSession();
         Query query = session.createQuery(USER_LIST_BY_TYPE_QUERY);
-        query.setString("userType", String.valueOf(userType));
+        query.setInteger("userType",userType.getValue());
         List<User> users = query.list();
         
         return users;

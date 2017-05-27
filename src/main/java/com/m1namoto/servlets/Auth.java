@@ -39,7 +39,7 @@ import com.m1namoto.etc.AuthRequest;
 import com.m1namoto.service.EventService;
 import com.m1namoto.service.FeatureService;
 import com.m1namoto.service.SessionService;
-import com.m1namoto.service.UsersService;
+import com.m1namoto.service.UserService;
 import com.m1namoto.utils.PropertiesService;
 
 /**
@@ -47,19 +47,18 @@ import com.m1namoto.utils.PropertiesService;
  */
 @WebServlet("/auth")
 public class Auth extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    private final static Logger logger = Logger.getLogger(Auth.class);
+
     private static final String REQ_FILE_PREFIX = "req-";
-
     private static final String OWN_DIR_PREFIX = "own";
-
     private static final String STOLEN_DIR_PREFIX = "stolen";
 
     private static final String OPENSHIFT_DATA_DIR_VAR = "OPENSHIFT_DATA_DIR";
 
     private static final String SAVED_AUTH_REQUESTS_PATH_PROP = "saved_auth_requests_path";
 
-    private final static Logger logger = Logger.getLogger(Auth.class);
-
-    private static final long serialVersionUID = 1L;
 
     private static final String DYNAMICS_NOT_PASSED = "Keystroke dynamics was not passed";
     private static final String WRONG_PASSWORD = "Wrong password";
@@ -87,7 +86,9 @@ public class Auth extends HttpServlet {
     
     private static final String DYNAMICS_DOES_NOT_MATCH = "Keystroke dynamics does not match";
     
-    private static final String SUCCESSFUL_AUTH_MSG = "Authentication has successfuly passed";
+    private static final String SUCCESSFUL_AUTH_MSG = "Authentication has successfully passed";
+    public static final String CAN_NOT_CREATE_CLASSIFIER = "Can not create classifier";
+    public static final String CAN_NOT_GET_CLASS_FOR_INSTANCE = "Can not get class for instance";
 
     /**
      * @see HttpServlet#HttpServlet()
@@ -96,32 +97,26 @@ public class Auth extends HttpServlet {
         super();
     }
 
-    /**
-     * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-     */
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.getWriter().append("Served at: ").append(request.getContextPath());
-    }
-
     private ClassificationResult getPredictedThreshold(List<Session> sessions, User userToCheck) throws Exception {
         logger.info("Predict classes for passed sessions");
         ClassificationResult predictedClass = null;
-        Classifier classifier = null;
+        Classifier classifier;
         try {
             classifier = new Classifier(userToCheck);
         } catch (Exception e) {
-            logger.error("Can not create classifier", e);
+            logger.error(CAN_NOT_CREATE_CLASSIFIER, e);
+            throw new RuntimeException(CAN_NOT_CREATE_CLASSIFIER, e);
         }
 
-        List<HoldFeature> sessionHoldFeatures = new ArrayList<HoldFeature>();
-        List<ReleasePressFeature> sessionReleasePressFeatures = new ArrayList<ReleasePressFeature>();
+        List<HoldFeature> sessionHoldFeatures = new ArrayList<>();
+        List<ReleasePressFeature> sessionReleasePressFeatures = new ArrayList<>();
 
         for (Session session : sessions) {
             sessionHoldFeatures.addAll(session.getHoldFeaturesFromEvents());
             sessionReleasePressFeatures.addAll(session.getReleasePressFeaturesFromEvents());
         }
 
-        List<Double> featureValues = new ArrayList<Double>();
+        List<Double> featureValues = new ArrayList<>();
 
         Map<Integer, List<HoldFeature>> holdFeaturesPerCode = FeatureService.extractHoldFeaturesPerCode(sessionHoldFeatures);
         char[] passwordCharacters = userToCheck.getPassword().toCharArray();  
@@ -161,7 +156,8 @@ public class Auth extends HttpServlet {
         try {
             predictedClass = classifier.getClassForInstance(instance);
         } catch (Exception e) {
-            logger.error("Can not get class for instance", e);
+            logger.error(CAN_NOT_GET_CLASS_FOR_INSTANCE, e);
+            throw new RuntimeException(CAN_NOT_GET_CLASS_FOR_INSTANCE, e);
         }
 
         return predictedClass;
@@ -170,7 +166,7 @@ public class Auth extends HttpServlet {
     private boolean isThresholdAccepted(ClassificationResult classificationResult, double threshold) {
         boolean isThresholdAccepted = classificationResult.getProbability() >= threshold;
         if (!isThresholdAccepted) {
-            logger.info("Predicted probability is lower than can be accepted " + threshold);
+            logger.debug("Predicted probability is lower than can be accepted " + threshold);
         }
         return isThresholdAccepted;
     }
@@ -197,11 +193,11 @@ public class Auth extends HttpServlet {
             }
         }
         user.setAuthenticatedCnt(user.getAuthenticatedCnt() + 1);
-        UsersService.save(user);
+        UserService.save(user);
     }
 
     private List<Session> prepareSessions(Map<String, List<Event>> sessionsMap, User user) {
-        List<Session> statSessions = new ArrayList<Session>();
+        List<Session> statSessions = new ArrayList<>();
         for (String uuid : sessionsMap.keySet()) {
             List<Event> events = sessionsMap.get(uuid);
             for (Event event : events) {
@@ -274,7 +270,7 @@ public class Auth extends HttpServlet {
             return;
         }
 
-        Optional<User> userOpt = UsersService.findByLogin(context.getLogin());
+        Optional<User> userOpt = UserService.findByLogin(context.getLogin());
         if (!userOpt.isPresent()) {
             processUnknownUser(response, out, responseObj);
             return;

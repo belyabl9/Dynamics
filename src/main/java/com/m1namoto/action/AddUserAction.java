@@ -1,7 +1,7 @@
 package com.m1namoto.action;
 
 import com.m1namoto.domain.User;
-import com.m1namoto.service.UsersService;
+import com.m1namoto.service.UserService;
 import com.m1namoto.utils.Const;
 import com.m1namoto.utils.Utils;
 
@@ -19,7 +19,7 @@ public class AddUserAction extends Action {
         user.setPassword(getRequestParamValue("password"));
         user.setUserType(User.Type.fromInt(Integer.parseInt(getRequestParamValue("userType"))));
 
-        return UsersService.save(user);
+        return UserService.save(user);
     }
     
     @Override
