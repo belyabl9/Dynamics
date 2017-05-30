@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.m1namoto.features.FeatureExtractor;
+import com.m1namoto.service.CryptService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -252,7 +253,7 @@ public class Auth extends HttpServlet {
         User user = userOpt.get();
         context.setUser(user);
 
-        if (!user.getPassword().equals(context.getPassword())) {
+        if (!user.getPassword().equals(CryptService.cryptPassword(context.getPassword()))) {
             processWrongPassword(response, out, responseObj);
             return;
         }

@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.collect.ImmutableList;
 import com.m1namoto.domain.*;
 import com.m1namoto.features.FeatureExtractor;
+import com.m1namoto.service.CryptService;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
@@ -145,7 +146,7 @@ public class UserRegistrationServlet extends HttpServlet {
         User user = new User();
         user.setName(context.getName() + " " + context.getSurname());
         user.setLogin(context.getLogin());
-        user.setPassword(context.getPassword());
+        user.setPassword(context.getPasswordSha1());
         user.setUserType(User.Type.REGULAR);
 
         return user;
@@ -177,6 +178,7 @@ public class UserRegistrationServlet extends HttpServlet {
         private final String surname;
         private final String login;
         private final String password;
+        private final String passwordSha1;
         private final String stat;
 
         public RegistrationContext(@NotNull String name,
@@ -188,6 +190,7 @@ public class UserRegistrationServlet extends HttpServlet {
             this.surname = surname;
             this.login = login;
             this.password = password;
+            this.passwordSha1 = CryptService.cryptPassword(password);
             this.stat = stat;
         }
 
@@ -205,6 +208,10 @@ public class UserRegistrationServlet extends HttpServlet {
 
         public String getPassword() {
             return password;
+        }
+
+        public String getPasswordSha1() {
+            return passwordSha1;
         }
 
         public String getStat() {

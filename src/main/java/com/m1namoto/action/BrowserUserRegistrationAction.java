@@ -10,6 +10,7 @@ import java.util.Map;
 
 import com.m1namoto.domain.*;
 import com.m1namoto.features.FeatureExtractor;
+import com.m1namoto.service.CryptService;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
@@ -92,7 +93,7 @@ public class BrowserUserRegistrationAction extends Action {
         User user = new User();
         user.setName(context.getName() + " " + context.getSurname());
         user.setLogin(context.getLogin());
-        user.setPassword(context.getPassword());
+        user.setPassword(context.getPasswordSha1());
         user.setUserType(User.Type.REGULAR);
 
         return user;
@@ -145,6 +146,7 @@ public class BrowserUserRegistrationAction extends Action {
         private final String surname;
         private final String login;
         private final String password;
+        private final String passwordSha1;
         private final String stat;
 
         public RegistrationContext(@NotNull String name,
@@ -156,6 +158,7 @@ public class BrowserUserRegistrationAction extends Action {
             this.surname = surname;
             this.login = login;
             this.password = password;
+            this.passwordSha1 = CryptService.cryptPassword(password);
             this.stat = stat;
         }
 
@@ -183,6 +186,10 @@ public class BrowserUserRegistrationAction extends Action {
 
         public String getPassword() {
             return password;
+        }
+
+        public String getPasswordSha1() {
+            return passwordSha1;
         }
 
         public String getStat() {
