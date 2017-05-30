@@ -8,18 +8,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import com.m1namoto.domain.*;
+import com.m1namoto.features.FeatureExtractor;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.m1namoto.domain.Event;
-import com.m1namoto.domain.Feature;
-import com.m1namoto.domain.Session;
-import com.m1namoto.domain.User;
 import com.m1namoto.etc.RegRequest;
 import com.m1namoto.page.PageData;
-import com.m1namoto.service.EventService;
 import com.m1namoto.service.FeatureService;
 import com.m1namoto.service.SessionService;
 import com.m1namoto.service.UserService;
@@ -41,38 +38,27 @@ public class BrowserUserRegistrationAction extends Action {
     private static final String REQ_SAVE = "saveRequest";
     private static final String USER_WAS_NOT_CREATED = "User was not created";
     private static final String USER_ALREADY_EXISTS = "User with such login already exists";
-
-    private List<Session> prepareSessions(Map<String, List<Event>> sessionsMap, User user) {
-        List<Session> statSessions = new ArrayList<>();
-        for (String uuid : sessionsMap.keySet()) {
-            List<Event> events = sessionsMap.get(uuid);
-            for (Event event : events) {
-                event.setUser(user);
-                event.setSession(uuid);
-            }
-            statSessions.add(new Session(uuid, events, user));
-        }
-        
-        return statSessions;
-    }
     
-    private void saveSessionEvents(List<Session> statSessions) throws Exception {
+    private void saveSessionEvents(@NotNull List<Event> events, @NotNull User user) throws Exception {
         logger.debug("Save session events");
-        logger.debug(statSessions);
-        for (Session session : statSessions) {
-            List<Event> events = session.getEvents();
-            if (events.isEmpty()) {
-                continue;
-            }
-            SessionService.save(session);
-            for (Event event : events) {
-                EventService.save(event);
-            }
-            for (Feature feature : session.getFeaturesFromEvents()) {
-                logger.debug("Save feature: " + feature);
-                feature.setSession(session);
-                FeatureService.save(feature);
-            }
+        logger.debug(events);
+        if (events.isEmpty()) {
+            throw new RuntimeException("Event list must contain at least on element.");
+        }
+
+        Session session = new Session("GENERATED", user);
+        session = SessionService.save(session);
+
+        List<HoldFeature> holdFeatures = FeatureExtractor.getInstance().getHoldFeatures(events, user);
+        List<ReleasePressFeature> releasePressFeatures = FeatureExtractor.getInstance().getReleasePressFeatures(events, user);
+        List<Feature> features = new ArrayList<>();
+        features.addAll(holdFeatures);
+        features.addAll(releasePressFeatures);
+
+        for (Feature feature : features) {
+            logger.debug("Save feature: " + feature);
+            feature.setSession(session);
+            FeatureService.save(feature);
         }
     }
     
@@ -108,7 +94,7 @@ public class BrowserUserRegistrationAction extends Action {
         user.setLogin(context.getLogin());
         user.setPassword(context.getPassword());
         user.setUserType(User.Type.REGULAR);
-        
+
         return user;
 	}
 
@@ -144,10 +130,9 @@ public class BrowserUserRegistrationAction extends Action {
             return createAjaxResult(pageData);
         }
         
-        Type type = new TypeToken<Map<String, List<Event>>>(){}.getType();
-        Map<String, List<Event>> sessionsMap = new Gson().fromJson(context.getStat(), type);
-        List<Session> statSessions = prepareSessions(sessionsMap, user);
-        saveSessionEvents(statSessions);
+        Type type = new TypeToken<List<Event>>(){}.getType();
+        List<Event> events = new Gson().fromJson(context.getStat(), type);
+        saveSessionEvents(events, user);
         
         user.setAuthenticatedCnt(user.getAuthenticatedCnt() + 1);
         UserService.save(user);

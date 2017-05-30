@@ -15,6 +15,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import com.google.gson.annotations.Expose;
+import org.jetbrains.annotations.NotNull;
 
 @Entity
 @Table(name = "Features")
@@ -37,7 +38,7 @@ public abstract class Feature extends DomainSuperClass implements Serializable {
 
     public Feature() {}
     
-    public Feature(double value, User user) {
+    public Feature(double value, @NotNull User user) {
         this.value = value;
         this.user = user;
     }

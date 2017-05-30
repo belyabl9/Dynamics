@@ -1,5 +1,6 @@
 package com.m1namoto.classifier;
 
+import com.m1namoto.domain.FeaturesSample;
 import com.m1namoto.domain.User;
 import com.m1namoto.service.UserService;
 import org.apache.log4j.Logger;
@@ -85,7 +86,7 @@ public class Classifier {
 	
 	/**
 	 * Creates Weka instances from the passed configuration
-	 * @param input - passed configuration in .arff format
+	 * @param input configuration in .arff format
 	 * @throws IOException
 	 */
 	private Instances createInstances(@NotNull String input) throws IOException {
@@ -121,10 +122,10 @@ public class Classifier {
 		List<Integer> allowedValues = new ArrayList<>();
 		for (User user : users) {
 		    boolean isUserToCheck = this.user.getId() == user.getId();
-			List<List<Double>> featuresSamples = user.getSamples(password, isUserToCheck);
+			List<FeaturesSample> featuresSamples = user.getSamples(password, isUserToCheck);
 
-            for (List<Double> sample : featuresSamples) {
-                confBuilder.instance(sample, user.getId());
+            for (FeaturesSample sample : featuresSamples) {
+                confBuilder.instance(sample.getFeatures(), user.getId());
             }
             if (!featuresSamples.isEmpty()) {
 				allowedValues.add((int) user.getId());
@@ -149,11 +150,11 @@ public class Classifier {
 	 * @throws Exception
 	 */
 	public ClassificationResult getClassForInstance(@NotNull DynamicsInstance inst) throws Exception {
-		int n = inst.getValues().size() + 1;
+		int instanceElementsNum = inst.getValues().size() + 1;
 		List<Double> values = inst.getValues();
-	    Instance instance = new Instance(n);
+	    Instance instance = new Instance(instanceElementsNum);
 
-	    for (int i = 0; i < n - 1; i++) {
+	    for (int i = 0; i < instanceElementsNum - 1; i++) {
 	    	if (values.get(i) == null) {
 	    		instance.setValue(i, Instance.missingValue());
 	    	} else {

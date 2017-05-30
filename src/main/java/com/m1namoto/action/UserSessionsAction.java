@@ -18,7 +18,7 @@ public class UserSessionsAction extends Action {
         if (!userOpt.isPresent()) {
             return null;
         }
-        List<Session> sessions = SessionService.getUserSessions(userOpt.get());
+        List<Session> sessions = SessionService.getList(userOpt.get());
         UserSessionsPageData data = new UserSessionsPageData(sessions, userOpt.get());
 
         return createShowPageResult(Const.ViewURIs.USER_SESSIONS, data);

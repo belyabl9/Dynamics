@@ -10,16 +10,12 @@ import org.apache.log4j.Logger;
 import com.m1namoto.domain.FeaturesSample;
 import com.m1namoto.domain.ReleasePressPair;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import static com.m1namoto.domain.FeaturesSample.EMPTY_SAMPLE;
 
 public class FeatureSampleService {
-    private static final Logger logger = Logger.getLogger(FeatureSampleService.class);
-
-    private static final FeatureSampleService INSTANCE = new FeatureSampleService();
-    private FeatureSampleService() {}
-
-    public static FeatureSampleService getInstance() {
-        return INSTANCE;
-    }
+    private static final Logger log = Logger.getLogger(FeatureSampleService.class);
 
     /**
      * Returns a sample of hold features by string
@@ -28,28 +24,22 @@ public class FeatureSampleService {
      * @param password - String which is iterated by symbols to get corresponding features
      * @return Hold features sample
      */
-    public FeaturesSample getHoldFeaturesSampleByString(@NotNull Map<Integer, List<Double>> holdFeaturesPerCode,
-                                                        @NotNull String password) {
-        FeaturesSample sample = new FeaturesSample();
+    public static FeaturesSample getHoldFeaturesSampleByString(@Nullable Map<Integer, List<Double>> holdFeaturesPerCode,
+                                                               @NotNull String password) {
         if (holdFeaturesPerCode == null) {
-        	sample.setEmpty(true);
-        	return sample;
+        	return EMPTY_SAMPLE;
         }
         
-        List<Double> holdFeaturesSample = new ArrayList<>();
+        List<Double> holdFeaturesSampleLst = new ArrayList<>();
         for (char code : password.toCharArray()) {
             List<Double> featureValues = holdFeaturesPerCode.get((int)code);
-            Double holdFeatureVal = null;
             if (CollectionUtils.isNotEmpty(featureValues)) {
-                holdFeatureVal = featureValues.remove(0);
-                sample.setEmpty(false);
+                holdFeaturesSampleLst.add(featureValues.remove(0));
+            } else {
+                holdFeaturesSampleLst.add(null);
             }
-            holdFeaturesSample.add(holdFeatureVal);
         }
-        
-        sample.setFeatures(holdFeaturesSample);
-        
-        return sample;
+        return new FeaturesSample(holdFeaturesSampleLst);
     }
     
     /**
@@ -59,35 +49,29 @@ public class FeatureSampleService {
      * @param password - String which is iterated by symbols to get corresponding features
      * @return Release-press features sample
      */
-    public FeaturesSample getReleasePressFeaturesSampleByString(
-            @NotNull Map<ReleasePressPair, List<Double>> releasePressFeaturesPerCode,
+    public static FeaturesSample getReleasePressFeaturesSampleByString(
+            @Nullable Map<ReleasePressPair, List<Double>> releasePressFeaturesPerCode,
             @NotNull String password
     ) {
-
-        FeaturesSample sample = new FeaturesSample();
         if (releasePressFeaturesPerCode == null) {
-        	sample.setEmpty(true);
-        	return sample;
+        	return EMPTY_SAMPLE;
         }
         
         char[] passwordCharacters = password.toCharArray();
-        List<Double> releasePressSample = new ArrayList<>();
+        List<Double> releasePressSampleLst = new ArrayList<>();
         for (int i = 1; i < passwordCharacters.length; i++) {
             char releaseCode = passwordCharacters[i-1],
                  pressCode = passwordCharacters[i];
             ReleasePressPair codePair = new ReleasePressPair(releaseCode, pressCode);
             List<Double> releasePressValues = releasePressFeaturesPerCode.get(codePair);
-            
-            Double releasePressValue = null;
+
             if (CollectionUtils.isNotEmpty(releasePressValues)) {
-                releasePressValue = releasePressValues.remove(0);
-                sample.setEmpty(false);
+                releasePressSampleLst.add(releasePressValues.remove(0));
+            } else {
+                releasePressSampleLst.add(null);
             }
-            releasePressSample.add(releasePressValue);
         }
-        sample.setFeatures(releasePressSample);
-        
-        return sample;
+        return new FeaturesSample(releasePressSampleLst);
     }
 
 }

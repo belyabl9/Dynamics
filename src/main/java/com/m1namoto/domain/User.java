@@ -1,22 +1,21 @@
 package com.m1namoto.domain;
 
+import com.google.gson.annotations.Expose;
+import com.m1namoto.features.FeatureExtractor;
+import com.m1namoto.service.FeatureSampleService;
+import com.m1namoto.service.FeatureService;
+import com.m1namoto.service.SessionService;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.persistence.*;
-
-import com.m1namoto.features.FeatureExtractor;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.log4j.Logger;
-
-import com.google.gson.annotations.Expose;
-import com.m1namoto.service.EventService;
-import com.m1namoto.service.FeatureSampleService;
-import com.m1namoto.service.FeatureService;
-import org.jetbrains.annotations.NotNull;
 
 @Entity
 @Table(name = "Users")
@@ -27,9 +26,6 @@ public class User extends DomainSuperClass implements Serializable {
 
     private final static int ORIGIN_HOLD_FEATURES_THRESHOLD = 100;
     private final static int OTHER_HOLD_FEATURES_THRESHOLD = 80;
-
-    private final static int ORIGIN_RELEASE_PRESS_FEATURES_THRESHOLD = 100;
-    private final static int OTHER_RELEASE_PRESS_FEATURES_THRESHOLD = 30;
 
     public enum Type {
         ADMIN(0),
@@ -123,99 +119,40 @@ public class User extends DomainSuperClass implements Serializable {
     public void setUserType(Type userType) {
         this.userType = userType;
     }
-	
-    public List<Session> getSessions() {
-        List<Event> events = EventService.getList(this);
-        Map<String, List<Event>> sessionsMap = new HashMap<String, List<Event>>();
-
-        for (Event event : events) {
-            String sessionName = event.getSession();
-            if (!sessionsMap.containsKey(sessionName)) {
-                sessionsMap.put(sessionName, new ArrayList<Event>());
-            }
-            sessionsMap.get(sessionName).add(event);
-        }
-        
-        List<Session> sessions = new ArrayList<Session>();
-        for (String sessionName : sessionsMap.keySet()) {
-            sessions.add(new Session(sessionName, sessionsMap.get(sessionName), this));
-        }
-        
-        return sessions;
-    }
     
-	
-	public int getSessionsCount() {
-		List<Session> sessions = getSessions();
-		return (sessions != null) ? sessions.size() : 0;
-	}
-	
 	public double getMeanKeypressTime() {
-		List<Session> sessions = getSessions();
-		if (sessions == null) {
-			return 0;
-		}
-		double keyTime = 0,
-			   n = 0;
-		for (Session session : sessions) {
-			try {
-                keyTime += FeatureExtractor.getInstance().getMeanKeyPressTime(session.getEvents());
-            } catch (Exception e) {
-                keyTime += 0;
-            }
-			n++;
-		}
-		
-		return keyTime/n;
-	}
-	
-	public double getMeanTimeBetweenKeys() throws Exception {
-		List<Session> sessions = getSessions();
-		if (sessions == null) {
-			return 0;
-		}
-		double keyTime = 0,
-			   n = 0;
-		for (Session session : sessions) {
-			keyTime += FeatureExtractor.getInstance().getMeanTimeBetweenKeys(session.getEvents());
-			n++;
-		}
-		
-		return keyTime/n;
-	}
-	
-    public List<HoldFeature> getHoldFeaturesByCode(int code) {
-        long userId = this.getId();
-        Map<Long, List<HoldFeature>> featuresPerUser = FeatureService.getHoldFeaturesPerUser();
-        List<HoldFeature> userHoldFeatures = featuresPerUser.get(userId);
-        Map<Integer, List<HoldFeature>> featuresPerCode = FeatureService.extractHoldFeaturesPerCode(userHoldFeatures);
-        
-        return featuresPerCode.get(code);
-    }
+        List<HoldFeature> holdFeatures = FeatureService.getHoldFeatures(this);
+        if (holdFeatures.isEmpty()) {
+            return 0d;
+        }
 
+        double meanSum = 0d;
+        for (Feature feature : holdFeatures) {
+            meanSum += feature.getValue();
+        }
+
+        return meanSum / holdFeatures.size();
+	}
+
+	@Nullable
     public Map<Integer, List<Double>> getHoldFeaturesByString(@NotNull String password) {
         Map<Integer, List<Double>> userFeaturesByString = new HashMap<>();
         long userId = this.getId();
         Map<Integer, List<HoldFeature>> userHoldFeaturesPerCode = FeatureService.getUserHoldFeaturesMap().get(userId);
 
         if (userHoldFeaturesPerCode == null) {
-            logger.debug("User Hold Featuers Per Code Map is null");
             return null;
         }
 
-        logger.debug("User hold features per code map:");
-        logger.debug(userHoldFeaturesPerCode);
-        
         for (char code : password.toCharArray()) {
             List<HoldFeature> userHoldFeaturesByCode = userHoldFeaturesPerCode.get((int)code);
             if (CollectionUtils.isEmpty(userHoldFeaturesByCode)) {
-                logger.debug("Null Code: " + code);
                 userFeaturesByString.put((int)code, null);
                 continue;
             }
             List<Double> featureValuesByCode = new ArrayList<>();
-            for (int i = 0; i < userHoldFeaturesByCode.size(); i++) {
-                featureValuesByCode.add(userHoldFeaturesByCode.get(i).getValue());
+            for (HoldFeature holdFeature : userHoldFeaturesByCode) {
+                featureValuesByCode.add(holdFeature.getValue());
             }
             userFeaturesByString.put((int)code, featureValuesByCode);
         }
@@ -223,95 +160,63 @@ public class User extends DomainSuperClass implements Serializable {
         return userFeaturesByString;
     }
 
+    @Nullable
     public Map<ReleasePressPair, List<Double>> getReleasePressFeaturesByString(String password) {
-        Map<ReleasePressPair, List<Double>> userFeaturesByString = new HashMap<ReleasePressPair, List<Double>>();
+        Map<ReleasePressPair, List<Double>> userFeaturesByString = new HashMap<>();
         long userId = this.getId();
-        Map<ReleasePressPair, List<ReleasePressFeature>> userReleasePressFeaturesPerCode
-            = FeatureService.getUserReleasePressFeaturesMap().get(userId);
+        Map<ReleasePressPair, List<ReleasePressFeature>> userReleasePressFeaturesPerCode = FeatureService.getUserReleasePressFeaturesMap().get(userId);
 
         if (userReleasePressFeaturesPerCode == null) {
             return null;
         }
-
-        logger.debug("User release-press features per code map:");
-        logger.debug(userReleasePressFeaturesPerCode);
         
         char[] passwordCharacters = password.toCharArray();
-        
         for (int i = 1; i < passwordCharacters.length; i++) {
             char pressCode = passwordCharacters[i],
                  releaseCode = passwordCharacters[i-1];
             ReleasePressPair codePair = new ReleasePressPair(releaseCode, pressCode);
 
             List<ReleasePressFeature> userReleasePressFeaturesByCode = userReleasePressFeaturesPerCode.get(codePair);
-            if (userReleasePressFeaturesByCode == null || userReleasePressFeaturesByCode.size() == 0) {
-                logger.debug(String.format("Can not find release-press features for codes: %c - %c", releaseCode, pressCode));
+            if (CollectionUtils.isEmpty(userReleasePressFeaturesByCode)) {
                 userFeaturesByString.put(codePair, null);
                 continue;
             }
-            List<Double> featureValuesByCode = new ArrayList<Double>();
-            for (int j = 0; j < userReleasePressFeaturesByCode.size(); j++) {
-                featureValuesByCode.add(userReleasePressFeaturesByCode.get(j).getValue());
+            List<Double> featureValuesByCode = new ArrayList<>();
+            for (ReleasePressFeature releasePressFeature : userReleasePressFeaturesByCode) {
+                featureValuesByCode.add(releasePressFeature.getValue());
             }
             userFeaturesByString.put(codePair, featureValuesByCode);
         }
 
         return userFeaturesByString;
     }
-    
-    public List<HoldFeature> getHoldFeatures() {
-        return FeatureService.getHoldFeatures(this);
-    }
-    
-    public List<ReleasePressFeature> getReleasePressFeatures() {
-        return FeatureService.getReleasePressFeatures(this);
-    }
-    
-    public List<List<Double>> getSamples(User user, String password) {
-        return getSamples(password, false);
-    }
 
-    public List<List<Double>> getSamples(String password, boolean fullSample) {
-        logger.debug("Get User Samples");
-        List<List<Double>> samples = new ArrayList<>();
+    public List<FeaturesSample> getSamples(@NotNull String password, boolean fullSample) {
+        List<FeaturesSample> samples = new ArrayList<>();
         double meanKeyPressTime = getMeanKeypressTime();
         
         Map<Integer, List<Double>> holdFeaturesByString = getHoldFeaturesByString(password);
         Map<ReleasePressPair, List<Double>> releasePressFeaturesByString = getReleasePressFeaturesByString(password);
         
         final int holdFeaturesMin = fullSample ? ORIGIN_HOLD_FEATURES_THRESHOLD : OTHER_HOLD_FEATURES_THRESHOLD;
-        final int releasePressMin = fullSample ? ORIGIN_RELEASE_PRESS_FEATURES_THRESHOLD : OTHER_RELEASE_PRESS_FEATURES_THRESHOLD;
-        
-        boolean isEmptySample = false;
-        while (!isEmptySample) {
-            FeaturesSample holdFeaturesSample = null;
-            if (holdFeaturesByString != null) {
-                holdFeaturesSample = FeatureSampleService.getInstance().getHoldFeaturesSampleByString(holdFeaturesByString, password);
-            }
-            FeaturesSample releasePressFeaturesSample = null;
-            if (releasePressFeaturesByString != null) {
-                releasePressFeaturesSample = FeatureSampleService.getInstance().getReleasePressFeaturesSampleByString(releasePressFeaturesByString, password);
-            }
-            
-            List<Double> featuresSample = new ArrayList<>();
-            if (holdFeaturesSample != null) {
-                featuresSample.addAll(holdFeaturesSample.getFeatures());
-            }
-            if (releasePressFeaturesSample != null) {
-                featuresSample.addAll(releasePressFeaturesSample.getFeatures());
-            }
-            featuresSample.add(meanKeyPressTime);
 
-            isEmptySample = ( (holdFeaturesSample == null || holdFeaturesSample.isEmpty())
-                    && (releasePressFeaturesSample == null || releasePressFeaturesSample.isEmpty()));
+        boolean isFullSampleEmpty = false;
+        while (!isFullSampleEmpty) {
+            FeaturesSample holdFeaturesSample = FeatureSampleService.getHoldFeaturesSampleByString(holdFeaturesByString, password);
+            FeaturesSample releasePressFeaturesSample = FeatureSampleService.getReleasePressFeaturesSampleByString(releasePressFeaturesByString, password);
 
-            if (!isEmptySample) {
-                boolean isEnoughElements = (holdFeaturesSample.definedElementsPercentage() >= holdFeaturesMin
-                        //&& releasePressFeaturesSample.definedElementsPercentage() >= releasePressMin
-                );
+            List<Double> fullFeatureSampleLst = new ArrayList<>();
+            fullFeatureSampleLst.addAll(holdFeaturesSample.getFeatures());
+            fullFeatureSampleLst.addAll(releasePressFeaturesSample.getFeatures());
+            fullFeatureSampleLst.add(meanKeyPressTime);
+
+            boolean isHoldFeatureSampleEmpty  = holdFeaturesSample == null         || holdFeaturesSample.isEmpty();
+            boolean isReleasePressSampleEmpty = releasePressFeaturesSample == null || releasePressFeaturesSample.isEmpty();
+            isFullSampleEmpty = isHoldFeatureSampleEmpty && isReleasePressSampleEmpty;
+            if (!isFullSampleEmpty) {
+                boolean isEnoughElements = holdFeaturesSample.definedElementsPercentage() >= holdFeaturesMin;
                 if (isEnoughElements) {
-                    logger.debug("Add sample: " + featuresSample);
-                    samples.add(featuresSample);
+                    samples.add(new FeaturesSample(fullFeatureSampleLst));
                 }
             }
         }

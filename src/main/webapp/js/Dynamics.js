@@ -1,22 +1,12 @@
 var Dynamics = (function() {
 
 	var statistics = [];
-	var currentId;
+
 	var SKIP_CODES = [
 		13, // ENTER
-		9  // TAB
+		9  //  TAB
 	];
 
-	var makeId = function() {
-	    var text = "";
-	    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-	    for( var i=0; i < 5; i++ )
-	        text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-	    return text;
-	}
-	
 	return {
 		
 		setKeyListeners: function(formName, inputNames) {
@@ -43,7 +33,7 @@ var Dynamics = (function() {
 			        	entity: code,
 			        	time: event.timeStamp
 			        };
-			        statistics[currentId].push(keydownData);
+			        statistics.push(keydownData);
 			    });
 			    
 			    $("#" + formName + " :input[name=" + name + "]").keyup(function(event){
@@ -51,7 +41,7 @@ var Dynamics = (function() {
                       if (SKIP_CODES.indexOf(event.keyCode) !== -1) {
                         return;
                       }
-			    	  if(event.keyCode!=16){ // If the pressed key is anything other than SHIFT
+			    	  if(event.keyCode != 16){ // If the pressed key is anything other than SHIFT
 			    	        var c = String.fromCharCode(event.keyCode);
 			    	        if(event.shiftKey){ // If the SHIFT key is down, return the ASCII code for the capital letter
 			    	            code = event.keyCode;
@@ -66,15 +56,13 @@ var Dynamics = (function() {
 			        	entity: code,
 			        	time: event.timeStamp
 			        };
-			        statistics[currentId].push(keyupData);
+			        statistics.push(keyupData);
 			    });
 			}
 		},
 		
 		initStatistics: function() {
-			statistics = {}
-			currentId = makeId();
-			statistics[currentId] = []
+			statistics = [];
 		},
 		
 		getStatJson: function() {

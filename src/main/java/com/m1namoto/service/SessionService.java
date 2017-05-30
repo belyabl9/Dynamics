@@ -1,22 +1,15 @@
 package com.m1namoto.service;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimaps;
 import com.m1namoto.dao.DaoFactory;
-import com.m1namoto.domain.Event;
 import com.m1namoto.domain.Session;
 import com.m1namoto.domain.User;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class SessionService {
 
-    public static final String INVALID_SESSION_ID = "Session id must be >= 0.";
+    private static final String INVALID_SESSION_ID = "Session id must be >= 0.";
 
     /**
      * Returns a list of sessions
@@ -28,7 +21,7 @@ public class SessionService {
     /**
      * Returns a list of user's sessions
      */
-    public static List<Session> getUserSessions(@NotNull User user) {
+    public static List<Session> getList(@NotNull User user) {
         return DaoFactory.getSessionsDAO().getList(user);
     }
 
@@ -56,40 +49,6 @@ public class SessionService {
      */
     public static void removeAll() {
         DaoFactory.getSessionsDAO().removeAll();
-    }
-    
-    /**
-     * Returns a map of sessions. Each sessions is represented by unique id
-     * @return Map of sessions
-     */
-    private static Map<String, Session> getSessionsMap() {
-        Map<String, Session> sessionsMap = new HashMap<>();
-        for (Event event : EventService.getList()) {
-            String sessionName = event.getSession();
-            
-            if (!sessionsMap.containsKey(sessionName)) {
-                sessionsMap.put(sessionName, new Session(sessionName, new ArrayList<Event>(), event.getUser()));
-            }
-            
-            sessionsMap.get(sessionName).addEvent(event);
-        }
-        
-        return sessionsMap;
-    }
-
-    /**
-     * Returns a map of sessions grouped by user
-     * @return Map of sessions grouped by user
-     */
-    public static Map<Long, List<Session>> getSessionsPerUser() {
-        ListMultimap<Long, Session> sessionsPerUserMap = ArrayListMultimap.create();
-        Map<String, Session> sessionsMap = getSessionsMap();
-        for (Session session : sessionsMap.values()) {
-            long userId = session.getUser().getId();
-            sessionsPerUserMap.put(userId, session);
-        }
-
-        return Multimaps.asMap(sessionsPerUserMap);
     }
 	
 }

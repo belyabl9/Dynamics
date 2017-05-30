@@ -1,9 +1,11 @@
 package com.m1namoto.domain;
 
+import com.google.common.collect.ImmutableList;
 import com.m1namoto.features.FeatureExtractor;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Type;
+import org.jetbrains.annotations.NotNull;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -16,6 +18,8 @@ import java.util.List;
 public class Session extends DomainSuperClass implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    private static final String SESSION_NAME_MUST_BE_SPECIFIED = "Session name must be specified.";
+
     @Column(name = "date")
     @Type(type="timestamp")
     private Date date = new Date();
@@ -27,37 +31,24 @@ public class Session extends DomainSuperClass implements Serializable {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Transient
-    private List<Event> events = new ArrayList<>();
-
     @OneToMany(mappedBy="session", fetch=FetchType.LAZY)
     @Cascade({CascadeType.DELETE})
     private List<Feature> features = new ArrayList<>();
 
-    public Session(String name, List<Event> events, User user) {
+    public Session() {}
+
+    public Session(@NotNull String name, @NotNull User user) {
+        if (name.isEmpty()) {
+            throw new IllegalArgumentException(SESSION_NAME_MUST_BE_SPECIFIED);
+        }
 		this.name = name;
-	    this.events = events;
 	    this.user = user;
 	}
-	
-	public Session() {}
-	
+
 	public List<Feature> getFeatures() {
 	    return features;
 	}
 	
-	public void addEvent(Event event) {
-		events.add(event);
-	}
-	
-	public List<Event> getEvents() {
-		return events;
-	}
-	
-	public void setEvents(List<Event> events) {
-		this.events = events;
-	}
-
     public String getName() {
         return name;
     }
@@ -77,31 +68,14 @@ public class Session extends DomainSuperClass implements Serializable {
     public Date getDate() {
         return date;
     }
-    
-    public List<HoldFeature> getHoldFeaturesFromEvents() {
-        return FeatureExtractor.getInstance().getHoldFeatures(events);
-    }
-    
-    public List<ReleasePressFeature> getReleasePressFeaturesFromEvents() {
-        return FeatureExtractor.getInstance().getReleasePressFeatures(events);
-    }
 
-    public List<Feature> getFeaturesFromEvents() {
-        List<Feature> features = new ArrayList<>();
-        features.addAll(getHoldFeaturesFromEvents());
-        features.addAll(getReleasePressFeaturesFromEvents());
-        
-        return features;
+    @Override
+    public String toString() {
+        return "Session{" +
+                "date=" + date +
+                ", name='" + name + '\'' +
+                ", user=" + user +
+                ", features=" + features +
+                '}';
     }
-
-	public String toString() {
-		StringBuilder sb = new StringBuilder("Session " + name + "\n[");
-		
-		for (Event event : events) {
-		    sb.append(event + "\n");
-		}
-		
-		return sb.toString();
-	}
-
 }

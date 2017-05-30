@@ -1,17 +1,40 @@
 package com.m1namoto.domain;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class FeaturesSample {
-    private List<Double> features;
-    private boolean isEmpty = true;
-    
-    public void setFeatures(List<Double> features) {
-        this.features = features;
+
+    public static final FeaturesSample EMPTY_SAMPLE = new FeaturesSample(Collections.<Double>emptyList());
+
+    /**
+     * May contain null values for absent sample values
+     */
+    @NotNull
+    private final List<Double> features;
+    private final boolean isEmpty;
+
+    public FeaturesSample() {
+        this(new ArrayList<Double>());
     }
 
-    public void setEmpty(boolean isEmpty) {
-        this.isEmpty = isEmpty;
+    public FeaturesSample(@NotNull List<Double> features) {
+        this.features = Collections.unmodifiableList(new ArrayList<>(features));
+        if (features.isEmpty()) {
+            isEmpty = true;
+        } else {
+            boolean isEmpty = true;
+            for (Double val : features) {
+                if (val != null) {
+                    isEmpty = false;
+                    break;
+                }
+            }
+            this.isEmpty = isEmpty;
+        }
     }
 
     public boolean isEmpty() {

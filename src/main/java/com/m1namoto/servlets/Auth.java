@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.m1namoto.features.FeatureExtractor;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +37,6 @@ import com.m1namoto.domain.ReleasePressPair;
 import com.m1namoto.domain.Session;
 import com.m1namoto.domain.User;
 import com.m1namoto.etc.AuthRequest;
-import com.m1namoto.service.EventService;
 import com.m1namoto.service.FeatureService;
 import com.m1namoto.service.SessionService;
 import com.m1namoto.service.UserService;
@@ -87,8 +87,8 @@ public class Auth extends HttpServlet {
     private static final String DYNAMICS_DOES_NOT_MATCH = "Keystroke dynamics does not match";
     
     private static final String SUCCESSFUL_AUTH_MSG = "Authentication has successfully passed";
-    public static final String CAN_NOT_CREATE_CLASSIFIER = "Can not create classifier";
-    public static final String CAN_NOT_GET_CLASS_FOR_INSTANCE = "Can not get class for instance";
+    private static final String CAN_NOT_CREATE_CLASSIFIER = "Can not create classifier";
+    private static final String CAN_NOT_GET_CLASS_FOR_INSTANCE = "Can not get class for instance";
 
     /**
      * @see HttpServlet#HttpServlet()
@@ -97,33 +97,21 @@ public class Auth extends HttpServlet {
         super();
     }
 
-    private ClassificationResult getPredictedThreshold(List<Session> sessions, User userToCheck) throws Exception {
+    private ClassificationResult getPredictedThreshold(@NotNull List<Event> events,
+                                                       @NotNull User userToCheck) throws Exception {
         logger.info("Predict classes for passed sessions");
-        ClassificationResult predictedClass = null;
-        Classifier classifier;
-        try {
-            classifier = new Classifier(userToCheck);
-        } catch (Exception e) {
-            logger.error(CAN_NOT_CREATE_CLASSIFIER, e);
-            throw new RuntimeException(CAN_NOT_CREATE_CLASSIFIER, e);
-        }
+        Classifier classifier = makeClassifier(userToCheck);
 
-        List<HoldFeature> sessionHoldFeatures = new ArrayList<>();
-        List<ReleasePressFeature> sessionReleasePressFeatures = new ArrayList<>();
-
-        for (Session session : sessions) {
-            sessionHoldFeatures.addAll(session.getHoldFeaturesFromEvents());
-            sessionReleasePressFeatures.addAll(session.getReleasePressFeaturesFromEvents());
-        }
+        List<HoldFeature> sessionHoldFeatures = FeatureExtractor.getInstance().getHoldFeatures(events, userToCheck);
+        List<ReleasePressFeature> sessionReleasePressFeatures = FeatureExtractor.getInstance().getReleasePressFeatures(events, userToCheck);
 
         List<Double> featureValues = new ArrayList<>();
-
         Map<Integer, List<HoldFeature>> holdFeaturesPerCode = FeatureService.extractHoldFeaturesPerCode(sessionHoldFeatures);
         char[] passwordCharacters = userToCheck.getPassword().toCharArray();  
         for (char c : passwordCharacters) {
             List<HoldFeature> featuresByCode = holdFeaturesPerCode.get((int)c);
 
-            if (featuresByCode != null && featuresByCode.size() > 0) {
+            if (CollectionUtils.isNotEmpty(featuresByCode)) {
             	featureValues.add(featuresByCode.get(0).getValue());
             } else {
             	featureValues.add(null);
@@ -137,30 +125,35 @@ public class Auth extends HttpServlet {
             ReleasePressPair codePair = new ReleasePressPair(releaseCode, pressCode);
             List<ReleasePressFeature> featuresByCode = releasePressFeaturesPerCode.get(codePair);
             
-            if (featuresByCode != null && featuresByCode.size() > 0) {
+            if (CollectionUtils.isNotEmpty(featuresByCode)) {
             	featureValues.add(featuresByCode.get(0).getValue());
             } else {
             	featureValues.add(null);
             }
         }
 
-        double meanKeyPressTimeSum = 0;
-        for (Session session : sessions) {
-            List<Event> events = session.getEvents();
-            meanKeyPressTimeSum += FeatureExtractor.getInstance().getMeanKeyPressTime(events);
-        }
-        double meanKeyPressTime = sessions.size() == 0 ? 0 : meanKeyPressTimeSum / sessions.size();
+        double meanKeyPressTime = FeatureExtractor.getInstance().getMeanKeyPressTime(events);
         featureValues.add(meanKeyPressTime);
-
+        
         DynamicsInstance instance = new DynamicsInstance(featureValues);
         try {
-            predictedClass = classifier.getClassForInstance(instance);
+            return classifier.getClassForInstance(instance);
         } catch (Exception e) {
             logger.error(CAN_NOT_GET_CLASS_FOR_INSTANCE, e);
             throw new RuntimeException(CAN_NOT_GET_CLASS_FOR_INSTANCE, e);
         }
+    }
 
-        return predictedClass;
+    @NotNull
+    private Classifier makeClassifier(@NotNull User userToCheck) {
+        Classifier classifier;
+        try {
+            classifier = new Classifier(userToCheck);
+        } catch (Exception e) {
+            logger.error(CAN_NOT_CREATE_CLASSIFIER, e);
+            throw new RuntimeException(CAN_NOT_CREATE_CLASSIFIER, e);
+        }
+        return classifier;
     }
 
     private boolean isThresholdAccepted(ClassificationResult classificationResult, double threshold) {
@@ -172,47 +165,28 @@ public class Auth extends HttpServlet {
     }
 
     /**
-     * Saves sessions with their events and features
-     * @param sessions
-     * @throws Exception
+     * Saves a session with its features
      */
-    private void saveSessions(@NotNull List<Session> sessions, @NotNull User user) throws Exception {
-        for (Session session : sessions) {
-            SessionService.save(session);
-            
-            List<Event> events = session.getEvents();
-            if (events.isEmpty()) {
-                continue;
-            }
-            for (Event event : events) {
-                EventService.save(event);
-            }
-            for (Feature feature : session.getFeaturesFromEvents()) {
-                feature.setSession(session);
-                FeatureService.save(feature);
-            }
-        }
-        user.setAuthenticatedCnt(user.getAuthenticatedCnt() + 1);
-        UserService.save(user);
-    }
+    private Session saveSession(@NotNull List<Event> events, @NotNull User user) {
+        Session session = new Session("GENERATED", user);
+        session = SessionService.save(session);
 
-    private List<Session> prepareSessions(Map<String, List<Event>> sessionsMap, User user) {
-        List<Session> statSessions = new ArrayList<>();
-        for (String uuid : sessionsMap.keySet()) {
-            List<Event> events = sessionsMap.get(uuid);
-            for (Event event : events) {
-                event.setUser(user);
-                event.setSession(uuid);
-            }
-            statSessions.add(new Session(uuid, events, user));
+        List<HoldFeature> holdFeatures = FeatureExtractor.getInstance().getHoldFeatures(events, user);
+        List<ReleasePressFeature> releasePressFeatures = FeatureExtractor.getInstance().getReleasePressFeatures(events, user);
+
+        List<Feature> features = new ArrayList<>();
+        features.addAll(holdFeatures);
+        features.addAll(releasePressFeatures);
+        for (Feature feature : features) {
+            feature.setSession(session);
+            FeatureService.save(feature);
         }
 
-        return statSessions;
+        return session;
     }
 
     /**
-     * Saves an authentication request to a file in .json format
-     * if corresponding property is set in the configuration file
+     * Saves an authentication request to a file in .json format if corresponding property is set in he configuration file
      */
     private void saveRequest(@NotNull AuthContext context) throws IOException {
         AuthRequest authReq = new AuthRequest(context.getLogin(), context.getPassword(), context.getStat());
@@ -235,7 +209,7 @@ public class Auth extends HttpServlet {
         FileUtils.writeStringToFile(reqFile, json);
     }
 
-    private String getResponseMessage(String status, String msg) {
+    private String getResponseMessage(@NotNull String status, @NotNull String msg) {
         return String.format("%s: %s", status, msg);
     }
 
@@ -294,10 +268,9 @@ public class Auth extends HttpServlet {
         }
 
         // TODO: Consider using only one session per request
-        Type type = new TypeToken<Map<String, List<Event>>>(){}.getType();
-        Map<String, List<Event>> sessionsMap = new Gson().fromJson(context.getStat(), type);
-        List<Session> statSessions = prepareSessions(sessionsMap, user);
-        context.setStatSessions(statSessions);
+        Type type = new TypeToken<List<Event>>(){}.getType();
+        List<Event> events = new Gson().fromJson(context.getStat(), type);
+        context.setSessionEvents(events);
 
         // First <learningRate> authentication attempts are considered genuine
         boolean trustedAuthenticationsExpired = user.getAuthenticatedCnt() < context.getLearningRate();
@@ -308,7 +281,7 @@ public class Auth extends HttpServlet {
 
         ClassificationResult classificationResult;
         try {
-            classificationResult = getPredictedThreshold(statSessions, user);
+            classificationResult = getPredictedThreshold(events, user);
         } catch (Exception e) {
             logger.error(e);
             throw new ServletException(e);
@@ -327,15 +300,10 @@ public class Auth extends HttpServlet {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
     }
 
-    private void processExpectedClass(HttpServletResponse response, PrintWriter out, JSONObject responseObj,  AuthContext context, ClassificationResult classificationResult) throws ServletException {
-        logger.info(SUCCESSFUL_AUTH_MSG);
-        if (!context.isStolen() && context.isUpdateTemplate()) {
-            try {
-                saveSessions(context.getStatSessions(), context.getUser());
-            } catch (Exception e) {
-                logger.error(e);
-                throw new ServletException();
-            }
+    private void processExpectedClass(HttpServletResponse response, PrintWriter out, JSONObject responseObj, AuthContext context, ClassificationResult classificationResult) throws ServletException {
+        logger.debug(SUCCESSFUL_AUTH_MSG);
+        if (!context.isStolen()) {
+            saveSession(context.getSessionEvents(), context.getUser());
         }
         responseObj.put(RESP_SUCCESS_PARAM, true);
         responseObj.put(RESP_THRESHOLD_PARAM, classificationResult.getProbability());
@@ -345,14 +313,7 @@ public class Auth extends HttpServlet {
 
     private void processTrustedAuth(HttpServletResponse response, PrintWriter out, JSONObject responseObj, AuthContext context) throws ServletException {
         logger.info(SUCCESSFUL_AUTH_MSG);
-        if (context.isUpdateTemplate()) {
-            try {
-                saveSessions(context.getStatSessions(), context.getUser());
-            } catch (Exception e) {
-                logger.error(e);
-                throw new ServletException(e);
-            }
-        }
+        saveSession(context.getSessionEvents(), context.getUser());
         responseObj.put(RESP_SUCCESS_PARAM, true);
         out.print(responseObj);
         response.setStatus(HttpServletResponse.SC_OK);
@@ -396,7 +357,7 @@ public class Auth extends HttpServlet {
         private final double threshold;
 
         private User user;
-        private List<Session> statSessions;
+        private List<Event> sessionEvents;
 
         public AuthContext(@NotNull HttpServletRequest req) {
             login    = req.getParameter(REQ_LOGIN_PARAM);
@@ -456,12 +417,12 @@ public class Auth extends HttpServlet {
             this.user = user;
         }
 
-        public List<Session> getStatSessions() {
-            return statSessions;
+        public List<Event> getSessionEvents() {
+            return sessionEvents;
         }
 
-        public void setStatSessions(List<Session> statSessions) {
-            this.statSessions = statSessions;
+        public void setSessionEvents(List<Event> sessionEvents) {
+            this.sessionEvents = sessionEvents;
         }
     }
 

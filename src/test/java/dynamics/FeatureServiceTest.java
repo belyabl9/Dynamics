@@ -18,25 +18,22 @@ import com.m1namoto.domain.ReleasePressFeature;
 
 public class FeatureServiceTest {
 
-    @Test
-    public void test() throws Exception {
-        List<Event> events = getEvents();
-
-        Assert.assertArrayEquals(getKeyPressTimeList().toArray(), FeatureExtractor.getInstance().getKeyPressTimeList(events).toArray());
-        Assert.assertArrayEquals(getTimeBetweenKeysList().toArray(), FeatureExtractor.getInstance().getTimeBetweenKeysList(events).toArray());
-        
-        Assert.assertArrayEquals(getHoldFeatures().toArray(), FeatureExtractor.getInstance().getHoldFeatures(events).toArray());
-        Assert.assertArrayEquals(getReleasePressFeatures().toArray(), FeatureExtractor.getInstance().getReleasePressFeatures(events).toArray());
-        
-        String expectedMeanKeyPressTime = "105.19";
-        Assert.assertEquals(expectedMeanKeyPressTime, new DecimalFormat("###.##").format(FeatureExtractor.getInstance().getMeanKeyPressTime(events)) );
-        
-        String expectedMeanTimeBetweenKeys = "100.05";
-        Assert.assertEquals(expectedMeanTimeBetweenKeys, new DecimalFormat("###.##").format(FeatureExtractor.getInstance().getMeanTimeBetweenKeys(events)) );
-        
-        
-    
-    }
+//    @Test
+//    public void test() throws Exception {
+//        List<Event> events = getEvents();
+//
+//        Assert.assertArrayEquals(getKeyPressTimeList().toArray(), FeatureExtractor.getInstance().getKeyPressTimeList(events).toArray());
+//        Assert.assertArrayEquals(getTimeBetweenKeysList().toArray(), FeatureExtractor.getInstance().getTimeBetweenKeysList(events).toArray());
+//
+//        Assert.assertArrayEquals(getHoldFeatures().toArray(), FeatureExtractor.getInstance().getHoldFeatures(events).toArray());
+//        Assert.assertArrayEquals(getReleasePressFeatures().toArray(), FeatureExtractor.getInstance().getReleasePressFeatures(events).toArray());
+//
+//        String expectedMeanKeyPressTime = "105.19";
+//        Assert.assertEquals(expectedMeanKeyPressTime, new DecimalFormat("###.##").format(FeatureExtractor.getInstance().getMeanKeyPressTime(events)) );
+//
+//        String expectedMeanTimeBetweenKeys = "100.05";
+//        Assert.assertEquals(expectedMeanTimeBetweenKeys, new DecimalFormat("###.##").format(FeatureExtractor.getInstance().getMeanTimeBetweenKeys(events)) );
+//    }
     
     private List<Event> getEvents() {
         String eventsJson = "";

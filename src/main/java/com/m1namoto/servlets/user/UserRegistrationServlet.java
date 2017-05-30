@@ -15,17 +15,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.common.collect.ImmutableList;
+import com.m1namoto.domain.*;
+import com.m1namoto.features.FeatureExtractor;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.m1namoto.domain.Event;
-import com.m1namoto.domain.Feature;
-import com.m1namoto.domain.Session;
-import com.m1namoto.domain.User;
 import com.m1namoto.etc.RegRequest;
-import com.m1namoto.service.EventService;
 import com.m1namoto.service.FeatureService;
 import com.m1namoto.service.SessionService;
 import com.m1namoto.service.UserService;
@@ -90,45 +87,29 @@ public class UserRegistrationServlet extends HttpServlet {
         }
         
         Type type = new TypeToken<Map<String, List<Event>>>(){}.getType();
-        Map<String, List<Event>> sessionsMap = new Gson().fromJson(regContext.getStat(), type);
-        List<Session> statSessions = prepareSessions(sessionsMap, user);
-        saveSessionEvents(statSessions);
+        List<Event> events = new Gson().fromJson(regContext.getStat(), type);
+        saveSessionEvents(events, user);
 
         UserService.save(user);
         
         response.setStatus(HttpServletResponse.SC_OK);
 	}
 
-    private List<Session> prepareSessions(Map<String, List<Event>> sessionsMap, User user) {
-        List<Session> statSessions = new ArrayList<>();
-        // TODO process only one session
-        for (String uuid : sessionsMap.keySet()) {
-            List<Event> events = sessionsMap.get(uuid);
-            for (Event event : events) {
-                event.setUser(user);
-                event.setSession(uuid);
-            }
-            statSessions.add(new Session(uuid, events, user));
+    private void saveSessionEvents(@NotNull List<Event> events, @NotNull User user) {
+        if (events.isEmpty()) {
+            throw new IllegalArgumentException("Event list must contain at least one element.");
         }
+        Session session = SessionService.save(new Session("GENERATED", user));
 
-        return statSessions;
-    }
+        List<HoldFeature> holdFeatures = FeatureExtractor.getInstance().getHoldFeatures(events, user);
+        List<ReleasePressFeature> releasePressFeatures = FeatureExtractor.getInstance().getReleasePressFeatures(events, user);
+        List<Feature> features = new ArrayList<>();
+        features.addAll(holdFeatures);
+        features.addAll(releasePressFeatures);
 
-    private void saveSessionEvents(List<Session> statSessions) {
-        // TODO process only one session
-        for (Session session : statSessions) {
-            SessionService.save(session);
-            List<Event> events = session.getEvents();
-            if (events.size() == 0) {
-                continue;
-            }
-            for (Event event : events) {
-                EventService.save(event);
-            }
-            for (Feature feature : session.getFeaturesFromEvents()) {
-                feature.setSession(session);
-                FeatureService.save(feature);
-            }
+        for (Feature feature : features) {
+            feature.setSession(session);
+            FeatureService.save(feature);
         }
     }
 

@@ -4,7 +4,6 @@ import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
-import com.m1namoto.service.EventService;
 import com.m1namoto.service.FeatureService;
 import com.m1namoto.service.UserService;
 
@@ -19,7 +18,6 @@ public class DynamicsTestSuite {
     @BeforeClass 
     public static void setUpClass() {
         FeatureService.removeAll();
-        EventService.removeAll();
         UserService.removeAll();
     }
 }

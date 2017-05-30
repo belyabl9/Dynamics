@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import com.m1namoto.domain.Event;
 import com.m1namoto.domain.HoldFeature;
 import com.m1namoto.domain.ReleasePressFeature;
+import com.m1namoto.domain.User;
 import com.m1namoto.utils.Utils;
 import org.jetbrains.annotations.NotNull;
 
@@ -62,7 +63,7 @@ public class FeatureExtractor {
     /**
      * Returns a mean key press time interval value for a list of events
      */
-    public double getMeanKeyPressTime(@NotNull List<Event> events) throws Exception {
+    public double getMeanKeyPressTime(@NotNull List<Event> events) {
         if (events.isEmpty()) {
             return 0;
         }
@@ -78,7 +79,7 @@ public class FeatureExtractor {
      * Returns a list of key press time interval values for a list of events
      */
     @NotNull
-    public List<Double> getKeyPressTimeList(@NotNull List<Event> events) throws Exception {
+    public List<Double> getKeyPressTimeList(@NotNull List<Event> events) {
         List<Double> timeDiffs = new ArrayList<>();
 
         for (int i = 0; i < events.size(); i++) {
@@ -102,7 +103,7 @@ public class FeatureExtractor {
      * Returns a list of hold features from the list of events
      */
     @NotNull
-    public List<HoldFeature> getHoldFeatures(@NotNull List<Event> events) {
+    public List<HoldFeature> getHoldFeatures(@NotNull List<Event> events, @NotNull User user) {
         List<HoldFeature> holdFeatures = new ArrayList<>();
 
         for (int i = 0; i < events.size(); i++) {
@@ -114,7 +115,7 @@ public class FeatureExtractor {
                     throw new RuntimeException(NO_RELEASE_EVENT_FOR_PRESS);
                 }
                 double timeDiff = keyReleaseEvent.get().getTime() - event.getTime();
-                holdFeatures.add(new HoldFeature(timeDiff, code, event.getUser()));
+                holdFeatures.add(new HoldFeature(timeDiff, code, user));
             }
         }
         return holdFeatures;
@@ -124,7 +125,7 @@ public class FeatureExtractor {
      * Returns a list of release-press features from the list of events
      */
     @NotNull
-    public List<ReleasePressFeature> getReleasePressFeatures(@NotNull List<Event> events) {
+    public List<ReleasePressFeature> getReleasePressFeatures(@NotNull List<Event> events, @NotNull User user) {
         List<ReleasePressFeature> releasePressFeatures = new ArrayList<>();
         for (int i = 0; i < events.size(); i++) {
             Event releaseEvent = events.get(i);
@@ -138,7 +139,7 @@ public class FeatureExtractor {
             double timeDiff = pressEvent.get().getTime() - releaseEvent.getTime();
 
             ReleasePressFeature feature = new ReleasePressFeature(
-                    timeDiff, releaseEvent.getCode(), pressEvent.get().getCode(), releaseEvent.getUser()
+                    timeDiff, releaseEvent.getCode(), pressEvent.get().getCode(), user
             );
             releasePressFeatures.add(feature);
         }

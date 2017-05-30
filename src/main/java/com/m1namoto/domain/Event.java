@@ -1,40 +1,12 @@
 package com.m1namoto.domain;
 
-import java.io.Serializable;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-
-import com.google.gson.annotations.SerializedName;
-
-@Entity
-@Table(name = "Events")
-public class Event extends DomainSuperClass implements Serializable {
-    private static final long serialVersionUID = 1L;
-
+public class Event {
     public static String ACTION_PRESS = "press";
     public static String ACTION_RELEASE = "release";
     
-    @Column(name = "session")
-    private String session;
-
-    @Column(name = "code")
-    @SerializedName("entity")
     private int code;
-    
-    @Column(name = "action")
     private String action;
-
-    @Column(name = "time")
     private long time;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
 
     public int getCode() {
         return code;
@@ -51,14 +23,6 @@ public class Event extends DomainSuperClass implements Serializable {
     public void setAction(String action) {
         this.action = action;
     }
-    
-    public String getSession() {
-        return session;
-    }
-
-    public void setSession(String session) {
-        this.session = session;
-    }
 
     public long getTime() {
         return time;
@@ -68,14 +32,6 @@ public class Event extends DomainSuperClass implements Serializable {
         this.time = time;
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-    
     public String toString() {
         return String.format("Event[action=%s;code=%c;char=%c;time=%d]", action, code, (char) code, time);
     }

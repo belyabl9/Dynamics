@@ -1,7 +1,6 @@
 package com.m1namoto.servlets.user;
 
 import com.m1namoto.domain.User;
-import com.m1namoto.service.EventService;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,7 +53,6 @@ public class DelUserSessionsServlet extends HttpServlet {
     private void delUserSessions(long userId) {
         User user = new User();
         user.setId(userId);
-        EventService.removeAll(user);
     }
 
 }
