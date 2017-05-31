@@ -11,12 +11,25 @@ import com.m1namoto.service.UserService;
 import com.m1namoto.utils.Const;
 
 public class UserSessionsAction extends Action {
+
+    private static final String USER_ID_MUST_BE_SPECIFIED = "User ID must be specified.";
+    private static final String INVALID_USER_ID = "Can not parse user ID.";
+    private static final String USER_NOT_FOUND = "Can not find a user with specifid id.";
+
     @Override
     protected ActionResult execute() {
-        String userId = getRequestParamValue("userId");
-        Optional<User> userOpt = UserService.findById(Long.parseLong(userId));
+        Optional<String> userIdOpt = getRequestParamValue("userId");
+        if (!userIdOpt.isPresent()) {
+            throw new RuntimeException(USER_ID_MUST_BE_SPECIFIED);
+        }
+        Optional<User> userOpt;
+        try {
+            userOpt = UserService.findById(Long.valueOf(userIdOpt.get()));
+        } catch (Exception e) {
+            throw new RuntimeException(INVALID_USER_ID);
+        }
         if (!userOpt.isPresent()) {
-            return null;
+            throw new RuntimeException(USER_NOT_FOUND);
         }
         List<Session> sessions = SessionService.getList(userOpt.get());
         UserSessionsPageData data = new UserSessionsPageData(sessions, userOpt.get());

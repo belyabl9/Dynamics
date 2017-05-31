@@ -17,10 +17,6 @@ public class FeaturesSample {
     private final List<Double> features;
     private final boolean isEmpty;
 
-    public FeaturesSample() {
-        this(new ArrayList<Double>());
-    }
-
     public FeaturesSample(@NotNull List<Double> features) {
         this.features = Collections.unmodifiableList(new ArrayList<>(features));
         if (features.isEmpty()) {

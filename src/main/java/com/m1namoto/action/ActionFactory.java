@@ -5,12 +5,14 @@ import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
 
 import com.m1namoto.utils.Const;
+import org.jetbrains.annotations.NotNull;
 
 /**
 * Is used to generate the matching {@link Action} for a given URI.
 */
 public class ActionFactory {
- 
+
+    public static final String CONTROLLER_NOT_FOUND = "Controller not found";
     private static HashMap<String, Class<? extends Action>> actionMappings = new HashMap<>();
  
     static {
@@ -18,7 +20,7 @@ public class ActionFactory {
         map(Const.ActionURIs.ADD_USER_PAGE, AddUserAction.class);
         map(Const.ActionURIs.UPDATE_USER_INFO_AJAX, UpdateUserAction.class);
         map(Const.ActionURIs.USER_INFO_PAGE, UserInfoAction.class);
-        map(Const.ActionURIs.USERS_LIST_AJAX, GetUsersList.class);
+        map(Const.ActionURIs.USERS_LIST_AJAX, GetUsersListAction.class);
         map(Const.ActionURIs.DEL_USER_AJAX, DelUserAction.class);
         map(Const.ActionURIs.DEL_USER_FEATURES_AJAX, DeleteUserFeaturesAction.class);
         map(Const.ActionURIs.STATISTICS_PAGE, StatisticsPageAction.class);
@@ -35,25 +37,23 @@ public class ActionFactory {
 
     /**
      * @return the matching {@link Action} object for the URI in the {@code req}.
-     *   The returned {@code Action} is already initialized using the {@code req}.
+     * The returned {@code Action} is already initialized using the {@code req}.
      * @throws Exception 
      */
-    public Action getAction(HttpServletRequest req) throws Exception {
+    public Action getAction(@NotNull HttpServletRequest req) throws Exception {
         String uri = req.getRequestURI();
         if (uri.contains(";")) {
             uri = uri.split(";")[0];
         }
-        Action c = getAction(uri);
-        c.init(req);
-        return c;
-         
+        Action action = getAction(uri);
+        action.init(req);
+        return action;
     }
 
     private static Action getAction(String uri) throws Exception {
         Class<? extends Action> controllerClass = actionMappings.get(uri);
-     
         if (controllerClass == null) {
-            throw new Exception("Controller not found");
+            throw new Exception(CONTROLLER_NOT_FOUND);
         }
      
         try {
@@ -63,7 +63,7 @@ public class ActionFactory {
         }
     }
 
-    private static void map(String actionUri, Class<? extends Action> actionClass) {
+    private static void map(@NotNull String actionUri, Class<? extends Action> actionClass) {
         actionMappings.put(actionUri, actionClass);
     }
 

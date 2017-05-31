@@ -39,8 +39,10 @@ public class BrowserUserRegistrationAction extends Action {
     private static final String REQ_SAVE = "saveRequest";
     private static final String USER_WAS_NOT_CREATED = "User was not created";
     private static final String USER_ALREADY_EXISTS = "User with such login already exists";
-    
-    private void saveSessionEvents(@NotNull List<Event> events, @NotNull User user) throws Exception {
+
+    private static final String[] MANDATORY_PARAMS = new String[] { "name", "surname", "login", "password", "stat" };
+
+    private void saveSessionFeatures(@NotNull List<Event> events, @NotNull User user) throws Exception {
         logger.debug("Save session events");
         logger.debug(events);
         if (events.isEmpty()) {
@@ -109,7 +111,7 @@ public class BrowserUserRegistrationAction extends Action {
         }
 	    
 	    try {
-            Utils.checkMandatoryParams(requestParameters, new String[] { "name", "surname", "login", "password", "stat" });
+            Utils.checkMandatoryParams(requestParameters, MANDATORY_PARAMS);
         } catch (Exception e) {
             logger.debug(e);
             pageData.setError(true);
@@ -133,10 +135,7 @@ public class BrowserUserRegistrationAction extends Action {
         
         Type type = new TypeToken<List<Event>>(){}.getType();
         List<Event> events = new Gson().fromJson(context.getStat(), type);
-        saveSessionEvents(events, user);
-        
-        user.setAuthenticatedCnt(user.getAuthenticatedCnt() + 1);
-        UserService.save(user);
+        saveSessionFeatures(events, user);
         
         return createAjaxResult(pageData);
 	}

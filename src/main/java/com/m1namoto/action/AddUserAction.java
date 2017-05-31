@@ -7,17 +7,17 @@ import com.m1namoto.utils.Utils;
 
 public class AddUserAction extends Action {
 
-    private String[] mandatoryParams = new String[] { "userType", "login", "password", "firstName", "surname" };
+    private static final String[] MANDATORY_PARAMS = new String[] { "userType", "login", "password", "firstName", "surname" };
     
     private User createUser() throws Exception {
-        Utils.checkMandatoryParams(requestParameters, mandatoryParams);
+        Utils.checkMandatoryParams(requestParameters, MANDATORY_PARAMS);
 
         User user = new User();
         String fullName = getRequestParamValue("firstName") + " " + getRequestParamValue("surname");
         user.setName(fullName);
-        user.setLogin(getRequestParamValue("login"));
-        user.setPassword(getRequestParamValue("password"));
-        user.setUserType(User.Type.fromInt(Integer.parseInt(getRequestParamValue("userType"))));
+        user.setLogin(getRequestParamValue("login").get());
+        user.setPassword(getRequestParamValue("password").get());
+        user.setUserType(User.Type.fromInt(Integer.parseInt(getRequestParamValue("userType").get())));
 
         return UserService.save(user);
     }
@@ -32,8 +32,6 @@ public class AddUserAction extends Action {
         try {
             user = createUser();
         } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println(e);
             return createRedirectResult(Const.ActionURIs.ADD_USER_PAGE);
         }
 

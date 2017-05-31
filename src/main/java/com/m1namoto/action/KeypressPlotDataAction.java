@@ -18,8 +18,10 @@ import com.m1namoto.service.UserService;
 
 public class KeypressPlotDataAction extends Action {
 
+    private static final Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+
     private List<UserStatistics> getStatisticsPerUser() {
-        List<UserStatistics> statList = new ArrayList<UserStatistics>();
+        List<UserStatistics> statList = new ArrayList<>();
         
         Map<Long, List<HoldFeature>> holdFeaturesMap = FeatureService.getHoldFeaturesPerUser();
         for (Long userId : holdFeaturesMap.keySet()) {
@@ -36,11 +38,6 @@ public class KeypressPlotDataAction extends Action {
     @Override
     protected ActionResult execute() throws Exception {
         List<UserStatistics> statList = getStatisticsPerUser();
-        
-        Gson gson = new GsonBuilder()
-                .excludeFieldsWithoutExposeAnnotation()
-                .create();
-        
         String statJson = gson.toJson(statList);
         
         StatisticsJsonPageData data = new StatisticsJsonPageData();

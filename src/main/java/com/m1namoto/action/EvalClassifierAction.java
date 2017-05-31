@@ -8,10 +8,24 @@ import com.m1namoto.service.UserService;
 
 public class EvalClassifierAction extends Action {
 
+    private static final String USER_ID_WAS_NOT_PASSED = "User ID was not passed";
+    private static final String INVALID_USER_ID = "Can not parse user id";
+
     @Override
     protected ActionResult execute() throws Exception {
-        String id = getRequestParamValue("id");
-        Optional<User> userOpt = UserService.findById(Integer.parseInt(id));
+        Optional<String> userIdOpt = getRequestParamValue("userId");
+        if (!userIdOpt.isPresent()) {
+            throw new RuntimeException(USER_ID_WAS_NOT_PASSED);
+        }
+
+        int userId;
+        try {
+            userId = Integer.parseInt(userIdOpt.get());
+        } catch (Exception e) {
+            throw new RuntimeException(INVALID_USER_ID + ": " + userIdOpt.get());
+        }
+
+        Optional<User> userOpt = UserService.findById(userId);
         if (userOpt.isPresent()) {
             Classifier classifier = new Classifier(userOpt.get());
             String evalResults = classifier.evaluateClassifier();

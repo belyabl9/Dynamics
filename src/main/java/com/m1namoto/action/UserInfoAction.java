@@ -8,17 +8,25 @@ import com.m1namoto.utils.Const;
 
 public class UserInfoAction extends Action {
 
+    private static final String USER_ID_MUST_BE_SPECIFIED = "User ID must be specified.";
+    private static final String INVALID_USER_ID = "Can not parse user ID.";
+    private static final String USER_NOT_FOUND = "Can not find a user with specifid id.";
+
     @Override
     protected ActionResult execute() {
-        String userId = getRequestParamValue("id");
-        if (userId == null) {
-            // TODO
-            return null;
+        Optional<String> userIdOpt = getRequestParamValue("id");
+        if (!userIdOpt.isPresent()) {
+            throw new RuntimeException(USER_ID_MUST_BE_SPECIFIED);
         }
-        
-        Optional<User> userOpt = UserService.findById(Long.valueOf(userId));
+
+        Optional<User> userOpt;
+        try {
+            userOpt = UserService.findById(Long.valueOf(userIdOpt.get()));
+        } catch (Exception e) {
+            throw new RuntimeException(INVALID_USER_ID);
+        }
         if (!userOpt.isPresent()) {
-            return null;
+            throw new RuntimeException(USER_NOT_FOUND);
         }
 
         UserInfoPageData data = new UserInfoPageData();
