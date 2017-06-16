@@ -13,11 +13,10 @@
   <property name="hibernate.current_session_context_class">thread</property>
 
   <!--  <property name="hbm2ddl.auto">update</property> -->
-  <property name="hbm2ddl.auto">create</property>
+  <property name="hbm2ddl.auto">create-drop</property>
 
   <mapping class="com.m1namoto.domain.ReleasePressFeature" />
   <mapping class="com.m1namoto.domain.HoldFeature" />
-  <mapping class="com.m1namoto.domain.Event" />
   <mapping class="com.m1namoto.domain.Session" />
   <mapping class="com.m1namoto.domain.User" />
 

@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.m1namoto.domain.*;
 import com.m1namoto.features.FeatureExtractor;
@@ -27,7 +28,7 @@ import com.m1namoto.etc.RegRequest;
 import com.m1namoto.service.FeatureService;
 import com.m1namoto.service.SessionService;
 import com.m1namoto.service.UserService;
-import com.m1namoto.utils.PropertiesService;
+import com.m1namoto.service.PropertiesService;
 import com.m1namoto.utils.Utils;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,6 +37,7 @@ public class UserRegistrationServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     private final static Logger logger = Logger.getLogger(UserRegistrationServlet.class);
+    private static final String REG_REQ_PATH_NOT_SPECIFIED = "Path for saving registration requests is not sepcified.";
 
     static class RequestParam {
         private static final String NAME = "name";
@@ -68,7 +70,7 @@ public class UserRegistrationServlet extends HttpServlet {
 	    Utils.checkMandatoryParams(request.getParameterMap(), mandatoryParams);
 
         RegistrationContext regContext = makeContext(request);
-        boolean saveRequest = Boolean.valueOf(PropertiesService.getInstance().getDynamicPropertyValue("save_requests"));
+        boolean saveRequest = Boolean.valueOf(PropertiesService.getDynamicPropertyValue("save_requests").get());
         if (saveRequest) {
             saveRequest(regContext);
         }
@@ -134,7 +136,11 @@ public class UserRegistrationServlet extends HttpServlet {
 
     @NotNull
     private String getSavedRequestsPath(String password) {
-	    String common = PropertiesService.getInstance().getDynamicPropertyValue("saved_reg_requests_path") + "/" + password.length();
+        Optional<String> savedRegReqPathOpt = PropertiesService.getDynamicPropertyValue("saved_reg_requests_path");
+	    if (!savedRegReqPathOpt.isPresent()) {
+            throw new RuntimeException(REG_REQ_PATH_NOT_SPECIFIED);
+        }
+        String common = savedRegReqPathOpt.get() + "/" + password.length();
         if (Utils.isOpenShift()) {
             return System.getenv("OPENSHIFT_DATA_DIR") + common;
         }

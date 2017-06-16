@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.m1namoto.page.PageData;
-import com.m1namoto.utils.PropertiesService;
+import com.m1namoto.service.PropertiesService;
 
 public class UpdateSettingsAction extends Action {
 
@@ -21,7 +21,7 @@ public class UpdateSettingsAction extends Action {
         }
 
         try {
-            PropertiesService.getInstance().setDynamicPropertyValues(settings);
+            PropertiesService.setDynamicPropertyValues(settings);
         } catch(Exception e) {
             data.setError(true);
         }

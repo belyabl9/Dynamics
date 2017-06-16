@@ -119,6 +119,7 @@ public class Classifier {
 		if (users.size() < 2) {
 			throw new Exception(NOT_ENOUGH_USERS);
 		}
+
 		List<Integer> allowedValues = new ArrayList<>();
 		for (User user : users) {
 		    boolean isUserToCheck = this.user.getId() == user.getId();

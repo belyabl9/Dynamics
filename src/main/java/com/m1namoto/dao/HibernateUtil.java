@@ -4,11 +4,11 @@ import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 
-import com.m1namoto.utils.PropertiesService;
+import com.m1namoto.service.PropertiesService;
 
 public class HibernateUtil {
     private static SessionFactory sessionFactory;
-    private static DatabaseConfigs dbConfig = DatabaseConfigs.valueOf(PropertiesService.getInstance().getStaticPropertyValue("active_db_config"));
+    private static DatabaseConfigs dbConfig = DatabaseConfigs.valueOf(PropertiesService.getStaticPropertyValue("active_db_config").get());
 
     private static final String MAIN_DB_CONFIG_FILE = "hibernate.cfg.xml";
     private static final String TEST_DB_CONFIG_FILE = "hibernate.cfg.test.xml";

@@ -41,7 +41,7 @@ import com.m1namoto.etc.AuthRequest;
 import com.m1namoto.service.FeatureService;
 import com.m1namoto.service.SessionService;
 import com.m1namoto.service.UserService;
-import com.m1namoto.utils.PropertiesService;
+import com.m1namoto.service.PropertiesService;
 
 /**
  * Servlet implementation class Auth
@@ -90,6 +90,8 @@ public class Auth extends HttpServlet {
     private static final String SUCCESSFUL_AUTH_MSG = "Authentication has successfully passed";
     private static final String CAN_NOT_CREATE_CLASSIFIER = "Can not create classifier";
     private static final String CAN_NOT_GET_CLASS_FOR_INSTANCE = "Can not get class for instance";
+
+    private static final String SAVED_AUTH_REQ_PATH_NOT_SPECIFIED = "Path for saving authentication requests is not specified.";
 
     /**
      * @see HttpServlet#HttpServlet()
@@ -193,7 +195,11 @@ public class Auth extends HttpServlet {
         AuthRequest authReq = new AuthRequest(context.getLogin(), context.getPassword(), context.getStat());
 
         String json = new Gson().toJson(authReq);
-        String savedReqPath = PropertiesService.getInstance().getStaticPropertyValue(SAVED_AUTH_REQUESTS_PATH_PROP) + "/" + context.getPassword().length();
+        Optional<String> savedAuthReqPathOpt = PropertiesService.getStaticPropertyValue(SAVED_AUTH_REQUESTS_PATH_PROP);
+        if (!savedAuthReqPathOpt.isPresent()) {
+            throw new RuntimeException(SAVED_AUTH_REQ_PATH_NOT_SPECIFIED);
+        }
+        String savedReqPath = savedAuthReqPathOpt.get() + "/" + context.getPassword().length();
         
         /* Should be used if app is deployed to OpenShift
            String savedReqPath = System.getenv(OPENSHIFT_DATA_DIR_VAR)
@@ -368,13 +374,14 @@ public class Auth extends HttpServlet {
             // used for test purposes only
             stolen = Boolean.parseBoolean(req.getParameter(REQ_IS_STOLEN_PARAM));
 
-            saveRequest = Boolean.valueOf(PropertiesService.getInstance().getDynamicPropertyValue(REQ_SAVE_REQUESTS_PARAM));
-            updateTemplate = Boolean.valueOf(PropertiesService.getInstance().getDynamicPropertyValue(REQ_UPDATE_TEMPLATE_PARAM));
+            // TODO "Dynamic - Static - Default" strategy should be used
+            saveRequest = Boolean.valueOf(PropertiesService.getDynamicPropertyValue(REQ_SAVE_REQUESTS_PARAM).get());
+            updateTemplate = Boolean.valueOf(PropertiesService.getDynamicPropertyValue(REQ_UPDATE_TEMPLATE_PARAM).get());
 
-            String thresholdStr = PropertiesService.getInstance().getDynamicPropertyValue(REQ_THRESHOLD_PARAM);
+            String thresholdStr = PropertiesService.getDynamicPropertyValue(REQ_THRESHOLD_PARAM).get();
             threshold = Strings.isNullOrEmpty(thresholdStr) ? CLASS_PREDICTION_THRESHOLD : Double.valueOf(thresholdStr);
 
-            String learningRateStr = PropertiesService.getInstance().getDynamicPropertyValue(REQ_LEARNING_RATE_PARAM);
+            String learningRateStr = PropertiesService.getDynamicPropertyValue(REQ_LEARNING_RATE_PARAM).get();
             learningRate = Strings.isNullOrEmpty(learningRateStr) ? TRUSTED_AUTHENTICATION_LIMIT : Integer.valueOf(learningRateStr);
         }
 

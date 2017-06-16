@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Optional;
 import com.m1namoto.domain.*;
 import com.m1namoto.features.FeatureExtractor;
 import com.m1namoto.service.CryptService;
@@ -21,7 +22,7 @@ import com.m1namoto.page.PageData;
 import com.m1namoto.service.FeatureService;
 import com.m1namoto.service.SessionService;
 import com.m1namoto.service.UserService;
-import com.m1namoto.utils.PropertiesService;
+import com.m1namoto.service.PropertiesService;
 import com.m1namoto.utils.Utils;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,6 +42,7 @@ public class BrowserUserRegistrationAction extends Action {
     private static final String USER_ALREADY_EXISTS = "User with such login already exists";
 
     private static final String[] MANDATORY_PARAMS = new String[] { "name", "surname", "login", "password", "stat" };
+    private static final String REG_REQ_PATH_NOT_SPECIFIED = "Path for saving registration requests has to be specified.";
 
     private void saveSessionFeatures(@NotNull List<Event> events, @NotNull User user) throws Exception {
         logger.debug("Save session events");
@@ -75,8 +77,12 @@ public class BrowserUserRegistrationAction extends Action {
 
         String json = new Gson().toJson(regReq);
         //String savedReqPath = PropertiesService.getPropertyValue("saved_reg_requests_path") + "/" + password.length();
-        String savedReqPath = System.getenv("OPENSHIFT_DATA_DIR")
-                + PropertiesService.getInstance().getDynamicPropertyValue("saved_reg_requests_path") + "/" + password.length();
+        Optional<String> savedRegReqPathOpt = PropertiesService.getDynamicPropertyValue("saved_reg_requests_path");
+        if (!savedRegReqPathOpt.isPresent()) {
+            throw new RuntimeException(REG_REQ_PATH_NOT_SPECIFIED);
+        }
+
+        String savedReqPath = System.getenv("OPENSHIFT_DATA_DIR") + savedRegReqPathOpt.get() + "/" + password.length();
 
         File reqDir = new File(savedReqPath);
         if (!reqDir.exists()) {
@@ -105,7 +111,7 @@ public class BrowserUserRegistrationAction extends Action {
 	protected ActionResult execute() throws Exception {
 		PageData pageData = new PageData();
 		
-		boolean saveRequest = Boolean.valueOf(PropertiesService.getInstance().getDynamicPropertyValue("save_requests"));
+		boolean saveRequest = Boolean.valueOf(PropertiesService.getDynamicPropertyValue("save_requests").get());
         if (saveRequest) {
             saveRequest();
         }

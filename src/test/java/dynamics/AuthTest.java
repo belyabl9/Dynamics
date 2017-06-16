@@ -13,15 +13,15 @@ import org.junit.Test;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.m1namoto.etc.AuthRequest;
-import com.m1namoto.utils.PropertiesService;
+import com.m1namoto.service.PropertiesService;
 import com.m1namoto.utils.Utils;
 
 public class AuthTest {
 
-    private final static String authRequestsPath = PropertiesService.getInstance().getDynamicPropertyValue("saved_auth_requests_path");
+    private final static String AUTH_REQUESTS_PATH = PropertiesService.getDynamicPropertyValue("saved_auth_requests_path").get();
     
     private double getFRR(double threshold) throws Exception {
-        File requestsRoot = new File(authRequestsPath);
+        File requestsRoot = new File(AUTH_REQUESTS_PATH);
         if (!requestsRoot.exists()) {
             throw new Exception("Requests directory does not exist");
         }
