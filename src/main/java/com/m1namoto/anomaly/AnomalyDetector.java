@@ -1,4 +1,4 @@
-package com.m1namoto.anomalyDetection;
+package com.m1namoto.anomaly;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -7,20 +7,23 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-class HF implements AnomalyDetection {
-	private double val;
-	
-	public HF(double val) {
-		this.val = val;
-	}
-	
-	public double getValue() {
-		return val;
-	}
-}
-
 public class AnomalyDetector {
-	final static Logger logger = Logger.getLogger(AnomalyDetector.class);
+	private final static Logger logger = Logger.getLogger(AnomalyDetector.class);
+
+	private static final Comparator<AnomalyDetection> ANOMALY_DETECTION_COMPARATOR = new Comparator<AnomalyDetection>() {
+
+        @Override
+        public int compare(AnomalyDetection o1, AnomalyDetection o2) {
+            if (o1.getValue() < o2.getValue()) {
+                return -1;
+            }
+            if (o1.getValue() > o2.getValue()) {
+                return 1;
+            }
+            return 0;
+        }
+
+    };
 
 	private List<? extends AnomalyDetection> list;
 	private double firstQuartile;
@@ -32,20 +35,7 @@ public class AnomalyDetector {
 	public AnomalyDetector(List<? extends AnomalyDetection> list, String description) {
 		this.description = description;
 		this.list = list;
-		Collections.sort(this.list, new Comparator<AnomalyDetection>() {
-
-			@Override
-			public int compare(AnomalyDetection o1, AnomalyDetection o2) {
-				if (o1.getValue() < o2.getValue()) {
-					return -1;
-				}
-		        if (o1.getValue() > o2.getValue()) {
-		        	return 1;
-		        }
-		        return 0;
-			}
-			
-		});
+		Collections.sort(this.list, ANOMALY_DETECTION_COMPARATOR);
 		
 		int firstQuartileIndex = (list.size() * 25) / 100;
 		int thirdQuartileIndex = (list.size() * 75) / 100;

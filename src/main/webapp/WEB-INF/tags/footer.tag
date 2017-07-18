@@ -1,4 +1,4 @@
-<%@ tag description="Footer component component" %>
+<%@ tag description="Footer component" %>
 
 <footer class="footer">
     <div class="container">

@@ -8,7 +8,7 @@ import com.m1namoto.utils.Const;
 import org.jetbrains.annotations.NotNull;
 
 /**
-* Is used to generate the matching {@link Action} for a given URI.
+* Used to generate the matching {@link Action} for a given URI.
 */
 public class ActionFactory {
 

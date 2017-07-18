@@ -41,10 +41,10 @@ public class ControllerServlet extends HttpServlet {
         logger.info("Processing request: " + request.getRequestURI());
         long startTime = System.currentTimeMillis();
         
-        Action c;
+        Action action;
         try {
-            c = new ActionFactory().getAction(request);
-            ActionResult actionResult = c.executeAndPostProcess();
+            action = new ActionFactory().getAction(request);
+            ActionResult actionResult = action.executeAndPostProcess();
             actionResult.send(request, response);
         } catch (Exception e) {
             logger.error("Can not execute action", e);

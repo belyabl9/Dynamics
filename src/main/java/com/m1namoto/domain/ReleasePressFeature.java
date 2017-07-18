@@ -8,7 +8,7 @@ import javax.persistence.Table;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import com.m1namoto.anomalyDetection.AnomalyDetection;
+import com.m1namoto.anomaly.AnomalyDetection;
 
 @Entity
 @Table(name="ReleasePressFeatures")  

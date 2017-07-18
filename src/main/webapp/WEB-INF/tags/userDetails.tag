@@ -1,4 +1,5 @@
 <%@ tag description="User Details" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib tagdir="/WEB-INF/tags" prefix="t" %>
 <%@ attribute name="user" type="com.m1namoto.domain.User" %>
 
@@ -29,10 +30,12 @@
 		<input type="text" class="form-control" name="login" placeholder="Enter the login" value="${user.login}" required></input>
 	</div>
 </div>
-<div class="form-group row">
-	<label class="col-form-label col-sm-3">Password</label>
-	<div class="col-sm-9">
-		<input type="text" class="form-control" name="password" placeholder="Enter the password" value="${user.password}" required></input>
+<c:if test="${empty user}">
+	<div class="form-group row">
+		<label class="col-form-label col-sm-3">Password</label>
+		<div class="col-sm-9">
+			<input type="text" class="form-control" name="password" placeholder="Enter the password" value="${user.password}" required></input>
+		</div>
 	</div>
-</div>
+</c:if>
 

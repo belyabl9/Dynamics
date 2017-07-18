@@ -141,7 +141,7 @@ var Dynamics = (function() {
 	                },
 	                  success: function(data) {
 	                    $("#statusMessage").addClass("alert alert-success");
-	                    var text = "Authentication successfuly passed";
+	                    var text = "Authentication passed successfuly";
 	                    if (data.threshold) {
 	                    	text += " (" + (data.threshold * 100) + "%)";
 	                    }

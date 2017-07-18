@@ -57,7 +57,7 @@ var Users = (function() {
 	                },
 	                success: function(data) {
 	                    $("#statusMessage").addClass("alert alert-success");
-	                    $("#statusMessage").text("User has been successfuly deleted");
+	                    $("#statusMessage").text("User has been successfully deleted");
 
 	                    setTimeout(function() {
 	                        $("#statusMessage").text('');
@@ -120,7 +120,7 @@ var Users = (function() {
                 },
                 success: function(data) {
                     $("#statusMessage").addClass("alert alert-success");
-                    $("#statusMessage").text("User has been successfuly updated");
+                    $("#statusMessage").text("User has been successfully updated");
                     
                     self.fillUserInfo(data.user);
                     

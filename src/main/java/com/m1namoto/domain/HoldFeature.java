@@ -9,7 +9,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import com.google.gson.annotations.Expose;
-import com.m1namoto.anomalyDetection.AnomalyDetection;
+import com.m1namoto.anomaly.AnomalyDetection;
 
 @Entity
 @Table(name="HoldFeatures")  

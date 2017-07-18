@@ -14,8 +14,6 @@ public class Const {
         public static String USER_SESSIONS_PAGE = "/page/userSessions";
         public static String SETTINGS_PAGE = "/page/settings";
         public static String UPDATE_SETTINGS_AJAX = "/ajax/updateSettings";
-        public static String MLP_CONFIGURATION_PAGE = "/page/mlp";
-        public static String UPDATE_MLP_CONFIGURATION_AJAX = "/ajax/updateMlpConfiguration";
         public static String DEL_SESSION = "/page/delSession";
         public static String KEYPRESS_PLOT_DATA_AJAX = "/ajax/keypressPlotData";
         public static String EVAL_CLASSIFIER_PAGE = "/page/eval";
@@ -31,7 +29,6 @@ public class Const {
         public static final String ADD_USER = "/addUser.jsp";
         public static final String USER_INFO = "/userInfo.jsp";
         public static final String STATISTICS = "/stat.jsp";
-        public static final String MLP_CONFIGURATION = "/mlp.jsp";
         public static final String USER_SESSIONS = "/sessions.jsp";
         public static final String EVAL_CLASSIFIER = "/eval.jsp";
         public static final String SETTINGS = "/settings.jsp";

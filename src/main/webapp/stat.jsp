@@ -24,7 +24,6 @@
 
  </script>
 
-
         <div class="panel panel-primary">
             <div class="panel-heading clearfix">
                 <h3>Statistics</h3>
@@ -54,8 +53,6 @@
         </div>
 
     <div id="plot" style="min-width: 800px; height: 600px; max-width: 1000px; margin: 0 auto"></div>
-
-
 
 	</jsp:body>
 

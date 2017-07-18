@@ -69,11 +69,6 @@ public class UpdateUserServlet extends HttpServlet {
             user.setLogin(login);
         }
 
-        String password = request.getParameter("password");
-        if (StringUtils.isNotEmpty(password)) {
-            user.setPassword(password);
-        }
-
         return UserService.save(user);
     }
 

@@ -32,8 +32,13 @@ public class Event {
         this.time = time;
     }
 
+    @Override
     public String toString() {
-        return String.format("Event[action=%s;code=%c;char=%c;time=%d]", action, code, (char) code, time);
+        return "Event{" +
+                "code=" + code +
+                ", char='" + (char) code + '\'' +
+                ", action='" + action + '\'' +
+                ", time=" + time +
+                '}';
     }
-    
 }

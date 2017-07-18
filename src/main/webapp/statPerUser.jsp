@@ -7,8 +7,6 @@
 </head>
 <body>
 
-  
-
 	<div class="header">
 		<h1>Statistics per user</h1>
 		<div style="text-align: left; margin: 5px 0px 20px 15px;">
@@ -25,7 +23,8 @@
 	</div>
 	
 	<div id="footer" class="footer">
-		Keystroke Dynamics<br>Serhii Beliablia, MP-111
+		Keystroke Dynamics<br>
+		Serhii Beliablia, MP-111
 	</div>
 
 

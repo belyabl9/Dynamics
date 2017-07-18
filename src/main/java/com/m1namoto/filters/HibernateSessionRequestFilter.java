@@ -15,6 +15,9 @@ import org.hibernate.StaleObjectStateException;
 
 import com.m1namoto.dao.HibernateUtil;
 
+/**
+ * https://developer.jboss.org/wiki/OpenSessionInView
+ */
 public class HibernateSessionRequestFilter implements Filter {  
   
     private final static Logger log = Logger.getLogger(HibernateSessionRequestFilter.class);  

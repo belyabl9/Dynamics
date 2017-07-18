@@ -56,14 +56,6 @@
                             <fmt:formatNumber type="number" maxFractionDigits="2" value="${data.user.meanKeypressTime}" />
                         </td>
                     </tr>
-                    <tr>
-                        <td>
-                            Mean Time Between Keypresses, ms
-                        </td>
-                        <td>
-                            <fmt:formatNumber type="number" maxFractionDigits="2" value="${data.user.meanTimeBetweenKeys}" />
-                        </td>
-                    </tr>
                 </table>
             </div>
         </div>
@@ -82,14 +74,11 @@
                     Features
                     <hr>
                     <div style="margin-bottom: 10px;">
-                        <div style="float:left;width:12px;height:12px;background-color:white;border:1px solid black;">
-                        </div>
+                        <div style="float:left;width:12px;height:12px;background-color:white;border:1px solid black;"></div>
                         <span style="margin-left: 10px;">0</span>
                     </div>
                     <div style="margin-bottom: 10px;">
-                        <div style="float:left;width:12px;height:12px;background-color:yellow;border:1px solid black;">
-                            
-                        </div>
+                        <div style="float:left;width:12px;height:12px;background-color:yellow;border:1px solid black;"></div>
                         <span style="margin-left: 10px;">10-30</span>
                     </div>
 
