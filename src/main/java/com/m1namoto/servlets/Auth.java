@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.m1namoto.features.FeatureExtractor;
-import com.m1namoto.service.CryptService;
+import com.m1namoto.service.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -38,10 +38,6 @@ import com.m1namoto.domain.ReleasePressPair;
 import com.m1namoto.domain.Session;
 import com.m1namoto.domain.User;
 import com.m1namoto.etc.AuthRequest;
-import com.m1namoto.service.FeatureService;
-import com.m1namoto.service.SessionService;
-import com.m1namoto.service.UserService;
-import com.m1namoto.service.PropertiesService;
 
 /**
  * Servlet implementation class Auth
@@ -140,7 +136,7 @@ public class Auth extends HttpServlet {
         
         DynamicsInstance instance = new DynamicsInstance(featureValues);
         try {
-            return classifier.getClassForInstance(instance);
+            return classifier.getClassForInstance(instance, userToCheck.getId());
         } catch (Exception e) {
             logger.error(CAN_NOT_GET_CLASS_FOR_INSTANCE, e);
             throw new RuntimeException(CAN_NOT_GET_CLASS_FOR_INSTANCE, e);
@@ -151,7 +147,7 @@ public class Auth extends HttpServlet {
     private Classifier makeClassifier(@NotNull User userToCheck) {
         Classifier classifier;
         try {
-            classifier = new Classifier(userToCheck);
+            classifier = new Classifier(ConfigurationService.getInstance().create(userToCheck));
         } catch (Exception e) {
             logger.error(CAN_NOT_CREATE_CLASSIFIER, e);
             throw new RuntimeException(CAN_NOT_CREATE_CLASSIFIER, e);

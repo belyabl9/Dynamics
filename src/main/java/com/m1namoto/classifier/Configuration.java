@@ -34,7 +34,7 @@ public class Configuration {
 	private static final String WRONG_NUMBER_OF_FEATURES = "Number of features is not equal to attributes";
 	private static final String CONFIGURATION_NAME_MUST_BE_SPECIFIED = "Configuration name must be specified.";
 
-	static class Builder {
+	public static class Builder {
 		private String name;
 		private List<String> attributes = new ArrayList<>();
 		private List<Integer> allowedClassValues = new ArrayList<>();

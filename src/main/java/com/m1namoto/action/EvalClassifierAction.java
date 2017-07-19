@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import com.m1namoto.classifier.Classifier;
 import com.m1namoto.domain.User;
 import com.m1namoto.page.EvalClassifierPageData;
+import com.m1namoto.service.ConfigurationService;
 import com.m1namoto.service.UserService;
 
 public class EvalClassifierAction extends Action {
@@ -27,7 +28,7 @@ public class EvalClassifierAction extends Action {
 
         Optional<User> userOpt = UserService.findById(userId);
         if (userOpt.isPresent()) {
-            Classifier classifier = new Classifier(userOpt.get());
+            Classifier classifier = new Classifier(ConfigurationService.getInstance().create(userOpt.get()));
             String evalResults = classifier.evaluateClassifier();
             String configuration = classifier.getConfiguration().toString();
             EvalClassifierPageData data = new EvalClassifierPageData(evalResults, configuration);
