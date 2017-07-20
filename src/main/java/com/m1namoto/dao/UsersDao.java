@@ -14,7 +14,8 @@ public class UsersDao extends GenericDAO<User> {
 
     private static final String USER_LIST_BY_TYPE_QUERY = "FROM User WHERE userType = :userType";
     private static final String FIND_BY_LOGIN_QUERY = "FROM User WHERE login = :login";
-    public static final String DELETE_USERS_QUERY = "DELETE FROM User";
+    private static final String DELETE_USERS_QUERY = "DELETE FROM User";
+    private static final String DELETE_USER_QUERY = "DELETE FROM User WHERE id = :id";
 
     public UsersDao(@NotNull SessionFactory factory) {
         super(User.class, factory);
@@ -64,7 +65,14 @@ public class UsersDao extends GenericDAO<User> {
     public User createUser(@NotNull User user) {
         return save(user);
     }
-    
+
+    public void remove(long id) {
+        Session session = getFactory().getCurrentSession();
+        Query query = session.createQuery(DELETE_USER_QUERY);
+        query.setLong("id", (int) id);
+        query.executeUpdate();
+    }
+
     /**
      * Deletes all users
      */

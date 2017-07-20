@@ -54,7 +54,7 @@ public class UserService {
     public static void remove(@NotNull User user) {
         DaoFactory.getFeaturesDAO().removeAll(user);
         DaoFactory.getSessionsDAO().removeAll(user);
-    	DaoFactory.getUsersDAO().delete(user);
+    	DaoFactory.getUsersDAO().remove(user.getId());
     }
 
     /**
