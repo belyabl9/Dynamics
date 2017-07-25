@@ -120,11 +120,6 @@ public class User extends DomainSuperClass implements Serializable {
         this.userType = userType;
     }
 
-    public boolean isNew() {
-//        return getId() == 0;
-        return true;
-    }
-
 	public double getMeanKeypressTime() {
         List<HoldFeature> holdFeatures = FeatureService.getHoldFeatures(this);
         if (holdFeatures.isEmpty()) {

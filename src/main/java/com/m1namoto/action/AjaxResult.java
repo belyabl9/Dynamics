@@ -11,8 +11,7 @@ import com.m1namoto.page.PageData;
 public class AjaxResult extends ActionResult {
 
     public PageData data;
-    public boolean isClearingStatusMessage = true;
-    
+
     public AjaxResult(String destination) {
         super(destination);
     }

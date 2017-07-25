@@ -10,7 +10,7 @@ public class UserInfoAction extends Action {
 
     private static final String USER_ID_MUST_BE_SPECIFIED = "User ID must be specified.";
     private static final String INVALID_USER_ID = "Can not parse user ID.";
-    private static final String USER_NOT_FOUND = "Can not find a user with specifid id.";
+    private static final String USER_NOT_FOUND = "Can not find a user with specified id.";
 
     @Override
     protected ActionResult execute() {

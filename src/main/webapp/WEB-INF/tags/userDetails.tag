@@ -15,26 +15,26 @@
 <div class="form-group row">
 	<label class="col-form-label col-sm-3">Name</label>
 	<div class="col-sm-9">
-		<input type="text" class="form-control" name="firstName" placeholder="Enter the name" value="${user.firstName}" required></input>
+		<input type="text" class="form-control" name="firstName" placeholder="Enter the name" value="${user.firstName}" required />
 	</div>
 </div>
 <div class="form-group row">
 	<label class="col-form-label col-sm-3">Surname</label>
 	<div class="col-sm-9">
-		<input type="text" class="form-control" name="surname" placeholder="Enter the surname" value="${user.surname}" required></input>
+		<input type="text" class="form-control" name="surname" placeholder="Enter the surname" value="${user.surname}" required />
 	</div>
 </div>
 <div class="form-group row">
 	<label class="col-form-label col-sm-3">Login</label>
 	<div class="col-sm-9">
-		<input type="text" class="form-control" name="login" placeholder="Enter the login" value="${user.login}" required></input>
+		<input type="text" class="form-control" name="login" placeholder="Enter the login" value="${user.login}" required />
 	</div>
 </div>
 <c:if test="${empty user}">
 	<div class="form-group row">
 		<label class="col-form-label col-sm-3">Password</label>
 		<div class="col-sm-9">
-			<input type="text" class="form-control" name="password" placeholder="Enter the password" value="${user.password}" required></input>
+			<input type="password" class="form-control" name="password" placeholder="Enter the password" value="${user.password}" required />
 		</div>
 	</div>
 </c:if>

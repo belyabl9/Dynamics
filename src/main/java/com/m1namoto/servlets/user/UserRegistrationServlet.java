@@ -3,10 +3,7 @@ package com.m1namoto.servlets.user;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -18,7 +15,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.m1namoto.domain.*;
 import com.m1namoto.features.FeatureExtractor;
-import com.m1namoto.service.CryptService;
+import com.m1namoto.service.PasswordService;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
@@ -31,6 +28,7 @@ import com.m1namoto.service.UserService;
 import com.m1namoto.service.PropertiesService;
 import com.m1namoto.utils.Utils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @WebServlet("/reg")
 public class UserRegistrationServlet extends HttpServlet {
@@ -150,13 +148,21 @@ public class UserRegistrationServlet extends HttpServlet {
 	@NotNull
 	private User makeUser(@NotNull RegistrationContext context) {
         User user = new User();
-        user.setName(context.getName() + " " + context.getSurname());
+        user.setName(makeFullname(context.getName(), context.getSurname()));
         user.setLogin(context.getLogin());
         user.setPassword(context.getPasswordSha1());
         user.setUserType(User.Type.REGULAR);
 
         return user;
 	}
+
+	@NotNull
+	private String makeFullname(@Nullable String name, @Nullable String surname) {
+        StringJoiner joiner = new StringJoiner(" ");
+        if (name != null) joiner.add(name);
+        if (surname != null) joiner.add(surname);
+        return joiner.toString();
+    }
 
 	private RegRequest makeRegRequest(@NotNull RegistrationContext context) {
         return new RegRequest(
@@ -196,7 +202,7 @@ public class UserRegistrationServlet extends HttpServlet {
             this.surname = surname;
             this.login = login;
             this.password = password;
-            this.passwordSha1 = CryptService.cryptPassword(password);
+            this.passwordSha1 = PasswordService.getInstance().makeHash(password);
             this.stat = stat;
         }
 

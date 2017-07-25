@@ -1,15 +1,15 @@
 package com.m1namoto.features;
 
 import com.google.common.base.Optional;
-import com.m1namoto.domain.Event;
-import com.m1namoto.domain.HoldFeature;
-import com.m1namoto.domain.ReleasePressFeature;
-import com.m1namoto.domain.User;
+import com.m1namoto.domain.*;
+import com.m1namoto.service.FeatureService;
 import com.m1namoto.utils.Utils;
+import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class FeatureExtractor {
     private static final String NO_RELEASE_EVENT_FOR_PRESS = "Can not find release event for pressed key";
@@ -146,6 +146,68 @@ public class FeatureExtractor {
 
         return releasePressFeatures;
     }
+
+    @NotNull
+    public List<Double> getFeatureValues(@NotNull List<Event> events, @NotNull User authUser) {
+        List<Double> featureValues = new ArrayList<>();
+        featureValues.addAll(getHoldFeatureValues(events, authUser));
+        featureValues.addAll(getReleasePressFeatureValues(events, authUser));
+        featureValues.add(getMeanKeyPressTime(events));
+        return featureValues;
+    }
+
+    /**
+     * When user passes authentication procedure, he sends a list of events related to the password he typed (e.g. "test").
+     * This method would return a list of time intervals for pressing keys 't', 'e', 's' and 't'.
+     *
+     * Size of the returned list MUST be equal to password length
+     */
+    @NotNull
+    private List<Double> getHoldFeatureValues(@NotNull List<Event> events, @NotNull User authUser) {
+        List<Double> values = new ArrayList<>();
+        List<HoldFeature> sessionHoldFeatures = getHoldFeatures(events, authUser);
+        Map<Integer, List<HoldFeature>> holdFeaturesPerCode = FeatureService.extractHoldFeaturesPerCode(sessionHoldFeatures);
+        for (char c : authUser.getPassword().toCharArray()) {
+            List<HoldFeature> featuresByCode = holdFeaturesPerCode.get((int)c);
+            // TODO don't we always have values here ?
+            if (CollectionUtils.isNotEmpty(featuresByCode)) {
+                values.add(featuresByCode.get(0).getValue());
+            } else {
+                values.add(null);
+            }
+        }
+        return values;
+    }
+
+    /**
+     * When user passes authentication procedure, he sends a list of events related to the password he typed (e.g. "test").
+     * This method would return a list of time intervals between 't' and 'e', 'e' and 's', 's' and 't'.
+     *
+     * Size of the returned list MUST be equal to (password_length - 1)
+     */
+    @NotNull
+    private List<Double> getReleasePressFeatureValues(@NotNull List<Event> events, @NotNull User authUser) {
+        List<Double> values = new ArrayList<>();
+        List<ReleasePressFeature> sessionReleasePressFeatures = getReleasePressFeatures(events, authUser);
+        Map<ReleasePressPair, List<ReleasePressFeature>> releasePressFeaturesPerCode = FeatureService.extractReleasePressFeaturesPerCode(sessionReleasePressFeatures);
+        char[] passwordCharacters = authUser.getPassword().toCharArray();
+        for (int i = 1; i < passwordCharacters.length; i++) {
+            int releaseCode = passwordCharacters[i-1],
+                    pressCode = passwordCharacters[i];
+            ReleasePressPair codePair = new ReleasePressPair(releaseCode, pressCode);
+            List<ReleasePressFeature> featuresByCode = releasePressFeaturesPerCode.get(codePair);
+
+            // TODO don't we always have values here ?
+            if (CollectionUtils.isNotEmpty(featuresByCode)) {
+                values.add(featuresByCode.get(0).getValue());
+            } else {
+                values.add(null);
+            }
+        }
+        return values;
+    }
+
+
 
     /**
      * Finds an event with specific action

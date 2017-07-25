@@ -5,7 +5,7 @@
         <p class="footer-text">
             Keystroke Dynamics
             <br>
-            Serhii Beliablia, MP-111
+            Serhii Beliablia
         </p>
     </div>
 </footer>

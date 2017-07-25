@@ -11,7 +11,7 @@ import java.util.Map;
 import com.google.common.base.Optional;
 import com.m1namoto.domain.*;
 import com.m1namoto.features.FeatureExtractor;
-import com.m1namoto.service.CryptService;
+import com.m1namoto.service.PasswordService;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
@@ -163,7 +163,7 @@ public class BrowserUserRegistrationAction extends Action {
             this.surname = surname;
             this.login = login;
             this.password = password;
-            this.passwordSha1 = CryptService.cryptPassword(password);
+            this.passwordSha1 = PasswordService.getInstance().makeHash(password);
             this.stat = stat;
         }
 
