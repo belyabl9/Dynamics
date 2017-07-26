@@ -1,5 +1,6 @@
 package com.m1namoto.utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -10,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 
 public class Utils {
+
+    private static final String ID_MUST_BE_SPECIFIED = "User id must be specified.";
+    private static final String ONLY_DIGITS_IN_ID = "Id must contain only digits.";
 
     public static double mean(@NotNull List<Double> values) {
         // protection against division by zero
@@ -49,6 +53,21 @@ public class Utils {
 
     public static boolean isOpenShift() {
         return System.getenv("OPENSHIFT_DATA_DIR") != null;
+    }
+
+    public static long validateNumericId(@NotNull String id) {
+        if (StringUtils.isEmpty(id)) {
+            throw new IllegalArgumentException(ID_MUST_BE_SPECIFIED);
+        }
+
+        long userIdNum;
+        try {
+            userIdNum = Long.parseLong(id);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(ONLY_DIGITS_IN_ID);
+        }
+
+        return userIdNum;
     }
 
 }

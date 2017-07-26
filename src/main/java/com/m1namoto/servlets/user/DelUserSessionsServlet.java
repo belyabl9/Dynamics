@@ -1,6 +1,8 @@
 package com.m1namoto.servlets.user;
 
 import com.m1namoto.domain.User;
+import com.m1namoto.service.UserService;
+import com.m1namoto.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,12 +13,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebServlet("/user/delSessions")
+/**
+ * Servlet for removal sessions of user
+ */
+@WebServlet("/user/delsessions")
 public class DelUserSessionsServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
-
-    private static final String ID_MUST_BE_SPECIFIED = "User id must be specified.";
-    private static final String ONLY_DIGITS_IN_ID = "User id must contain only digits.";
 
     /**
      * @see HttpServlet#HttpServlet()
@@ -30,29 +32,16 @@ public class DelUserSessionsServlet extends HttpServlet {
      */
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String userId = request.getParameter("id");
-        long userIdNum = validateId(userId);
+        long userIdNum = Utils.validateNumericId(userId);
         delUserSessions(userIdNum);
         response.sendRedirect(request.getContextPath() + "/users?id=" + userId);
-    }
-
-    private long validateId(@NotNull String id) {
-        if (StringUtils.isEmpty(id)) {
-            throw new IllegalArgumentException(ID_MUST_BE_SPECIFIED);
-        }
-
-        long userIdNum;
-        try {
-            userIdNum = Long.parseLong(id);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(ONLY_DIGITS_IN_ID);
-        }
-
-        return userIdNum;
     }
 
     private void delUserSessions(long userId) {
         User user = new User();
         user.setId(userId);
+
+        // TODO add code to delete user sessions
     }
 
 }

@@ -3,6 +3,7 @@ package com.m1namoto.servlets.user;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import javax.servlet.ServletException;
@@ -30,12 +31,15 @@ import com.m1namoto.utils.Utils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Server for registration of users.
+ */
 @WebServlet("/reg")
 public class UserRegistrationServlet extends HttpServlet {
+    private final static Logger logger = Logger.getLogger(UserRegistrationServlet.class);
     private static final long serialVersionUID = 1L;
 
-    private final static Logger logger = Logger.getLogger(UserRegistrationServlet.class);
-    private static final String REG_REQ_PATH_NOT_SPECIFIED = "Path for saving registration requests is not sepcified.";
+    private static final String REG_REQ_PATH_NOT_SPECIFIED = "Path for saving registration requests is not specified.";
 
     static class RequestParam {
         private static final String NAME = "name";
@@ -50,9 +54,9 @@ public class UserRegistrationServlet extends HttpServlet {
         private static final String USER_WAS_NOT_CREATED = "User was not created";
     }
 
-    private static List<String> mandatoryParams = ImmutableList.of("name", "surname", "login", "password", "stat");
+    private static final List<String> MANDATORY_PARAMS = ImmutableList.of("name", "surname", "login", "password", "stat");
 
-    private static Gson gson = new Gson();
+    private static final Gson GSON = new Gson();
 
     /**
      * @see HttpServlet#HttpServlet()
@@ -65,7 +69,7 @@ public class UserRegistrationServlet extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-	    Utils.checkMandatoryParams(request.getParameterMap(), mandatoryParams);
+	    Utils.checkMandatoryParams(request.getParameterMap(), MANDATORY_PARAMS);
 
         RegistrationContext regContext = makeContext(request);
         boolean saveRequest = Boolean.valueOf(PropertiesService.getDynamicPropertyValue("save_requests").get());
@@ -114,21 +118,20 @@ public class UserRegistrationServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Requests are optionally saved for testing purposes in order not to model behavior but use real data
+     */
     private void saveRequest(@NotNull RegistrationContext regContext) throws IOException {
         RegRequest regReq = makeRegRequest(regContext);
 
-        String json = gson.toJson(regReq);
+        String json = GSON.toJson(regReq);
         String savedReqPath = getSavedRequestsPath(regContext.getPassword());
 
-        File reqDir = new File(savedReqPath);
-        if (!reqDir.exists()) {
-            reqDir.mkdirs();
-        }
         File loginDir = new File(savedReqPath + "/" + regContext.getLogin());
         if (!loginDir.exists()) {
             loginDir.mkdirs();
         }
-        File reqFile = new File(loginDir + "/req-" + new Date().getTime());
+        File reqFile = new File(loginDir + "/req-" + LocalDateTime.now());
         FileUtils.writeStringToFile(reqFile, json);
     }
 

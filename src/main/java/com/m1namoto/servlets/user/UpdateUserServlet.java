@@ -3,6 +3,7 @@ package com.m1namoto.servlets.user;
 import com.google.common.base.Optional;
 import com.m1namoto.domain.User;
 import com.m1namoto.service.UserService;
+import com.m1namoto.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,12 +14,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * Servlet for updating user profile information
+ */
 @WebServlet("/user/update")
 public class UpdateUserServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
-
-    private static final String ID_MUST_BE_SPECIFIED = "User id must be specified.";
-    private static final String ONLY_DIGITS_IN_ID = "User id must contain only digits.";
 
     /**
      * @see HttpServlet#HttpServlet()
@@ -32,7 +33,7 @@ public class UpdateUserServlet extends HttpServlet {
      */
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String userId = request.getParameter("id");
-        long userIdNum = validateId(userId);
+        long userIdNum = Utils.validateNumericId(userId);
 
         Optional<User> userOpt = UserService.findById(userIdNum);
         if (!userOpt.isPresent()) {
@@ -40,21 +41,6 @@ public class UpdateUserServlet extends HttpServlet {
         }
         updateUser(request, userOpt.get());
         response.sendRedirect(request.getContextPath() + "/users?id=" + userId);
-    }
-
-    private long validateId(@NotNull String id) {
-        if (StringUtils.isEmpty(id)) {
-            throw new IllegalArgumentException(ID_MUST_BE_SPECIFIED);
-        }
-
-        long userIdNum;
-        try {
-            userIdNum = Long.parseLong(id);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(ONLY_DIGITS_IN_ID);
-        }
-
-        return userIdNum;
     }
 
     private User updateUser(@NotNull HttpServletRequest request, @NotNull User user) {

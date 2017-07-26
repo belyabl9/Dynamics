@@ -115,6 +115,13 @@ public class Auth extends HttpServlet {
         authenticate(request, response, out);
     }
 
+    /**
+     * Simplified authentication algorithm:
+     * 1. Check credentials
+     * 2. Check if this is an authentication for administrator access
+     * 3. Check if account is new and limit of first trusted authentications is not reached
+     * 4. Check that sent keystroke dynamics matches to stored biometric template for this user
+     */
     private void authenticate(HttpServletRequest request, HttpServletResponse response, PrintWriter out) throws IOException, ServletException {
         AuthContext context = new AuthContext(request);
         if (context.isSaveRequest()) {
