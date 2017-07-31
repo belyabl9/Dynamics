@@ -12,7 +12,7 @@ public class UsersPageAction extends Action {
     @Override
     protected ActionResult execute() {
         UsersPageData usersData = new UsersPageData();
-        List<User> users = UserService.getList();
+        List<User> users = UserService.getInstance().getList();
         usersData.setUsers(users);
         
         return createShowPageResult(Const.ViewURIs.USERS, usersData);

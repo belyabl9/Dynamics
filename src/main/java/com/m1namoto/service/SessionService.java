@@ -11,6 +11,15 @@ public class SessionService {
 
     private static final String INVALID_SESSION_ID = "Session id must be >= 0.";
 
+    private SessionService() {}
+
+    private static class LazyHolder {
+        static final SessionService INSTANCE = new SessionService();
+    }
+    public SessionService getInstance() {
+        return SessionService.LazyHolder.INSTANCE;
+    }
+
     /**
      * Returns a list of sessions
      */

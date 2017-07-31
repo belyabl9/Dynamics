@@ -12,7 +12,7 @@ public class StatisticsPageAction extends Action {
     @Override
     protected ActionResult execute() throws Exception {
         UsersPageData data = new UsersPageData();
-        List<User> users = UserService.getList(User.Type.REGULAR);
+        List<User> users = UserService.getInstance().getList(User.Type.REGULAR);
         data.setUsers(users);
 
         return createShowPageResult(Const.ViewURIs.STATISTICS, data);

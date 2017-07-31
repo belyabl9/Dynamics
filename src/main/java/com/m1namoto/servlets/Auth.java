@@ -13,7 +13,8 @@ import com.m1namoto.domain.Feature;
 import com.m1namoto.domain.Session;
 import com.m1namoto.domain.User;
 import com.m1namoto.etc.AuthRequest;
-import com.m1namoto.features.FeatureExtractor;
+import com.m1namoto.exception.NotEnoughCollectedStatException;
+import com.m1namoto.service.FeatureExtractorService;
 import com.m1namoto.service.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -55,6 +56,8 @@ public class Auth extends HttpServlet {
     private static final String CAN_NOT_FIND_USER = "Can not find user";
     private static final String EMPTY_LOGIN_OR_PASSWORD = "Login or password is empty";
 
+    private static final FeatureService FEATURE_SERVICE = FeatureService.getInstance();
+
     private static class RequestParam {
         static final String LOGIN = "login";
         static final String PASSWORD = "password";
@@ -94,7 +97,7 @@ public class Auth extends HttpServlet {
 
     private static final Gson GSON = new Gson();
 
-    private static final FeatureExtractor FEATURE_EXTRACTOR = FeatureExtractor.getInstance();
+    private static final FeatureExtractorService FEATURE_EXTRACTOR = FeatureExtractorService.getInstance();
 
     /**
      * @see HttpServlet#HttpServlet()
@@ -138,7 +141,7 @@ public class Auth extends HttpServlet {
             return;
         }
 
-        Optional<User> userOpt = UserService.findByLogin(context.getLogin());
+        Optional<User> userOpt = UserService.getInstance().findByLogin(context.getLogin());
         if (!userOpt.isPresent()) {
             processUnknownUser(response, out, responseObj);
             return;
@@ -172,6 +175,9 @@ public class Auth extends HttpServlet {
             return;
         }
 
+        // From this moment we need plain password, not a hash that we store in DB
+        user.setPassword(context.getPassword());
+
         ClassificationResult classificationResult;
         try {
             classificationResult = getPredictedThreshold(events, user);
@@ -196,7 +202,13 @@ public class Auth extends HttpServlet {
     private ClassificationResult getPredictedThreshold(@NotNull List<Event> events,
                                                        @NotNull User authUser) throws Exception {
         logger.info("Predict classes for passed keystroke dynamics.");
-        Classifier classifier = makeClassifier(authUser);
+        Classifier classifier;
+        try {
+            classifier = makeClassifier(authUser);
+        } catch (NotEnoughCollectedStatException e) {
+            return new ClassificationResult(1d);
+        }
+
         DynamicsInstance instance = new DynamicsInstance(FEATURE_EXTRACTOR.getFeatureValues(events, authUser));
         try {
             return classifier.getClassForInstance(instance, authUser.getId());
@@ -207,12 +219,14 @@ public class Auth extends HttpServlet {
     }
 
     @NotNull
-    private Classifier makeClassifier(@NotNull User userToCheck) {
+    private Classifier makeClassifier(@NotNull User user) throws NotEnoughCollectedStatException {
         Classifier classifier;
         try {
             // TODO cache configuration or/and classifier
-            Configuration configuration = ConfigurationService.getInstance().create(userToCheck);
+            Configuration configuration = ConfigurationService.getInstance().create(user);
             classifier = new Classifier(configuration);
+        } catch (NotEnoughCollectedStatException e) {
+            throw e;
         } catch (Exception e) {
             logger.error(Message.CAN_NOT_CREATE_CLASSIFIER, e);
             throw new RuntimeException(Message.CAN_NOT_CREATE_CLASSIFIER, e);
@@ -241,7 +255,10 @@ public class Auth extends HttpServlet {
         features.addAll(FEATURE_EXTRACTOR.getReleasePressFeatures(events, user));
         for (Feature feature : features) {
             feature.setSession(session);
-            FeatureService.save(feature);
+            FEATURE_SERVICE.save(feature);
+        }
+        if (!features.isEmpty()) {
+            FEATURE_SERVICE.invalidateFeatureCache();
         }
 
         return session;

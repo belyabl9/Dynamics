@@ -34,11 +34,11 @@ public class DelUserServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String userId = request.getParameter("id");
         long userIdNum = Utils.validateNumericId(userId);
-        Optional<User> userOpt = UserService.findById(userIdNum);
+        Optional<User> userOpt = UserService.getInstance().findById(userIdNum);
         if (!userOpt.isPresent()) {
             throw new ServletException("User with specified id must exists: " + userId);
         }
-        UserService.remove(userOpt.get());
+        UserService.getInstance().remove(userOpt.get());
         response.sendRedirect(request.getContextPath() + "/users");
     }
 

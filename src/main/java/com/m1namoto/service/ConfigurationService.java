@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import com.m1namoto.classifier.Configuration;
 import com.m1namoto.domain.FeaturesSample;
 import com.m1namoto.domain.User;
+import com.m1namoto.exception.NotEnoughCollectedStatException;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,6 +28,7 @@ public class ConfigurationService {
 
     private static final String NOT_ENOUGH_USERS = "Can not create configuration if there are less than two users.";
     private static final String NOT_ENOUGH_COLLECTED_DYNAMICS = "Not enough keystroke dynamics has been collected to classify.";
+    private static final String NOT_ENOUGH_COLLECTED_DYNAMICS_FOR_ORIGIN_USER = "Not enough collected dynamics even for user who passes authentication.";
 
     private ConfigurationService() {}
 
@@ -57,7 +59,7 @@ public class ConfigurationService {
         }
         confBuilder.attribute(ATTR_MEAN_KEYPRESS_TIME);
 
-        List<User> users = UserService.getList(User.Type.REGULAR);
+        List<User> users = UserService.getInstance().getList(User.Type.REGULAR);
         if (users.size() < MINIMUM_NUMBER_OF_USERS) {
             throw new Exception(NOT_ENOUGH_USERS);
         }
@@ -67,7 +69,7 @@ public class ConfigurationService {
             // For user who passes authentication procedure we need more samples and they should be full without missing values.
             // For classifier evaluation we don't need it
             boolean isUserToCheck = authUserIdOpt.isPresent() ? authUserIdOpt.get() == user.getId() : false;
-            List<FeaturesSample> featuresSamples = user.getSamples(password, isUserToCheck);
+            List<FeaturesSample> featuresSamples = FeatureSampleService.getInstance().getFeatureSamples(user, password, isUserToCheck);
 
             for (FeaturesSample sample : featuresSamples) {
                 confBuilder.instance(sample.getFeatures(), user.getId());
@@ -77,8 +79,15 @@ public class ConfigurationService {
             }
             allowedValues.add((int) user.getId());
         }
+        // This situation MUST never happen because every user must have at least one sample passed at registration step
+        // Moreover, every user has first trusted authentication which have to provide feature samples to teach classifier
         if (allowedValues.isEmpty()) {
-            throw new Exception(NOT_ENOUGH_COLLECTED_DYNAMICS);
+            throw new RuntimeException(NOT_ENOUGH_COLLECTED_DYNAMICS_FOR_ORIGIN_USER);
+        }
+
+        // Current classifier (J48) can't handle unary class
+        if (allowedValues.size() == 1) {
+            throw new NotEnoughCollectedStatException(NOT_ENOUGH_COLLECTED_DYNAMICS);
         }
         confBuilder.classAttribute(ATTR_CLASS, allowedValues);
 

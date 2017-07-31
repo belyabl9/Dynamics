@@ -10,8 +10,8 @@ import java.util.Map;
 
 import com.google.common.base.Optional;
 import com.m1namoto.domain.*;
-import com.m1namoto.features.FeatureExtractor;
-import com.m1namoto.service.PasswordService;
+import com.m1namoto.service.*;
+import com.m1namoto.service.FeatureExtractorService;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
@@ -19,10 +19,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.m1namoto.etc.RegRequest;
 import com.m1namoto.page.PageData;
-import com.m1namoto.service.FeatureService;
-import com.m1namoto.service.SessionService;
-import com.m1namoto.service.UserService;
-import com.m1namoto.service.PropertiesService;
 import com.m1namoto.utils.Utils;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,6 +40,8 @@ public class BrowserUserRegistrationAction extends Action {
     private static final String[] MANDATORY_PARAMS = new String[] { "name", "surname", "login", "password", "stat" };
     private static final String REG_REQ_PATH_NOT_SPECIFIED = "Path for saving registration requests has to be specified.";
 
+    private static final FeatureService FEATURE_SERVICE = FeatureService.getInstance();
+
     private void saveSessionFeatures(@NotNull List<Event> events, @NotNull User user) throws Exception {
         logger.debug("Save session events");
         logger.debug(events);
@@ -54,8 +52,8 @@ public class BrowserUserRegistrationAction extends Action {
         Session session = new Session("GENERATED", user);
         session = SessionService.save(session);
 
-        List<HoldFeature> holdFeatures = FeatureExtractor.getInstance().getHoldFeatures(events, user);
-        List<ReleasePressFeature> releasePressFeatures = FeatureExtractor.getInstance().getReleasePressFeatures(events, user);
+        List<HoldFeature> holdFeatures = FeatureExtractorService.getInstance().getHoldFeatures(events, user);
+        List<ReleasePressFeature> releasePressFeatures = FeatureExtractorService.getInstance().getReleasePressFeatures(events, user);
         List<Feature> features = new ArrayList<>();
         features.addAll(holdFeatures);
         features.addAll(releasePressFeatures);
@@ -63,7 +61,10 @@ public class BrowserUserRegistrationAction extends Action {
         for (Feature feature : features) {
             logger.debug("Save feature: " + feature);
             feature.setSession(session);
-            FeatureService.save(feature);
+            FEATURE_SERVICE.save(feature);
+        }
+        if (!features.isEmpty()) {
+            FEATURE_SERVICE.invalidateFeatureCache();
         }
     }
     
@@ -125,14 +126,14 @@ public class BrowserUserRegistrationAction extends Action {
         }
 
         RegistrationContext context = RegistrationContext.fromRequestParameters(requestParameters);
-        if (UserService.findByLogin(context.getLogin()).isPresent()) {
+        if (UserService.getInstance().findByLogin(context.getLogin()).isPresent()) {
             logger.info(USER_ALREADY_EXISTS);
             pageData.setError(true);
             return createAjaxResult(pageData);
         }
 
         User user = createUser(context);
-        user = UserService.save(user);
+        user = UserService.getInstance().save(user);
         if (user.getId() == 0) {
             logger.error(USER_WAS_NOT_CREATED);
             pageData.setError(true);

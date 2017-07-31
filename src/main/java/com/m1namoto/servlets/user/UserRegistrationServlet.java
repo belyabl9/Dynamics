@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.m1namoto.domain.*;
-import com.m1namoto.features.FeatureExtractor;
+import com.m1namoto.service.FeatureExtractorService;
 import com.m1namoto.service.PasswordService;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -40,6 +40,8 @@ public class UserRegistrationServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     private static final String REG_REQ_PATH_NOT_SPECIFIED = "Path for saving registration requests is not specified.";
+
+    private static final FeatureService FEATURE_SERVICE = FeatureService.getInstance();
 
     static class RequestParam {
         private static final String NAME = "name";
@@ -77,14 +79,14 @@ public class UserRegistrationServlet extends HttpServlet {
             saveRequest(regContext);
         }
 
-        if (UserService.findByLogin(regContext.getLogin()) != null) {
+        if (UserService.getInstance().findByLogin(regContext.getLogin()) != null) {
             logger.info(Message.LOGIN_ALREADY_EXISTS);
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 
         User user = makeUser(regContext);
-        user = UserService.save(user);
+        user = UserService.getInstance().save(user);
         if (user.getId() == 0) {
             logger.error(Message.USER_WAS_NOT_CREATED);
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -95,7 +97,7 @@ public class UserRegistrationServlet extends HttpServlet {
         List<Event> events = new Gson().fromJson(regContext.getStat(), type);
         saveSessionEvents(events, user);
 
-        UserService.save(user);
+        UserService.getInstance().save(user);
         
         response.setStatus(HttpServletResponse.SC_OK);
 	}
@@ -106,15 +108,18 @@ public class UserRegistrationServlet extends HttpServlet {
         }
         Session session = SessionService.save(new Session("GENERATED", user));
 
-        List<HoldFeature> holdFeatures = FeatureExtractor.getInstance().getHoldFeatures(events, user);
-        List<ReleasePressFeature> releasePressFeatures = FeatureExtractor.getInstance().getReleasePressFeatures(events, user);
+        List<HoldFeature> holdFeatures = FeatureExtractorService.getInstance().getHoldFeatures(events, user);
+        List<ReleasePressFeature> releasePressFeatures = FeatureExtractorService.getInstance().getReleasePressFeatures(events, user);
         List<Feature> features = new ArrayList<>();
         features.addAll(holdFeatures);
         features.addAll(releasePressFeatures);
 
         for (Feature feature : features) {
             feature.setSession(session);
-            FeatureService.save(feature);
+            FEATURE_SERVICE.save(feature);
+        }
+        if (!features.isEmpty()) {
+            FEATURE_SERVICE.invalidateFeatureCache();
         }
     }
 

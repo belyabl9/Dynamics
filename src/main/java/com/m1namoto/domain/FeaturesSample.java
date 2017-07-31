@@ -6,9 +6,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Configuration in .arff format contains a list of instances.
+ * Every instance contains a list of feature values and class value.
+ * Feature values are represented as double values.
+ * Class value is an integer from defined set of available classes.
+ *
+ * FeaturesSample class represents feature values from instance in configuration used by learning classifier
+ */
 public class FeaturesSample {
 
-    public static final FeaturesSample EMPTY_SAMPLE = new FeaturesSample(Collections.<Double>emptyList());
+    public static final FeaturesSample EMPTY_SAMPLE = new FeaturesSample();
 
     /**
      * May contain null values for absent sample values
@@ -17,26 +25,29 @@ public class FeaturesSample {
     private final List<Double> features;
     private final boolean isEmpty;
 
+    private FeaturesSample() {
+        this.features = Collections.emptyList();
+        this.isEmpty = true;
+    }
+
     public FeaturesSample(@NotNull List<Double> features) {
         this.features = Collections.unmodifiableList(new ArrayList<>(features));
-        if (features.isEmpty()) {
-            isEmpty = true;
-        } else {
-            boolean isEmpty = true;
-            for (Double val : features) {
-                if (val != null) {
-                    isEmpty = false;
-                    break;
-                }
+
+        boolean isEmpty = true;
+        for (Double val : features) {
+            if (val != null) {
+                isEmpty = false;
+                break;
             }
-            this.isEmpty = isEmpty;
         }
+        this.isEmpty = isEmpty;
     }
 
     public boolean isEmpty() {
         return isEmpty;
     }
-    
+
+    @NotNull
     public List<Double> getFeatures() {
         return features;
     }

@@ -9,10 +9,19 @@ import org.jetbrains.annotations.NotNull;
 
 public class UserService {
 
-    private static final String LOGIN_CAN_NOT_BE_EMPTY = "Login can not be empty.";
-    private static final String INVALID_USER_ID = "User id must be >= 0.";
+    private final String LOGIN_CAN_NOT_BE_EMPTY = "Login can not be empty.";
+    private final String INVALID_USER_ID = "User id must be >= 0.";
 
-    public static Optional<User> findByLogin(@NotNull String login) {
+    private UserService() {}
+
+    private static class LazyHolder {
+        static final UserService INSTANCE = new UserService();
+    }
+    public static UserService getInstance() {
+        return LazyHolder.INSTANCE;
+    }
+    
+    public Optional<User> findByLogin(@NotNull String login) {
         if (login.isEmpty()) {
             throw new IllegalArgumentException(LOGIN_CAN_NOT_BE_EMPTY);
         }
@@ -22,7 +31,7 @@ public class UserService {
     /**
      * Finds a user by id
      */
-    public static Optional<User> findById(long userId) {
+    public Optional<User> findById(long userId) {
         if (userId < 0) {
             throw new IllegalArgumentException(INVALID_USER_ID);
         }
@@ -32,7 +41,7 @@ public class UserService {
     /**
      * Returns a list of users
      */
-    public static List<User> getList() {
+    public List<User> getList() {
     	return (List<User>) DaoFactory.getUsersDAO().findAll();
     }
     
@@ -40,18 +49,18 @@ public class UserService {
      * Returns a list of users by type
      * @param type Type of user [regular, admin]
      */
-    public static List<User> getList(@NotNull User.Type type) {
+    public List<User> getList(@NotNull User.Type type) {
         return DaoFactory.getUsersDAO().getList(type);
     }
 
-    public static User save(@NotNull User user) {
+    public User save(@NotNull User user) {
     	return DaoFactory.getUsersDAO().save(user);
     }
 
     /**
      * Removes a user with all related data
      */
-    public static void remove(@NotNull User user) {
+    public void remove(@NotNull User user) {
         DaoFactory.getFeaturesDAO().removeAll(user);
         DaoFactory.getSessionsDAO().removeAll(user);
     	DaoFactory.getUsersDAO().remove(user.getId());
@@ -60,7 +69,7 @@ public class UserService {
     /**
      * Removes all users
      */
-    public static void removeAll() {
+    public void removeAll() {
         DaoFactory.getUsersDAO().removeAll();
     }
 

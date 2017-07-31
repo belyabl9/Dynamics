@@ -16,6 +16,7 @@ import static org.junit.Assert.*;
 
 public class UserServiceTest {
 
+    private static final UserService USER_SERVICE = UserService.getInstance();
     private static Transaction transaction;
 
     @Before
@@ -38,14 +39,14 @@ public class UserServiceTest {
     @Test
     public void getList() throws Exception {
         prepareUsers();
-        List<User> list = UserService.getList();
+        List<User> list = USER_SERVICE.getList();
         assertEquals(3, list.size());
     }
 
     @Test
     public void findByLogin_yes() throws Exception {
         prepareUsers();
-        Optional<User> found = UserService.findByLogin("ivan");
+        Optional<User> found = USER_SERVICE.findByLogin("ivan");
         assertTrue(found.isPresent());
         assertEquals("ivan", found.get().getLogin());
     }
@@ -53,15 +54,15 @@ public class UserServiceTest {
     @Test
     public void findByLogin_no() throws Exception {
         prepareUsers();
-        Optional<User> found = UserService.findByLogin("ivann");
+        Optional<User> found = USER_SERVICE.findByLogin("ivann");
         assertFalse(found.isPresent());
     }
 
     @Test
     public void findById_yes() throws Exception {
         prepareUsers();
-        Optional<User> foundByLogin = UserService.findByLogin("ivan");
-        Optional<User> foundById = UserService.findById(foundByLogin.get().getId());
+        Optional<User> foundByLogin = USER_SERVICE.findByLogin("ivan");
+        Optional<User> foundById = USER_SERVICE.findById(foundByLogin.get().getId());
         assertTrue(foundById.isPresent());
         assertEquals(foundByLogin, foundById);
     }
@@ -69,34 +70,34 @@ public class UserServiceTest {
     @Test
     public void findById_no() throws Exception {
         prepareUsers();
-        Optional<User> foundByLogin = UserService.findByLogin("ivan");
-        Optional<User> foundById = UserService.findById(999);
+        Optional<User> foundByLogin = USER_SERVICE.findByLogin("ivan");
+        Optional<User> foundById = USER_SERVICE.findById(999);
         assertFalse(foundById.isPresent());
     }
 
     @Test
     public void save() throws Exception {
         prepareUsers();
-        List<User> list = UserService.getList();
+        List<User> list = USER_SERVICE.getList();
         assertEquals(3, list.size());
     }
 
     @Test
     public void remove() throws Exception {
         prepareUsers();
-        Optional<User> found = UserService.findByLogin("ivan");
-        UserService.remove(found.get());
-        found = UserService.findByLogin("ivan");
+        Optional<User> found = USER_SERVICE.findByLogin("ivan");
+        USER_SERVICE.remove(found.get());
+        found = USER_SERVICE.findByLogin("ivan");
         assertFalse(found.isPresent());
     }
 
     @Test
     public void removeAll() throws Exception {
         prepareUsers();
-        List<User> list = UserService.getList();
+        List<User> list = USER_SERVICE.getList();
         assertFalse(list.isEmpty());
-        UserService.removeAll();
-        list = UserService.getList();
+        USER_SERVICE.removeAll();
+        list = USER_SERVICE.getList();
         assertTrue(list.isEmpty());
     }
 
@@ -107,7 +108,7 @@ public class UserServiceTest {
         user.setPassword("password");
         user.setUserType(User.Type.REGULAR);
 
-        UserService.save(user);
+        USER_SERVICE.save(user);
 
         user = new User();
         user.setName("Petr Petrov");
@@ -115,7 +116,7 @@ public class UserServiceTest {
         user.setPassword("password");
         user.setUserType(User.Type.REGULAR);
 
-        UserService.save(user);
+        USER_SERVICE.save(user);
 
         user = new User();
         user.setName("Nikolay Nikolayev");
@@ -123,6 +124,6 @@ public class UserServiceTest {
         user.setPassword("password");
         user.setUserType(User.Type.REGULAR);
 
-        UserService.save(user);
+        USER_SERVICE.save(user);
     }
 }

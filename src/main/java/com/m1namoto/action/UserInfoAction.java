@@ -21,7 +21,7 @@ public class UserInfoAction extends Action {
 
         Optional<User> userOpt;
         try {
-            userOpt = UserService.findById(Long.valueOf(userIdOpt.get()));
+            userOpt = UserService.getInstance().findById(Long.valueOf(userIdOpt.get()));
         } catch (Exception e) {
             throw new RuntimeException(INVALID_USER_ID);
         }

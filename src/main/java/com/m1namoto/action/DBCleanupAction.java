@@ -8,11 +8,11 @@ public class DBCleanupAction extends Action {
 
     @Override
     protected ActionResult execute() throws Exception {
-        FeatureService.removeAll();
+        FeatureService.getInstance().removeAll();
         SessionService.removeAll();
-        UserService.removeAll();
+        UserService.getInstance().removeAll();
 
-        FeatureService.clearFeatureMaps();
+        FeatureService.getInstance().invalidateFeatureCache();
         
         return createAjaxResult(null);
     }

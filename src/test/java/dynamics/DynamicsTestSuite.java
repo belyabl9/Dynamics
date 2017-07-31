@@ -17,7 +17,7 @@ public class DynamicsTestSuite {
 
     @BeforeClass 
     public static void setUpClass() {
-        FeatureService.removeAll();
-        UserService.removeAll();
+        FeatureService.getInstance().removeAll();
+        UserService.getInstance().removeAll();
     }
 }

@@ -23,7 +23,7 @@ public class DeleteUserFeaturesAction extends Action {
         } catch (Exception e) {
             throw new Exception(INVALID_USER_ID + ": " + userIdOpt.get());
         }
-        FeatureService.remove(user);
+        FeatureService.getInstance().remove(user);
         
         return createAjaxResult(new PageData());
     }

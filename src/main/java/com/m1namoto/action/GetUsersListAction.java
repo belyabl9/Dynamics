@@ -10,7 +10,7 @@ public class GetUsersListAction extends Action {
 
     @Override
     protected ActionResult execute() throws Exception {
-        List<User> users = UserService.getList();
+        List<User> users = UserService.getInstance().getList();
         UsersListPageData data = new UsersListPageData(users);
         
         return createAjaxResult(data);

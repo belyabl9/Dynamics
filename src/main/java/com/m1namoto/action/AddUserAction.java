@@ -24,7 +24,7 @@ public class AddUserAction extends Action {
                 Integer.parseInt(getRequestParamValue("userType").get())
         ));
 
-        return UserService.save(user);
+        return UserService.getInstance().save(user);
     }
 
     @NotNull

@@ -26,7 +26,7 @@ public class EvalClassifierAction extends Action {
             throw new RuntimeException(INVALID_USER_ID + ": " + userIdOpt.get());
         }
 
-        Optional<User> userOpt = UserService.findById(userId);
+        Optional<User> userOpt = UserService.getInstance().findById(userId);
         if (userOpt.isPresent()) {
             Classifier classifier = new Classifier(ConfigurationService.getInstance().create(userOpt.get()));
             String evalResults = classifier.evaluateClassifier();

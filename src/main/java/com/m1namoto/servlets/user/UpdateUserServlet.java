@@ -35,7 +35,7 @@ public class UpdateUserServlet extends HttpServlet {
         String userId = request.getParameter("id");
         long userIdNum = Utils.validateNumericId(userId);
 
-        Optional<User> userOpt = UserService.findById(userIdNum);
+        Optional<User> userOpt = UserService.getInstance().findById(userIdNum);
         if (!userOpt.isPresent()) {
             throw new ServletException("User with specified id must exists: " + userId);
         }
@@ -55,7 +55,7 @@ public class UpdateUserServlet extends HttpServlet {
             user.setLogin(login);
         }
 
-        return UserService.save(user);
+        return UserService.getInstance().save(user);
     }
 
 }

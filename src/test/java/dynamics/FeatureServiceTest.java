@@ -2,13 +2,9 @@ package dynamics;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.text.DecimalFormat;
 import java.util.List;
 
-import com.m1namoto.features.FeatureExtractor;
 import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
-import org.junit.Test;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -22,17 +18,17 @@ public class FeatureServiceTest {
 //    public void test() throws Exception {
 //        List<Event> events = getEvents();
 //
-//        Assert.assertArrayEquals(getKeyPressTimeList().toArray(), FeatureExtractor.getInstance().getKeyPressTimeList(events).toArray());
-//        Assert.assertArrayEquals(getTimeBetweenKeysList().toArray(), FeatureExtractor.getInstance().getTimeBetweenKeysList(events).toArray());
+//        Assert.assertArrayEquals(getKeyPressTimeList().toArray(), FeatureExtractorService.getInstance().getKeyPressTimeList(events).toArray());
+//        Assert.assertArrayEquals(getTimeBetweenKeysList().toArray(), FeatureExtractorService.getInstance().getTimeBetweenKeysList(events).toArray());
 //
-//        Assert.assertArrayEquals(getHoldFeatures().toArray(), FeatureExtractor.getInstance().getHoldFeatures(events).toArray());
-//        Assert.assertArrayEquals(getReleasePressFeatures().toArray(), FeatureExtractor.getInstance().getReleasePressFeatures(events).toArray());
+//        Assert.assertArrayEquals(getHoldFeatures().toArray(), FeatureExtractorService.getInstance().getHoldFeatures(events).toArray());
+//        Assert.assertArrayEquals(getReleasePressFeatures().toArray(), FeatureExtractorService.getInstance().getReleasePressFeatures(events).toArray());
 //
 //        String expectedMeanKeyPressTime = "105.19";
-//        Assert.assertEquals(expectedMeanKeyPressTime, new DecimalFormat("###.##").format(FeatureExtractor.getInstance().getMeanKeyPressTime(events)) );
+//        Assert.assertEquals(expectedMeanKeyPressTime, new DecimalFormat("###.##").format(FeatureExtractorService.getInstance().getMeanKeyPressTime(events)) );
 //
 //        String expectedMeanTimeBetweenKeys = "100.05";
-//        Assert.assertEquals(expectedMeanTimeBetweenKeys, new DecimalFormat("###.##").format(FeatureExtractor.getInstance().getMeanTimeBetweenKeys(events)) );
+//        Assert.assertEquals(expectedMeanTimeBetweenKeys, new DecimalFormat("###.##").format(FeatureExtractorService.getInstance().getMeanTimeBetweenKeys(events)) );
 //    }
     
     private List<Event> getEvents() {

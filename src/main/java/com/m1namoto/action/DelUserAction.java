@@ -23,7 +23,7 @@ public class DelUserAction extends Action {
         } catch (Exception e) {
             throw new RuntimeException(INVALID_USER_ID + ": " + userIdOpt.get());
         }
-        UserService.remove(user);
+        UserService.getInstance().remove(user);
 
         return createAjaxResult(new PageData());
     }

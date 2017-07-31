@@ -1,7 +1,5 @@
 package com.m1namoto.domain;
 
-import com.google.common.collect.ImmutableList;
-import com.m1namoto.features.FeatureExtractor;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Type;

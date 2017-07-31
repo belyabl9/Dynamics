@@ -42,7 +42,7 @@ public class UserServlet extends HttpServlet {
 		if (StringUtils.isNotEmpty(userId)) {
 			if (!userId.equals("New")) {
                 long userIdNum = Utils.validateNumericId(userId);
-                Optional<User> userOpt = UserService.findById(userIdNum);
+                Optional<User> userOpt = UserService.getInstance().findById(userIdNum);
 				if (userOpt.isPresent()) {
 					request.setAttribute("user", userOpt.get());
 					request.getRequestDispatcher(Const.ViewURIs.USER_INFO).forward(request, response);
@@ -53,7 +53,7 @@ public class UserServlet extends HttpServlet {
 			return;
 		}
 
-		List<User> users = UserService.getList();
+		List<User> users = UserService.getInstance().getList();
 		request.setAttribute("users", users);
 		request.getRequestDispatcher(Const.ViewURIs.USERS).forward(request, response);
 	}

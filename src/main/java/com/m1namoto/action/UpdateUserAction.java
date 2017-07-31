@@ -37,7 +37,7 @@ public class UpdateUserAction extends Action {
             user.setName(firstNameOpt.get() + " " + surnameOpt.get());
         }
         
-        return UserService.save(user);
+        return UserService.getInstance().save(user);
     }
     
     @Override
@@ -50,7 +50,7 @@ public class UpdateUserAction extends Action {
 
         Optional<User> userOpt;
         try {
-            userOpt = UserService.findById(Long.valueOf(idOpt.get()));
+            userOpt = UserService.getInstance().findById(Long.valueOf(idOpt.get()));
         } catch (Exception e) {
             throw new RuntimeException(INVALID_USER_ID);
         }
