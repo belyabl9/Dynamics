@@ -2,6 +2,7 @@ package com.m1namoto.domain;
 
 import com.google.gson.annotations.Expose;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -58,6 +59,15 @@ public class User extends DomainSuperClass implements Serializable {
 
     public User() {}
 
+    public User(@NotNull User user) {
+        this.id = user.getId();
+        this.name = user.getName();
+        this.login = user.getLogin();
+        this.password = user.getPassword();
+        this.userType = user.getUserType();
+        this.authenticatedCnt = user.getAuthenticatedCnt();
+    }
+
     public int getAuthenticatedCnt() {
         return authenticatedCnt;
     }
@@ -106,4 +116,14 @@ public class User extends DomainSuperClass implements Serializable {
         this.userType = userType;
     }
 
+    @Override
+    public String toString() {
+        return "User{" +
+                "name='" + name + '\'' +
+                ", login='" + login + '\'' +
+                ", password='" + password + '\'' +
+                ", userType=" + userType +
+                ", authenticatedCnt=" + authenticatedCnt +
+                '}';
+    }
 }
