@@ -42,14 +42,21 @@ public class BrowserUserRegistrationAction extends Action {
 
     private static final FeatureService FEATURE_SERVICE = FeatureService.getInstance();
 
-    private void saveSessionFeatures(@NotNull List<Event> events, @NotNull User user) throws Exception {
+    private static final String PASSWORD_EVENT_LIST_MUST_BE_NON_EMPTY = "Password event list must contain at least one element.";
+
+    private void saveSessionFeatures(@NotNull InputStatistics statistics, @NotNull User user) throws Exception {
         logger.debug("Save session events");
-        logger.debug(events);
-        if (events.isEmpty()) {
-            throw new RuntimeException("Event list must contain at least on element.");
+        logger.debug("Password events: " + statistics.getPassword());
+        logger.debug("Additional events: " + statistics.getAdditional());
+
+        if (statistics.getPassword().isEmpty()) {
+            throw new RuntimeException(PASSWORD_EVENT_LIST_MUST_BE_NON_EMPTY);
         }
 
-        Session session = new Session("GENERATED", user);
+        List<Event> events = new ArrayList<>(statistics.getPassword());
+        events.addAll(statistics.getAdditional());
+
+        Session session = new Session(user);
         session = SessionService.save(session);
 
         List<HoldFeature> holdFeatures = FeatureExtractorService.getInstance().getHoldFeatures(events, user);
@@ -140,9 +147,9 @@ public class BrowserUserRegistrationAction extends Action {
             return createAjaxResult(pageData);
         }
         
-        Type type = new TypeToken<List<Event>>(){}.getType();
-        List<Event> events = new Gson().fromJson(context.getStat(), type);
-        saveSessionFeatures(events, user);
+        Type type = new TypeToken<InputStatistics>(){}.getType();
+        InputStatistics inputStatistics = new Gson().fromJson(context.getStat(), type);
+        saveSessionFeatures(inputStatistics, user);
         
         return createAjaxResult(pageData);
 	}

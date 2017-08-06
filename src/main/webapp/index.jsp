@@ -14,7 +14,7 @@
 	        <p class="footer-text">
 	        	Keystroke Dynamics
 	        	<br>
-	        	Serhii Beliablia, MP-111
+	        	Serhii Beliablia
 	        </p>
 	      </div>
 	    </footer>
@@ -25,7 +25,7 @@
               <h3 class="panel-title">Project Information</h3>
             </div>
             <div class="panel-body">
-				This project is aimed to investigate current approaches for creating keystroke biometric systems
+				This project is aimed to investigate current approaches for creating authentication systems based on keystroke dynamics
             </div>
         </div>
     </jsp:body>

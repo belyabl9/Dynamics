@@ -11,9 +11,9 @@
 	    <footer class="footer">
 	      <div class="container">
 	        <p class="footer-text">
-	        	Keystroke Dynamics
+	        	Keystroke dynamics analysis
 	        	<br>
-	        	Serhii Beliablia, MP-111
+	        	Serhii Beliablia
 	        </p>
 	      </div>
 	    </footer>
@@ -22,6 +22,9 @@
         <script src="/js/Dynamics.js"></script>
     </jsp:attribute>
     <jsp:body>
+		<div id="matchErrorAlert" class="alert alert-danger collapse" role="alert">
+			<strong>Learning text does not match with example</strong>
+		</div>
     	
     	<script type="text/javascript">
     	$(document).ready(function() {
@@ -37,7 +40,7 @@
             </div>
             <div class="panel-body">
 				<ul class="nav nav-tabs">
-				  <li style="background-color: #d2d3e1;">
+				  <li style="background-color: #d2d3e1;" class="active">
 					  <a class="active" data-toggle="tab" href="#auth">Authentication</a>
 				  </li>
 				  <li style="background-color: #d2d3e1;">
@@ -58,21 +61,29 @@
 								<div class="form-group row">
 									<label class="col-form-label col-sm-3">Login</label>
 									<div class="col-sm-9">
-										<input type="text" class="form-control" name="login" placeholder="Enter the login" value="${user.login}" required></input>
+										<input type="text" class="form-control" name="login" placeholder="Enter the login" value="${user.login}" required />
 									</div>
 								</div>
 								<div class="form-group row">
 									<label class="col-form-label col-sm-3">Password</label>
 									<div class="col-sm-9">
-										<input type="password" class="form-control" name="password" placeholder="Enter the password" value="${user.password}" required></input>
+										<input type="password" class="form-control" name="password" placeholder="Enter the password" value="${user.password}" required />
 									</div>
 								</div>
-							    <div class="form-group row" style="display: none">
+								<div class="form-group row">
+									<label class="col-form-label col-sm-3">Learning text example</label>
+									<div class="col-sm-9">
+										<textarea class="form-control" style="overflow: hidden;" required  readonly="readonly">
+											pack my bags with five dozen liquor jugs
+										</textarea>
+									</div>
+								</div>
+								<div class="form-group row">
 									<label class="col-form-label col-sm-3">Learning text</label>
 									<div class="col-sm-9">
-										<textarea class="form-control" name="learningText"></textarea>
+										<textarea class="form-control" name="learningText" required></textarea>
 									</div>
-							    </div>
+								</div>
 							   <div class="pull-right">
 							   	   <button class="btn btn-primary">Sign in</button>
 							   </div>
@@ -118,7 +129,7 @@
 							   <div class="form-group row">
 									<label class="col-form-label col-sm-3">Learning text example</label>
 									<div class="col-sm-9">
-										<textarea class="form-control" style="overflow: hidden;" required readonly>
+										<textarea class="form-control" style="overflow: hidden;" required readonly="readonly">
 											pack my bags with five dozen liquor jugs
 										</textarea>
 									</div>

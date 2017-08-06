@@ -1,6 +1,7 @@
 package com.m1namoto.domain;
 
 import com.google.gson.annotations.Expose;
+import com.m1namoto.service.FeatureService;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -114,6 +115,10 @@ public class User extends DomainSuperClass implements Serializable {
 
     public void setUserType(Type userType) {
         this.userType = userType;
+    }
+
+    public Double getMeanKeypressTime() {
+        return FeatureService.getInstance().getMeanKeypressTime(this).orNull();
     }
 
     @Override

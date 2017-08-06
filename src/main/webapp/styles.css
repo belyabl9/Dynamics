@@ -56,6 +56,10 @@ a:hover   { color: #00c }  /* user hovers     */
 	text-decoration: none;
 }
 
+textarea {
+	resize: none;
+}
+
 html {
     position: relative;
     min-height: 100%;

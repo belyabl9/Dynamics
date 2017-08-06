@@ -106,7 +106,7 @@ public class UserRegistrationServlet extends HttpServlet {
         if (events.isEmpty()) {
             throw new IllegalArgumentException("Event list must contain at least one element.");
         }
-        Session session = SessionService.save(new Session("GENERATED", user));
+        Session session = SessionService.save(new Session(user));
 
         List<HoldFeature> holdFeatures = FeatureExtractorService.getInstance().getHoldFeatures(events, user);
         List<ReleasePressFeature> releasePressFeatures = FeatureExtractorService.getInstance().getReleasePressFeatures(events, user);

@@ -6,10 +6,17 @@
 <div class="form-group row">
 	<label for="test" class="control-label col-sm-3">User Type</label>
 	<div class="col-sm-9">
-		<select id="test" name="userType" class="form-control">
-			<option ${user.userType eq 'ADMIN'   ? 'selected' : '' } value="0">Admin</option>
-			<option ${user.userType eq 'REGULAR' ? 'selected' : '' } value="1">Regular User</option>
-		</select>
+		<c:choose>
+			<c:when test="${empty user}">
+				<select id="test" name="userType" class="form-control">
+					<option ${user.userType eq 'ADMIN'   ? 'selected' : '' } value="0">Admin</option>
+					<option ${user.userType eq 'REGULAR' ? 'selected' : '' } value="1">Regular User</option>
+				</select>
+			</c:when>
+			<c:otherwise>
+				${user.userType eq 'ADMIN' ? 'Admin' : 'Regular user'}
+			</c:otherwise>
+		</c:choose>
 	</div>
 </div>
 <div class="form-group row">

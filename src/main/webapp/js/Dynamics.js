@@ -1,6 +1,11 @@
 var Dynamics = (function() {
 
-	var statistics = [];
+    var statistics = {
+        password: [],
+        additional: []
+	};
+
+    var learningTextExample = "pack my bags with five dozen liquor jugs";
 
 	var SKIP_CODES = [
 		13, // ENTER
@@ -11,58 +16,72 @@ var Dynamics = (function() {
 		
 		setKeyListeners: function(formName, inputNames) {
 			for (var i = 0; i < inputNames.length; i++) {
-				var name = inputNames[i];
-			    $("#" + formName + " :input[name=" + name + "]").keydown(function(event){
-			    
-			      var code;
-			      if (SKIP_CODES.indexOf(event.keyCode) !== -1) {
-			    	  return;
-			      }
-		    	  if(event.keyCode != 16) { // If the pressed key is anything other than SHIFT
-		    	        var c = String.fromCharCode(event.keyCode);
-		    	       // if(event.shiftKey){ // If the SHIFT key is down, return the ASCII code for the capital letter
-		    	       //     code = event.keyCode;
-		    	       // } else { // If the SHIFT key is not down, convert to the ASCII code for the lowecase letter
-		    	            c = c.toLowerCase(c);
-		    	            code = c.charCodeAt(0);
-		    	       // }
-		    	  }
-		    	  
-			    	var keydownData = {
-			        	action: 'press',
-			        	entity: code,
-			        	time: event.timeStamp
-			        };
-			        statistics.push(keydownData);
-			    });
-			    
-			    $("#" + formName + " :input[name=" + name + "]").keyup(function(event){
-				      var code;
-                      if (SKIP_CODES.indexOf(event.keyCode) !== -1) {
-                        return;
-                      }
-			    	  if(event.keyCode != 16){ // If the pressed key is anything other than SHIFT
-			    	        var c = String.fromCharCode(event.keyCode);
-			    	        if(event.shiftKey){ // If the SHIFT key is down, return the ASCII code for the capital letter
-			    	            code = event.keyCode;
-			    	        } else { // If the SHIFT key is not down, convert to the ASCII code for the lowecase letter
-			    	            c = c.toLowerCase(c);
-			    	            code = c.charCodeAt(0);
-			    	        }
-			    	  }
-			    	
-			        var keyupData = {
-			        	action: 'release',
-			        	entity: code,
-			        	time: event.timeStamp
-			        };
-			        statistics.push(keyupData);
-			    });
+                (function () {
+                    var inputName = inputNames[i];
+
+                    $("#" + formName + " :input[name=" + inputName + "]").keydown(function(event) {
+                        var code;
+                        if (SKIP_CODES.indexOf(event.keyCode) !== -1) {
+                            return;
+                        }
+                        if(event.keyCode != 16) { // If the pressed key is anything other than SHIFT
+                            var c = String.fromCharCode(event.keyCode);
+                            // if(event.shiftKey){ // If the SHIFT key is down, return the ASCII code for the capital letter
+                            //     code = event.keyCode;
+                            // } else { // If the SHIFT key is not down, convert to the ASCII code for the lowecase letter
+                            c = c.toLowerCase(c);
+                            code = c.charCodeAt(0);
+                            // }
+                        }
+
+                        var keydownData = {
+                            action: 'press',
+                            code: code,
+                            time: event.timeStamp
+                        };
+
+                        if (inputName === 'password') {
+                            statistics.password.push(keydownData);
+                        } else {
+                            statistics.additional.push(keydownData);
+                        }
+                    });
+
+                    $("#" + formName + " :input[name=" + inputName + "]").keyup(function(event) {
+                        var code;
+                        if (SKIP_CODES.indexOf(event.keyCode) !== -1) {
+                            return;
+                        }
+                        if(event.keyCode != 16){ // If the pressed key is anything other than SHIFT
+                            var c = String.fromCharCode(event.keyCode);
+                            if(event.shiftKey){ // If the SHIFT key is down, return the ASCII code for the capital letter
+                                code = event.keyCode;
+                            } else { // If the SHIFT key is not down, convert to the ASCII code for the lowecase letter
+                                c = c.toLowerCase(c);
+                                code = c.charCodeAt(0);
+                            }
+                        }
+
+                        var keyupData = {
+                            action: 'release',
+                            code: code,
+                            time: event.timeStamp
+                        };
+                        if (inputName === 'password') {
+                            statistics.password.push(keyupData);
+                        } else {
+                            statistics.additional.push(keyupData);
+                        }
+                    });
+                })();
+
+
 			}
 		},
 		
 		initStatistics: function() {
-			statistics = [];
+			statistics.password = [];
+			statistics.additional = [];
 		},
 		
 		getStatJson: function() {
@@ -72,7 +91,7 @@ var Dynamics = (function() {
 		init: function() {
 			this.initStatistics();
 			this.setKeyListeners('registrationForm', [ 'firstName', 'surname', 'login', 'password', 'learningText' ]);
-			this.setKeyListeners('authForm', [ 'login', 'password' ]);
+			this.setKeyListeners('authForm', [ 'login', 'password', 'learningText' ]);
 
 			$('input, textarea').on('paste', function(event) {
 				event.preventDefault();
@@ -83,11 +102,10 @@ var Dynamics = (function() {
 			$('#registrationForm').submit(function( event ) {
 			  event.preventDefault();
 			  
-			  var name = $(this).find('[name=firstName]').val();
-			  var surname = $(this).find('[name=surname]').val();
-			  var login = $(this).find('[name=login]').val();
-			  var password = $(this).find('[name=password]').val();
-			  
+			  var name = $(this).find('[name=firstName]').val().trim();
+			  var surname = $(this).find('[name=surname]').val().trim();
+			  var login = $(this).find('[name=login]').val().trim();
+			  var password = $(this).find('[name=password]').val().trim();
 			  var stat = self.getStatJson();
 			  
 			  var registrationData = {
@@ -97,7 +115,7 @@ var Dynamics = (function() {
 				  password: password,
 				  stat: stat
 			  };
-			  
+
         	  $.ajax({
         		url: '/ajax/browserUserReg',
         		method: 'POST',
@@ -114,16 +132,32 @@ var Dynamics = (function() {
                 }
         	  });
         	  
-        	  $(this).find("input[type=text], textarea").val("");
+        	  $(this).find("input[type=text], [type=password], textarea:not([readonly='readonly'])").val("");
         	  self.initStatistics();
 			  
 			});
 			$('#authForm').submit(function(event) {
-				  event.preventDefault();
-				  
-				  var login = $(this).find('[name=login]').val();
-				  var password = $(this).find('[name=password]').val();
-				  
+  			    event.preventDefault();
+
+                var learningText = $("textarea[name='learningText'").val();
+                var learningTextWords = learningText.split(/ */);
+                var matchingWords = 0;
+                $.each(learningTextWords, function (index, val) {
+                    if (learningTextExample.indexOf("val") !== -1) {
+                        matchingWords++;
+                    }
+                });
+
+                var exampleWordCnt = learningTextExample.split(/ */).length;
+                if ( ((matchingWords * 100) / exampleWordCnt) < 80 ) {
+                    $("#matchErrorAlert").fadeTo(2000, 500).slideUp(500, function(){
+                        $("#matchErrorAlert").slideUp(500);
+                    });
+                    return;
+                }
+
+				  var login = $(this).find('[name=login]').val().trim();
+				  var password = $(this).find('[name=password]').val().trim();
 				  var stat = self.getStatJson();
 				  
 				  var authData = {
@@ -171,7 +205,7 @@ var Dynamics = (function() {
 	                  }
 	          	  });
 	          	  
-	        	  $(this).find("input[type=text], textarea").val("");
+	        	  $(this).find("input[type=text], [type=password], textarea:not([readonly='readonly'])").val("");
 	          	  self.initStatistics();
 			});
 		}

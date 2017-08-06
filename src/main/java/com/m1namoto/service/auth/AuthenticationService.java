@@ -8,10 +8,7 @@ import com.m1namoto.classifier.ClassificationResult;
 import com.m1namoto.classifier.Classifier;
 import com.m1namoto.classifier.Configuration;
 import com.m1namoto.classifier.DynamicsInstance;
-import com.m1namoto.domain.Event;
-import com.m1namoto.domain.Feature;
-import com.m1namoto.domain.Session;
-import com.m1namoto.domain.User;
+import com.m1namoto.domain.*;
 import com.m1namoto.exception.NotEnoughCollectedStatException;
 import com.m1namoto.service.*;
 import org.jetbrains.annotations.NotNull;
@@ -65,15 +62,14 @@ public class AuthenticationService {
             return new AuthenticationResult(false, AuthenticationStatus.DYNAMICS_NOT_PASSED);
         }
 
-        Type type = new TypeToken<List<Event>>(){}.getType();
-        List<Event> events = GSON.fromJson(context.getStat(), type);
-        context.setSessionEvents(events);
+        Type type = new TypeToken<InputStatistics>(){}.getType();
+        InputStatistics statistics = GSON.fromJson(context.getStat(), type);
 
         // First <learningRate> authentication attempts are considered genuine
         boolean trustedAuthenticationsExpired = user.getAuthenticatedCnt() < context.getLearningRate();
         if (!trustedAuthenticationsExpired) {
             if (!context.isStolen()) {
-                saveSession(events, user);
+                saveSession(statistics, user);
             }
             return new AuthenticationResult(true, AuthenticationStatus.FIRST_TRUSTED_ATTEMPTS);
         }
@@ -82,14 +78,14 @@ public class AuthenticationService {
         try {
             User userWithPlainPassword = new User(user);
             userWithPlainPassword.setPassword(context.getPassword());
-            classificationResult = getPredictedThreshold(events, userWithPlainPassword);
+            classificationResult = classify(statistics.getPassword(), userWithPlainPassword);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
         if (isThresholdAccepted(classificationResult, context.getThreshold())) {
             if (!context.isStolen()) {
-                saveSession(events, user);
+                saveSession(statistics, user);
             }
             return new AuthenticationResult(true, AuthenticationStatus.SUCCESS, Optional.of(context.getThreshold()));
         }
@@ -101,10 +97,12 @@ public class AuthenticationService {
      * Saves a session with its features
      */
     @NotNull
-    private Session saveSession(@NotNull List<Event> events, @NotNull User user) {
-        // TODO
-        Session session = new Session("GENERATED", user);
+    private Session saveSession(@NotNull InputStatistics statistics, @NotNull User user) {
+        Session session = new Session(user);
         session = SessionService.save(session);
+
+        List<Event> events = new ArrayList<>(statistics.getPassword());
+        events.addAll(statistics.getAdditional());
 
         List<Feature> features = new ArrayList<>();
         features.addAll(FEATURE_EXTRACTOR.getHoldFeatures(events, user));
@@ -120,8 +118,8 @@ public class AuthenticationService {
         return session;
     }
 
-    private ClassificationResult getPredictedThreshold(@NotNull List<Event> events,
-                                                       @NotNull User authUser) throws Exception {
+    private ClassificationResult classify(@NotNull List<Event> events,
+                                          @NotNull User authUser) throws Exception {
         Classifier classifier;
         try {
             classifier = makeClassifier(authUser);

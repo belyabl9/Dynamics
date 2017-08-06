@@ -16,14 +16,9 @@ import java.util.List;
 public class Session extends DomainSuperClass implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private static final String SESSION_NAME_MUST_BE_SPECIFIED = "Session name must be specified.";
-
     @Column(name = "date")
     @Type(type="timestamp")
     private Date date = new Date();
-
-    @Transient
-    private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -35,25 +30,13 @@ public class Session extends DomainSuperClass implements Serializable {
 
     public Session() {}
 
-    public Session(@NotNull String name, @NotNull User user) {
-        if (name.isEmpty()) {
-            throw new IllegalArgumentException(SESSION_NAME_MUST_BE_SPECIFIED);
-        }
-		this.name = name;
+    public Session(@NotNull User user) {
 	    this.user = user;
 	}
 
 	public List<Feature> getFeatures() {
 	    return features;
 	}
-	
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
     
     public User getUser() {
         return user;
@@ -71,7 +54,6 @@ public class Session extends DomainSuperClass implements Serializable {
     public String toString() {
         return "Session{" +
                 "date=" + date +
-                ", name='" + name + '\'' +
                 ", user=" + user +
                 ", features=" + features +
                 '}';
