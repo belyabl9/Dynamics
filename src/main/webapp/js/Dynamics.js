@@ -87,6 +87,23 @@ var Dynamics = (function() {
 		getStatJson: function() {
 			return JSON.stringify(statistics);
 		},
+
+		isEnoughLearningText: function(text) {
+            var learningTextWords = text.split(/ +/);
+            var matchingWords = 0;
+            $.each(learningTextWords, function (index, val) {
+                if (learningTextExample.indexOf(val) !== -1) {
+                    matchingWords++;
+                }
+            });
+
+            var exampleWordCnt = learningTextExample.split(/ +/).length;
+            if ( ((matchingWords * 100) / exampleWordCnt) < 80 ) {
+				return false;
+            }
+
+            return true;
+		},
 		
 		init: function() {
 			this.initStatistics();
@@ -101,7 +118,15 @@ var Dynamics = (function() {
 			
 			$('#registrationForm').submit(function( event ) {
 			  event.preventDefault();
-			  
+
+                var learningText = $(this).find("textarea[name='learningText']").val();
+                if (!self.isEnoughLearningText(learningText)) {
+                    $("#matchErrorAlert").fadeTo(2000, 500).slideUp(500, function(){
+                        $("#matchErrorAlert").slideUp(500);
+                    });
+                    return;
+				}
+
 			  var name = $(this).find('[name=firstName]').val().trim();
 			  var surname = $(this).find('[name=surname]').val().trim();
 			  var login = $(this).find('[name=login]').val().trim();
@@ -139,17 +164,8 @@ var Dynamics = (function() {
 			$('#authForm').submit(function(event) {
   			    event.preventDefault();
 
-                var learningText = $("textarea[name='learningText'").val();
-                var learningTextWords = learningText.split(/ */);
-                var matchingWords = 0;
-                $.each(learningTextWords, function (index, val) {
-                    if (learningTextExample.indexOf("val") !== -1) {
-                        matchingWords++;
-                    }
-                });
-
-                var exampleWordCnt = learningTextExample.split(/ */).length;
-                if ( ((matchingWords * 100) / exampleWordCnt) < 80 ) {
+                var learningText = $(this).find("textarea[name='learningText']").val();
+                if (!self.isEnoughLearningText(learningText)) {
                     $("#matchErrorAlert").fadeTo(2000, 500).slideUp(500, function(){
                         $("#matchErrorAlert").slideUp(500);
                     });
