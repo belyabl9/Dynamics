@@ -12,7 +12,7 @@ public class SettingsPageAction extends Action {
     protected ActionResult execute() {
         SettingsPageData data = new SettingsPageData();
         
-        Map<String, String> settings = PropertiesService.getDynamicPropertyValues();
+        Map<String, String> settings = PropertiesService.getInstance().getDynamicPropertyValues();
         data.setSettings(settings);
 
         return createShowPageResult(Const.ViewURIs.SETTINGS, data);

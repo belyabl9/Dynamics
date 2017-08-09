@@ -27,12 +27,21 @@ public class PropertiesService {
 
     private static final List<String> DYNAMIC_OPTIONS = Arrays.asList("save_requests", "update_template", "learning_rate", "threshold");
 
-    private static Properties staticProperties;
-    private static Map<String, String> dynamicProperties;
+    private Properties staticProperties;
+    private Configuration dynamicPropertiesConfiguration;
 
-    private static Properties getStaticProperties() {
+    private PropertiesService() {}
+
+    private static class LazyHolder {
+        static final PropertiesService INSTANCE = new PropertiesService();
+    }
+    public static PropertiesService getInstance() {
+        return LazyHolder.INSTANCE;
+    }
+
+    private Properties getStaticProperties() {
         if (staticProperties == null) {
-            synchronized (Properties.class) {
+            synchronized (this) {
                 if (staticProperties == null) {
                     InputStream inputStream = null;
                     try {
@@ -61,65 +70,74 @@ public class PropertiesService {
         return staticProperties;
     }
 
-    public static Optional<String> getStaticPropertyValue(String propName) {
+    public Optional<String> getStaticPropertyValue(String propName) {
         return Optional.fromNullable(getStaticProperties().getProperty(propName));
     }
     
-    public static Map<String, String> getDynamicPropertyValues() {
-        if (dynamicProperties == null){
-            synchronized (PropertiesService.class){
-                if (dynamicProperties == null) {
-                    Map<String, String> configurationMap = makeDynamicPropertiesMap(loadDynamicConfiguration());
-                    dynamicProperties = configurationMap;
+    public Configuration getDynamicPropertyConfiguration() {
+        if (dynamicPropertiesConfiguration == null){
+            synchronized (this){
+                if (dynamicPropertiesConfiguration == null) {
+                    dynamicPropertiesConfiguration = loadDynamicConfiguration();
                 }
             }
         }
-        return dynamicProperties;
+        return dynamicPropertiesConfiguration;
     }
 
-    public static void setDynamicPropertyValues(@NotNull Map<String, String> propertiesMap) {
-        Map<String, String> dynamicPropertyValues = getDynamicPropertyValues();
-        for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
-            if (DYNAMIC_OPTIONS.contains(entry.getKey())) {
-                dynamicPropertyValues.put(entry.getKey(), entry.getValue());
-            }
+    public Map<String, String> getDynamicPropertyValues() {
+        return makeDynamicPropertiesMap();
+    }
+
+    public Optional<String> getDynamicPropertyValue(String propName) {
+        return Optional.fromNullable(getDynamicPropertyValues().get(propName));
+    }
+
+    public void saveDynamicConfiguration(@NotNull Map<String, String> values) {
+        if (dynamicPropertiesConfiguration == null) {
+            dynamicPropertiesConfiguration = getDynamicPropertyConfiguration();
         }
-        dynamicProperties = dynamicPropertyValues;
+        for (Map.Entry<String, String> entry : values.entrySet()) {
+            String key = entry.getKey();
+            if (!DYNAMIC_OPTIONS.contains(key)) {
+                continue;
+            }
+            dynamicPropertiesConfiguration.setProperty(key, entry.getValue());
+        }
     }
 
     @NotNull
-    private static Map<String, String> makeDynamicPropertiesMap(@NotNull Configuration configuration) {
+    private Map<String, String> makeDynamicPropertiesMap() {
         Map<String, String> configurationMap = new HashMap<>();
-        Iterator<String> keys = configuration.getKeys();
+        Iterator<String> keys = getDynamicPropertyConfiguration().getKeys();
         while(keys.hasNext()){
             String key = keys.next();
-            String value = configuration.getString(key);
+            String value = dynamicPropertiesConfiguration.getString(key);
             configurationMap.put(key, value);
         }
         return configurationMap;
     }
 
-    public static Optional<String> getDynamicPropertyValue(String propName) {
-        return Optional.fromNullable(getDynamicPropertyValues().get(propName));
-    }
-
-    public static void reloadDynamicConfiguration() {
-        dynamicProperties = makeDynamicPropertiesMap(loadDynamicConfiguration());
-    }
-    
-    private static Configuration loadDynamicConfiguration() {
+    @NotNull
+    private Configuration loadDynamicConfiguration() {
         Optional<String> appSettingsPropOpt = getStaticPropertyValue(APP_SETTINGS_PATH_PARAM);
         if (!appSettingsPropOpt.isPresent()) {
             throw new RuntimeException(APP_PATH_NOT_SPECIFIED);
         }
 
+        File file = new File(appSettingsPropOpt.get());
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
         Parameters params = new Parameters();
         FileBasedConfigurationBuilder<FileBasedConfiguration> builder =
             new FileBasedConfigurationBuilder<FileBasedConfiguration>(PropertiesConfiguration.class)
-                .configure(
-                        params.properties()
-                        .setFile(new File(appSettingsPropOpt.get()))
-                );
+                .configure(params.fileBased().setFile(file));
+        builder.setAutoSave(true);
 
         try {
             return builder.getConfiguration();

@@ -8,8 +8,6 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.junit.Test;
-
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.m1namoto.etc.AuthRequest;
@@ -18,7 +16,7 @@ import com.m1namoto.utils.Utils;
 
 public class AuthTest {
 
-    private final static String AUTH_REQUESTS_PATH = PropertiesService.getDynamicPropertyValue("saved_auth_requests_path").get();
+    private final static String AUTH_REQUESTS_PATH = PropertiesService.getInstance().getDynamicPropertyValue("saved_auth_requests_path").get();
     
     private double getFRR(double threshold) throws Exception {
         File requestsRoot = new File(AUTH_REQUESTS_PATH);
@@ -60,7 +58,7 @@ public class AuthTest {
         return frr;
     }
     
-    @Test
+//    @Test
     public void doAuth() throws Exception {
         Map<Double, Double> results = new HashMap<Double, Double>();
      /*

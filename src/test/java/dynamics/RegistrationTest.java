@@ -19,8 +19,8 @@ import com.m1namoto.utils.Utils;
 
 public class RegistrationTest {
 
-    private final static String regRequestsPath = PropertiesService.getStaticPropertyValue("saved_reg_requests_path").get();
-    private final static int learingRate = Integer.parseInt(PropertiesService.getDynamicPropertyValue("learning_rate").get());
+    private final static String regRequestsPath = PropertiesService.getInstance().getStaticPropertyValue("saved_reg_requests_path").get();
+    private final static int learingRate = Integer.parseInt(PropertiesService.getInstance().getDynamicPropertyValue("learning_rate").get());
     
     private final static String INIT_DIR_PREFIX = "init";
     
@@ -72,7 +72,7 @@ public class RegistrationTest {
         }
     }
     
-    @Test
+//    @Test
     public void doRegistration() throws IOException {
         registration();
         initAuth();

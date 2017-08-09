@@ -17,15 +17,27 @@ public class AuthenticationContext {
         static final String LEARNING_RATE = "learning_rate";
     }
 
-    /**
-     * Specifies the number of first authentications for which keystroke dynamics is not checked
-     */
-    private static final int TRUSTED_AUTHENTICATION_LIMIT = 5;
+    private static class DefaultValue {
+        /**
+         * Specifies the number of first authentications for which keystroke dynamics is not checked
+         */
+        static final int TRUSTED_AUTHENTICATION_LIMIT = 5;
 
-    /**
-     * Specifies how similar predicted class has to be in range [0-1]. May be overridden
-     */
-    private static final double CLASS_PREDICTION_THRESHOLD = 0.8;
+        /**
+         * Specifies how similar predicted class has to be in range [0-1]. May be overridden
+         */
+        static final double CLASS_PREDICTION_THRESHOLD = 0.7;
+
+        /**
+         * Turns on/off saving of authentication and registration requests. Used for testing purposes
+         */
+        static final boolean SAVE_REQUEST = false;
+
+        /**
+         * Turns on/off saving of new sessions for successful authentications which improve biometric templates
+         */
+        static final boolean UPDATE_TEMPLATE = true;
+    }
 
     private final String login;
     private final String password;
@@ -47,15 +59,18 @@ public class AuthenticationContext {
         // used for test purposes only
         this.stolen = stolen;
 
-        // TODO "Dynamic - Static - Default" strategy should be used
-        saveRequest = Boolean.valueOf(PropertiesService.getDynamicPropertyValue(PropertyParam.SAVE_REQUESTS).get());
-        updateTemplate = Boolean.valueOf(PropertiesService.getDynamicPropertyValue(PropertyParam.UPDATE_TEMPLATE).get());
+        // used for test purposes only
+        String saveRequestStr = PropertiesService.getInstance().getDynamicPropertyValue(PropertyParam.SAVE_REQUESTS).orNull();
+        saveRequest = Strings.isNullOrEmpty(saveRequestStr) ? DefaultValue.SAVE_REQUEST : Boolean.valueOf(saveRequestStr);
 
-        String thresholdStr = PropertiesService.getDynamicPropertyValue(PropertyParam.THRESHOLD).get();
-        threshold = Strings.isNullOrEmpty(thresholdStr) ? CLASS_PREDICTION_THRESHOLD : Double.valueOf(thresholdStr);
+        String updateTemplateStr = PropertiesService.getInstance().getDynamicPropertyValue(PropertyParam.UPDATE_TEMPLATE).orNull();
+        updateTemplate = Strings.isNullOrEmpty(updateTemplateStr) ? DefaultValue.UPDATE_TEMPLATE : Boolean.valueOf(updateTemplateStr);
 
-        String learningRateStr = PropertiesService.getDynamicPropertyValue(PropertyParam.LEARNING_RATE).get();
-        learningRate = Strings.isNullOrEmpty(learningRateStr) ? TRUSTED_AUTHENTICATION_LIMIT : Integer.valueOf(learningRateStr);
+        String thresholdStr = PropertiesService.getInstance().getDynamicPropertyValue(PropertyParam.THRESHOLD).orNull();
+        threshold = Strings.isNullOrEmpty(thresholdStr) ? DefaultValue.CLASS_PREDICTION_THRESHOLD : Double.valueOf(thresholdStr);
+
+        String learningRateStr = PropertiesService.getInstance().getDynamicPropertyValue(PropertyParam.LEARNING_RATE).orNull();
+        learningRate = Strings.isNullOrEmpty(learningRateStr) ? DefaultValue.TRUSTED_AUTHENTICATION_LIMIT : Integer.valueOf(learningRateStr);
     }
 
     public String getLogin() {

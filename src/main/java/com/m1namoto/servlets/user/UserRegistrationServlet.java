@@ -74,7 +74,7 @@ public class UserRegistrationServlet extends HttpServlet {
 	    Utils.checkMandatoryParams(request.getParameterMap(), MANDATORY_PARAMS);
 
         RegistrationContext regContext = makeContext(request);
-        boolean saveRequest = Boolean.valueOf(PropertiesService.getDynamicPropertyValue("save_requests").get());
+        boolean saveRequest = Boolean.valueOf(PropertiesService.getInstance().getDynamicPropertyValue("save_requests").get());
         if (saveRequest) {
             saveRequest(regContext);
         }
@@ -142,7 +142,7 @@ public class UserRegistrationServlet extends HttpServlet {
 
     @NotNull
     private String getSavedRequestsPath(String password) {
-        Optional<String> savedRegReqPathOpt = PropertiesService.getDynamicPropertyValue("saved_reg_requests_path");
+        Optional<String> savedRegReqPathOpt = PropertiesService.getInstance().getStaticPropertyValue("saved_reg_requests_path");
 	    if (!savedRegReqPathOpt.isPresent()) {
             throw new RuntimeException(REG_REQ_PATH_NOT_SPECIFIED);
         }

@@ -26,10 +26,10 @@ import com.m1namoto.utils.Utils;
 
 public class AccuracyTest {
 
-    private final static String regRequestsPathConf = PropertiesService.getDynamicPropertyValue("saved_reg_requests_path").get();
-    private final static String authRequestsPathConf = PropertiesService.getDynamicPropertyValue("saved_auth_requests_path").get();
-    private final static String outputPathConf = PropertiesService.getDynamicPropertyValue("test_results_output").get();
-    private final static int learingRateConf = Integer.parseInt(PropertiesService.getDynamicPropertyValue("learning_rate").get());
+    private final static String regRequestsPathConf = PropertiesService.getInstance().getDynamicPropertyValue("saved_reg_requests_path").get();
+    private final static String authRequestsPathConf = PropertiesService.getInstance().getDynamicPropertyValue("saved_auth_requests_path").get();
+    private final static String outputPathConf = PropertiesService.getInstance().getDynamicPropertyValue("test_results_output").get();
+    private final static int learingRateConf = Integer.parseInt(PropertiesService.getInstance().getDynamicPropertyValue("learning_rate").get());
     
     private final static String outputFilePrefix = "dynamics_test";
     

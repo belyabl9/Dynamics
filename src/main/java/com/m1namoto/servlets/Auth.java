@@ -150,7 +150,7 @@ public class Auth extends HttpServlet {
         AuthRequest authReq = new AuthRequest(context.getLogin(), context.getPassword(), context.getStat());
 
         String json = GSON.toJson(authReq);
-        Optional<String> savedAuthReqPathOpt = PropertiesService.getStaticPropertyValue(SAVED_AUTH_REQUESTS_PATH_PROP);
+        Optional<String> savedAuthReqPathOpt = PropertiesService.getInstance().getStaticPropertyValue(SAVED_AUTH_REQUESTS_PATH_PROP);
         if (!savedAuthReqPathOpt.isPresent()) {
             throw new RuntimeException(Message.SAVED_AUTH_REQ_PATH_NOT_SPECIFIED);
         }

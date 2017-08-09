@@ -85,18 +85,14 @@ public class BrowserUserRegistrationAction extends Action {
 
         String json = new Gson().toJson(regReq);
         //String savedReqPath = PropertiesService.getPropertyValue("saved_reg_requests_path") + "/" + password.length();
-        Optional<String> savedRegReqPathOpt = PropertiesService.getDynamicPropertyValue("saved_reg_requests_path");
+        Optional<String> savedRegReqPathOpt = PropertiesService.getInstance().getStaticPropertyValue("saved_reg_requests_path");
         if (!savedRegReqPathOpt.isPresent()) {
             throw new RuntimeException(REG_REQ_PATH_NOT_SPECIFIED);
         }
 
-        String savedReqPath = System.getenv("OPENSHIFT_DATA_DIR") + savedRegReqPathOpt.get() + "/" + password.length();
+//        String savedReqPath = System.getenv("OPENSHIFT_DATA_DIR") + savedRegReqPathOpt.get() + "/" + password.length();
 
-        File reqDir = new File(savedReqPath);
-        if (!reqDir.exists()) {
-            reqDir.mkdirs();
-        }
-        File loginDir = new File(savedReqPath + "/" + login);
+        File loginDir = new File(savedRegReqPathOpt.get() + "/" + login);
         if (!loginDir.exists()) {
             loginDir.mkdirs();
         }
@@ -119,7 +115,7 @@ public class BrowserUserRegistrationAction extends Action {
 	protected ActionResult execute() throws Exception {
 		PageData pageData = new PageData();
 		
-		boolean saveRequest = Boolean.valueOf(PropertiesService.getDynamicPropertyValue("save_requests").get());
+		boolean saveRequest = Boolean.valueOf(PropertiesService.getInstance().getDynamicPropertyValue("save_requests").or("false"));
         if (saveRequest) {
             saveRequest();
         }

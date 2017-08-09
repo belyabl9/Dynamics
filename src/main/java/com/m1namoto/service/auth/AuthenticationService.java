@@ -68,7 +68,7 @@ public class AuthenticationService {
         // First <learningRate> authentication attempts are considered genuine
         boolean trustedAuthenticationsExpired = user.getAuthenticatedCnt() < context.getLearningRate();
         if (!trustedAuthenticationsExpired) {
-            if (!context.isStolen()) {
+            if (context.isUpdateTemplate() && !context.isStolen()) {
                 saveSession(statistics, user);
             }
             return new AuthenticationResult(true, AuthenticationStatus.FIRST_TRUSTED_ATTEMPTS);
@@ -84,7 +84,7 @@ public class AuthenticationService {
         }
 
         if (isThresholdAccepted(classificationResult, context.getThreshold())) {
-            if (!context.isStolen()) {
+            if (context.isUpdateTemplate() && !context.isStolen()) {
                 saveSession(statistics, user);
             }
             return new AuthenticationResult(true, AuthenticationStatus.SUCCESS, Optional.of(context.getThreshold()));
