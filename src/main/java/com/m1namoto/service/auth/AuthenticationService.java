@@ -66,7 +66,7 @@ public class AuthenticationService {
         InputStatistics statistics = GSON.fromJson(context.getStat(), type);
 
         // First <learningRate> authentication attempts are considered genuine
-        boolean trustedAuthenticationsExpired = user.getAuthenticatedCnt() < context.getLearningRate();
+        boolean trustedAuthenticationsExpired = user.getAuthenticatedCnt() > context.getLearningRate();
         if (!trustedAuthenticationsExpired) {
             if (context.isUpdateTemplate() && !context.isStolen()) {
                 saveSession(statistics, user);
@@ -87,7 +87,7 @@ public class AuthenticationService {
             if (context.isUpdateTemplate() && !context.isStolen()) {
                 saveSession(statistics, user);
             }
-            return new AuthenticationResult(true, AuthenticationStatus.SUCCESS, Optional.of(context.getThreshold()));
+            return new AuthenticationResult(true, AuthenticationStatus.SUCCESS, Optional.of(classificationResult.getProbability()));
         }
 
         return new AuthenticationResult(false, AuthenticationStatus.FAIL, Optional.of(context.getThreshold()));
