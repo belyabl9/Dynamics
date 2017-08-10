@@ -74,12 +74,12 @@ public class UserRegistrationServlet extends HttpServlet {
 	    Utils.checkMandatoryParams(request.getParameterMap(), MANDATORY_PARAMS);
 
         RegistrationContext regContext = makeContext(request);
-        boolean saveRequest = Boolean.valueOf(PropertiesService.getInstance().getDynamicPropertyValue("save_requests").get());
+        boolean saveRequest = Boolean.valueOf(PropertiesService.getInstance().getDynamicPropertyValue("save_requests").or("false"));
         if (saveRequest) {
             saveRequest(regContext);
         }
 
-        if (UserService.getInstance().findByLogin(regContext.getLogin()) != null) {
+        if (UserService.getInstance().findByLogin(regContext.getLogin()).isPresent()) {
             logger.info(Message.LOGIN_ALREADY_EXISTS);
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
@@ -93,20 +93,23 @@ public class UserRegistrationServlet extends HttpServlet {
             return;
         }
         
-        Type type = new TypeToken<Map<String, List<Event>>>(){}.getType();
-        List<Event> events = new Gson().fromJson(regContext.getStat(), type);
-        saveSessionEvents(events, user);
+        Type type = new TypeToken<InputStatistics>(){}.getType();
+        InputStatistics statistics = new Gson().fromJson(regContext.getStat(), type);
+        saveSessionEvents(statistics, user);
 
         UserService.getInstance().save(user);
         
         response.setStatus(HttpServletResponse.SC_OK);
 	}
 
-    private void saveSessionEvents(@NotNull List<Event> events, @NotNull User user) {
-        if (events.isEmpty()) {
-            throw new IllegalArgumentException("Event list must contain at least one element.");
+    private void saveSessionEvents(@NotNull InputStatistics statistics, @NotNull User user) {
+        if (statistics.getPassword().isEmpty()) {
+            throw new IllegalArgumentException("Password event list must contain at least one element.");
         }
         Session session = SessionService.save(new Session(user));
+
+        List<Event> events = new ArrayList<>(statistics.getPassword());
+        events.addAll(statistics.getAdditional());
 
         List<HoldFeature> holdFeatures = FeatureExtractorService.getInstance().getHoldFeatures(events, user);
         List<ReleasePressFeature> releasePressFeatures = FeatureExtractorService.getInstance().getReleasePressFeatures(events, user);
