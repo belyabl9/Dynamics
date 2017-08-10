@@ -50,7 +50,7 @@
 				
 				<div class="tab-content">
 				  <div id="auth" class="tab-pane fade in active">
-				  	<form id="authForm">
+				  	<form id="authForm" autocomplete="off">
 					  <div class="panel panel-primary" style="width:45%">
 						   <div class="panel-heading">
 						       <h3 class="panel-title">
@@ -92,7 +92,7 @@
 					    </form>
 				  </div>
 				  <div id="reg" class="tab-pane fade">
-					<form id="registrationForm">
+					<form id="registrationForm" autocomplete="off">
 						<input type="hidden" name="id" value="New" />
 						<div class="panel panel-primary" style="width:45%">
 						   <div class="panel-heading">
