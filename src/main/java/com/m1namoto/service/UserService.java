@@ -57,6 +57,15 @@ public class UserService {
     	return DaoFactory.getUsersDAO().save(user);
     }
 
+    public void incrementAuthCounter(@NotNull String login) {
+        Optional<User> userOpt = findByLogin(login);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            user.setAuthenticatedCnt(user.getAuthenticatedCnt() + 1);
+            save(user);
+        }
+    }
+
     /**
      * Removes a user with all related data
      */

@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import com.google.gson.Gson;
 import com.m1namoto.etc.AuthRequest;
 import com.m1namoto.service.PropertiesService;
+import com.m1namoto.service.UserService;
 import com.m1namoto.service.auth.AuthenticationContext;
 import com.m1namoto.service.auth.AuthenticationResult;
 import com.m1namoto.service.auth.AuthenticationService;
@@ -98,6 +99,7 @@ public class Auth extends HttpServlet {
 
         JSONObject responseObj = new JSONObject();
         if (authResult.isSuccess()) {
+            UserService.getInstance().incrementAuthCounter(context.getLogin());
             responseObj.put(ResponseParam.SUCCESS, true);
             response.setStatus(HttpServletResponse.SC_OK);
         } else {
