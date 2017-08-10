@@ -3,6 +3,7 @@ package com.m1namoto.action;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.common.base.Optional;
 import com.m1namoto.page.PageData;
 import com.m1namoto.service.PropertiesService;
 
@@ -16,8 +17,10 @@ public class UpdateSettingsAction extends Action {
 
         Map<String, String> settings = new HashMap<>();
         for (String optName : OPTIONS) {
-            String value = getRequestParamValue(optName).get();
-            settings.put(optName, value);
+            Optional<String> valueOpt = getRequestParamValue(optName);
+            if (valueOpt.isPresent()) {
+                settings.put(optName, valueOpt.get());
+            }
         }
 
         try {
