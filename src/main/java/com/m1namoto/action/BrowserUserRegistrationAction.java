@@ -22,6 +22,7 @@ import com.m1namoto.page.PageData;
 import com.m1namoto.utils.Utils;
 import org.jetbrains.annotations.NotNull;
 
+// TODO extract UserRegistrationService
 public class BrowserUserRegistrationAction extends Action {
 
     private final static Logger logger = Logger.getLogger(BrowserUserRegistrationAction.class);
@@ -30,7 +31,6 @@ public class BrowserUserRegistrationAction extends Action {
 	private static final String REQ_SURNAME_PARAM = "surname";
     private static final String REQ_LOGIN_PARAM = "login";
     private static final String REQ_PASSWORD_PARAM = "password";
-    private static final String REQ_IS_STOLEN_PARAM = "isStolen";
     private static final String REQ_STAT_PARAM = "stat";
     
     private static final String REQ_SAVE = "saveRequest";

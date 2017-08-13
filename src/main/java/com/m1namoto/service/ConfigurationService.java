@@ -61,7 +61,7 @@ public class ConfigurationService {
 
         List<User> users = UserService.getInstance().getList(User.Type.REGULAR);
         if (users.size() < MINIMUM_NUMBER_OF_USERS) {
-            throw new Exception(NOT_ENOUGH_USERS);
+            throw new NotEnoughCollectedStatException(NOT_ENOUGH_USERS);
         }
 
         List<Integer> allowedValues = new ArrayList<>();

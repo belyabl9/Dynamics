@@ -1,5 +1,6 @@
 package com.m1namoto.utils;
 
+import com.m1namoto.dao.HibernateUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,6 +54,10 @@ public class Utils {
 
     public static boolean isOpenShift() {
         return System.getenv("OPENSHIFT_DATA_DIR") != null;
+    }
+
+    public static boolean isTest() {
+        return HibernateUtil.getDbConfig() == HibernateUtil.DatabaseConfigs.TEST;
     }
 
     public static long validateNumericId(@NotNull String id) {

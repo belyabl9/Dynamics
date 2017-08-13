@@ -28,16 +28,14 @@ import java.time.LocalDateTime;
  * Servlet implementation for passing authentication procedure using keystroke dynamics as an additional factor
  */
 @WebServlet("/auth")
-public class Auth extends HttpServlet {
+public class AuthServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
-    private final static Logger logger = Logger.getLogger(Auth.class);
+    private final static Logger logger = Logger.getLogger(AuthServlet.class);
 
     private static final String REQ_FILE_PREFIX = "req-";
     private static final String OWN_DIR_PREFIX = "own";
     private static final String STOLEN_DIR_PREFIX = "stolen";
-
-    private static final String OPENSHIFT_DATA_DIR_VAR = "OPENSHIFT_DATA_DIR";
 
     private static final String SAVED_AUTH_REQUESTS_PATH_PROP = "saved_auth_requests_path";
 
@@ -69,7 +67,7 @@ public class Auth extends HttpServlet {
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public Auth() {
+    public AuthServlet() {
         super();
     }
 

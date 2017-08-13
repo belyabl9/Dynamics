@@ -15,7 +15,8 @@ public class HibernateUtil {
     
     public enum DatabaseConfigs {
         MAIN(MAIN_DB_CONFIG_FILE),
-        TEST(TEST_DB_CONFIG_FILE);
+        TEST(TEST_DB_CONFIG_FILE),
+        ;
         
         private String stringValue;
         
@@ -26,10 +27,14 @@ public class HibernateUtil {
         public String toString() {
             return stringValue;
         }
-    };
+    }
     
-    public static void setDb(DatabaseConfigs config) {
+    public static void setDbConfig(DatabaseConfigs config) {
         dbConfig = config;
+    }
+
+    public static DatabaseConfigs getDbConfig() {
+        return dbConfig;
     }
 
     public static SessionFactory getSessionFactory() {

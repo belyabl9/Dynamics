@@ -13,7 +13,7 @@ import com.m1namoto.service.PropertiesService;
 import com.m1namoto.utils.Utils;
 import org.junit.Test;
 
-public class AuthTest {
+public class AuthServletTest {
 
     private final static String AUTH_REQUESTS_PATH = PropertiesService.getInstance().getStaticPropertyValue("saved_auth_requests_path").get();
 
