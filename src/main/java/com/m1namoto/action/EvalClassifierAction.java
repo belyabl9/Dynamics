@@ -1,7 +1,7 @@
 package com.m1namoto.action;
 
 import com.google.common.base.Optional;
-import com.m1namoto.classifier.Classifier;
+import com.m1namoto.classifier.weka.WekaClassifier;
 import com.m1namoto.domain.User;
 import com.m1namoto.page.EvalClassifierPageData;
 import com.m1namoto.service.ConfigurationService;
@@ -28,7 +28,7 @@ public class EvalClassifierAction extends Action {
 
         Optional<User> userOpt = UserService.getInstance().findById(userId);
         if (userOpt.isPresent()) {
-            Classifier classifier = new Classifier(ConfigurationService.getInstance().create(userOpt.get()));
+            WekaClassifier classifier = new WekaClassifier(ConfigurationService.getInstance().create(userOpt.get()));
             String evalResults = classifier.evaluateClassifier();
             String configuration = classifier.getConfiguration().toString();
             EvalClassifierPageData data = new EvalClassifierPageData(evalResults, configuration);

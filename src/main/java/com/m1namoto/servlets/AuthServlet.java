@@ -2,6 +2,7 @@ package com.m1namoto.servlets;
 
 import com.google.common.base.Optional;
 import com.google.gson.Gson;
+import com.m1namoto.classifier.weka.WekaClassifierMakerStrategy;
 import com.m1namoto.etc.AuthRequest;
 import com.m1namoto.service.PropertiesService;
 import com.m1namoto.service.UserService;
@@ -46,6 +47,8 @@ public class AuthServlet extends HttpServlet {
     private static final String DYNAMICS_DOES_NOT_MATCH = "Keystroke dynamics does not match";
     private static final String AUTHENTICATION_PASSED = "Authentication has successfully passed";
 
+    private static final WekaClassifierMakerStrategy CLASSIFIER_MAKER_STRATEGY = WekaClassifierMakerStrategy.getInstance();
+
     private static class RequestParam {
         static final String LOGIN = "login";
         static final String PASSWORD = "password";
@@ -74,7 +77,6 @@ public class AuthServlet extends HttpServlet {
     /**
      * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
      */
-    @SuppressWarnings("unchecked")
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     	response.setContentType("application/json");
     	response.setCharacterEncoding("utf8");
@@ -93,10 +95,15 @@ public class AuthServlet extends HttpServlet {
         if (context.isSaveRequest()) {
             saveRequest(context);
         }
-        AuthenticationResult authResult = AuthenticationService.getInstance().authenticate(context);
+        AuthenticationResult authResult = AuthenticationService.getInstance().authenticate(context, CLASSIFIER_MAKER_STRATEGY);
 
         JSONObject responseObj = new JSONObject();
         if (authResult.isSuccess()) {
+            if (authResult.getStatus() == AuthenticationStatus.ADMIN_ACCESS) {
+                request.getSession();
+                response.sendRedirect("/");
+                return;
+            }
             UserService.getInstance().incrementAuthCounter(context.getLogin());
             responseObj.put(ResponseParam.SUCCESS, true);
             response.setStatus(HttpServletResponse.SC_OK);

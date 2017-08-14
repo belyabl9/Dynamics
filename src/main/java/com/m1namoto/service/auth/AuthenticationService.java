@@ -4,12 +4,10 @@ import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import com.m1namoto.classifier.ClassificationResult;
-import com.m1namoto.classifier.Classifier;
-import com.m1namoto.classifier.Configuration;
-import com.m1namoto.classifier.DynamicsInstance;
+import com.m1namoto.api.ClassificationResult;
+import com.m1namoto.api.ClassifierMakerStrategy;
+import com.m1namoto.api.IClassifier;
 import com.m1namoto.domain.*;
-import com.m1namoto.exception.NotEnoughCollectedStatException;
 import com.m1namoto.service.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,7 +38,7 @@ public class AuthenticationService {
      * 3. Check if account is new and limit of first trusted authentications is not reached
      * 4. Check that sent keystroke dynamics matches to stored biometric template for this user
      */
-    public AuthenticationResult authenticate(@NotNull AuthenticationContext context) {
+    public AuthenticationResult authenticate(@NotNull AuthenticationContext context, @NotNull ClassifierMakerStrategy classifierMakerStrategy) {
         if (Strings.isNullOrEmpty(context.getLogin()) || Strings.isNullOrEmpty(context.getPassword())) {
             return new AuthenticationResult(false, AuthenticationStatus.EMPTY_LOGIN_OR_PASSWORD);
         }
@@ -74,14 +72,10 @@ public class AuthenticationService {
             return new AuthenticationResult(true, AuthenticationStatus.FIRST_TRUSTED_ATTEMPTS);
         }
 
-        ClassificationResult classificationResult;
-        try {
-            User userWithPlainPassword = new User(user);
-            userWithPlainPassword.setPassword(context.getPassword());
-            classificationResult = classify(statistics.getPassword(), userWithPlainPassword);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        User userWithPlainPassword = new User(user);
+        userWithPlainPassword.setPassword(context.getPassword());
+        IClassifier classifier = classifierMakerStrategy.makeClassifier(userWithPlainPassword);
+        ClassificationResult classificationResult = classifier.classify(statistics.getPassword(), userWithPlainPassword);
 
         if (isThresholdAccepted(classificationResult, context.getThreshold())) {
             if (context.isUpdateTemplate() && !context.isStolen()) {
@@ -116,38 +110,6 @@ public class AuthenticationService {
         }
 
         return session;
-    }
-
-    private ClassificationResult classify(@NotNull List<Event> events,
-                                          @NotNull User authUser) throws Exception {
-        Classifier classifier;
-        try {
-            classifier = makeClassifier(authUser);
-        } catch (NotEnoughCollectedStatException e) {
-            return new ClassificationResult(1d);
-        }
-
-        DynamicsInstance instance = new DynamicsInstance(FEATURE_EXTRACTOR.getFeatureValues(events, authUser));
-        try {
-            return classifier.getClassForInstance(instance, authUser.getId());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @NotNull
-    private Classifier makeClassifier(@NotNull User user) throws NotEnoughCollectedStatException {
-        Classifier classifier;
-        try {
-            // TODO cache configuration or/and classifier
-            Configuration configuration = ConfigurationService.getInstance().create(user);
-            classifier = new Classifier(configuration);
-        } catch (NotEnoughCollectedStatException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return classifier;
     }
 
     private boolean isThresholdAccepted(@NotNull ClassificationResult classificationResult, double threshold) {

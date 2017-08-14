@@ -1,4 +1,4 @@
-package com.m1namoto.classifier;
+package com.m1namoto.classifier.weka;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
