@@ -3,7 +3,7 @@ package com.m1namoto.classifier.weka;
 import com.m1namoto.api.ClassifierMakerStrategy;
 import com.m1namoto.api.IClassifier;
 import com.m1namoto.domain.User;
-import com.m1namoto.service.ConfigurationService;
+import com.m1namoto.service.weka.ConfigurationService;
 import org.jetbrains.annotations.NotNull;
 
 public class WekaClassifierMakerStrategy implements ClassifierMakerStrategy {

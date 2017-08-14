@@ -102,11 +102,11 @@ var Statistics = (function() {
 	        		url: '/ajax/keypressPlotData',
 	                success: function(data) {
 	                	var responseObj = JSON.parse(data.statisticsJson);
-	                	var series = self.prepareSeries( responseObj );
+	                	var series = self.prepareSeries(responseObj);
 	                	self.createChart(series);
 	                },
 	                error: function() {
-	                	console.error("Can not fetch keypress features data for plot");
+	                	console.error("Can not fetch key press features data for plot");
 	                }
 	        	});
 		}

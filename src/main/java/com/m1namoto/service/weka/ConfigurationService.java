@@ -1,10 +1,12 @@
-package com.m1namoto.service;
+package com.m1namoto.service.weka;
 
 import com.google.common.base.Optional;
 import com.m1namoto.classifier.weka.Configuration;
 import com.m1namoto.domain.FeaturesSample;
 import com.m1namoto.domain.User;
 import com.m1namoto.exception.NotEnoughCollectedStatException;
+import com.m1namoto.service.FeatureSampleService;
+import com.m1namoto.service.UserService;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 

@@ -275,17 +275,26 @@ public class FeatureService {
 
     @NotNull
     public Optional<Double> getMeanKeypressTime(@NotNull User user) {
-        List<HoldFeature> holdFeatures = getHoldFeatures(user);
-        if (holdFeatures.isEmpty()) {
+        return getMeanTime(getHoldFeatures(user));
+    }
+
+    @NotNull
+    public Optional<Double> getMeanReleasePressTime(@NotNull User user) {
+        return getMeanTime(getReleasePressFeatures(user));
+    }
+
+    @NotNull
+    public Optional<Double> getMeanTime(@NotNull List<? extends Feature> features) {
+        if (features.isEmpty()) {
             return Optional.absent();
         }
 
         double meanSum = 0d;
-        for (Feature feature : holdFeatures) {
+        for (Feature feature : features) {
             meanSum += feature.getValue();
         }
 
-        return Optional.of(meanSum / holdFeatures.size());
+        return Optional.of(meanSum / features.size());
     }
 
     /**

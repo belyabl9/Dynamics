@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.List;
 
 @Entity
 @Table(name = "Users")
@@ -117,8 +118,20 @@ public class User extends DomainSuperClass implements Serializable {
         this.userType = userType;
     }
 
+    public List<HoldFeature> getHoldFeatures() {
+        return FeatureService.getInstance().getHoldFeatures(this);
+    }
+
+    public List<ReleasePressFeature> getReleasePressFeatures() {
+        return FeatureService.getInstance().getReleasePressFeatures(this);
+    }
+
     public Double getMeanKeypressTime() {
         return FeatureService.getInstance().getMeanKeypressTime(this).orNull();
+    }
+
+    public Double getMeanTimeBetweenKeys() {
+        return FeatureService.getInstance().getMeanReleasePressTime(this).orNull();
     }
 
     @Override

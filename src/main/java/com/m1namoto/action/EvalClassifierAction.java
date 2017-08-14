@@ -2,39 +2,29 @@ package com.m1namoto.action;
 
 import com.google.common.base.Optional;
 import com.m1namoto.classifier.weka.WekaClassifier;
-import com.m1namoto.domain.User;
 import com.m1namoto.page.EvalClassifierPageData;
-import com.m1namoto.service.ConfigurationService;
-import com.m1namoto.service.UserService;
+import com.m1namoto.service.weka.ConfigurationService;
 
+/**
+ * It works only for Weka classifier
+ */
 public class EvalClassifierAction extends Action {
 
-    private static final String USER_ID_WAS_NOT_PASSED = "User ID was not passed";
-    private static final String INVALID_USER_ID = "Can not parse user id";
+    private static final String PASSWORD_MUST_BE_SPECIFIED = "Password for classifier evaluation must be specified.";
 
     @Override
     protected ActionResult execute() throws Exception {
-        Optional<String> userIdOpt = getRequestParamValue("userId");
-        if (!userIdOpt.isPresent()) {
-            throw new RuntimeException(USER_ID_WAS_NOT_PASSED);
+        Optional<String> passwordOpt = getRequestParamValue("password");
+        if (!passwordOpt.isPresent()) {
+            throw new IllegalArgumentException(PASSWORD_MUST_BE_SPECIFIED);
         }
 
-        int userId;
-        try {
-            userId = Integer.parseInt(userIdOpt.get());
-        } catch (Exception e) {
-            throw new RuntimeException(INVALID_USER_ID + ": " + userIdOpt.get());
-        }
+        WekaClassifier classifier = new WekaClassifier(ConfigurationService.getInstance().create(passwordOpt.get(), Optional.<Long>absent()));
+        String evalResults = classifier.evaluateClassifier();
+        String configuration = classifier.getConfiguration().toString();
+        EvalClassifierPageData data = new EvalClassifierPageData(evalResults, configuration);
 
-        Optional<User> userOpt = UserService.getInstance().findById(userId);
-        if (userOpt.isPresent()) {
-            WekaClassifier classifier = new WekaClassifier(ConfigurationService.getInstance().create(userOpt.get()));
-            String evalResults = classifier.evaluateClassifier();
-            String configuration = classifier.getConfiguration().toString();
-            EvalClassifierPageData data = new EvalClassifierPageData(evalResults, configuration);
-            return createAjaxResult(data);
-        }
-        return createAjaxResult(null);
+        return createAjaxResult(data);
     }
 
 }
