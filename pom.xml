@@ -1,23 +1,47 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>dynamics</groupId>
+
+	<groupId>com.m1namoto</groupId>
 	<artifactId>dynamics</artifactId>
-	<packaging>war</packaging>
-	<version>1.0</version>
-    <build>
+	<name>dynamics</name>
+	<packaging>pom</packaging>
+	<version>1.0-SNAPSHOT</version>
+
+	<description>
+		Provides functionality for keystroke dynamics analysis on simplified authentication system
+	</description>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.6</maven.compiler.source>
+		<maven.compiler.target>1.6</maven.compiler.target>
+		<java-version>1.8</java-version>
+	</properties>
+
+	<build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>${java-version}</source>
+                    <target>${java-version}</target>
                 </configuration>
             </plugin>
+			<plugin>
+				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat7-maven-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<url>http://dynamics-cstumaster.rhcloud.com/manager/text</url>
+					<server>Dynamics</server>
+					<path>/dynamics</path>
+				</configuration>
+			</plugin>
         </plugins>
     </build>
-    <name>dynamics</name>
+
 	<repositories>
 		<repository>
 			<id>eap</id>
@@ -30,6 +54,7 @@
 			</snapshots>
 		</repository>
 	</repositories>
+
 	<pluginRepositories>
 		<pluginRepository>
 			<id>eap</id>
@@ -42,11 +67,7 @@
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>1.6</maven.compiler.source>
-		<maven.compiler.target>1.6</maven.compiler.target>
-	</properties>
+
 	<dependencies>
 	    <dependency>
 	      <groupId>junit</groupId>
@@ -103,6 +124,14 @@
 			<version>3.6.14</version>
 		</dependency>
 
+		<!-- https://mvnrepository.com/artifact/nz.ac.waikato.cms.weka/LibSVM -->
+		<dependency>
+			<groupId>nz.ac.waikato.cms.weka</groupId>
+			<artifactId>LibSVM</artifactId>
+			<version>1.0.10</version>
+		</dependency>
+
+
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
@@ -157,6 +186,11 @@
             <version>12.0</version>
         </dependency>
 
+		<dependency>
+			<groupId>com.github.davidmoten</groupId>
+			<artifactId>fastdtw</artifactId>
+			<version>0.1</version>
+		</dependency>
 	</dependencies>
 	<profiles>
 		<profile>
@@ -183,4 +217,9 @@
 			</build>
 		</profile>
 	</profiles>
+
+	<modules>
+		<module>datatests</module>
+		<module>runtime</module>
+	</modules>
 </project>

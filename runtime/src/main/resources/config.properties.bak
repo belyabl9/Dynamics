@@ -1,0 +1,10 @@
+# Path for saved authentication requests (test purposes)
+saved_auth_requests_path=/home/m1namoto/development/auth-req
+# Path for saved registration requests (test purposes)
+saved_reg_requests_path=/home/m1namoto/development/reg-req
+
+# Database config name. Used to use different configuration for testing and production
+active_db_config=MAIN
+
+# Path to dynamic application properties file. For production it has to be outside of package and with write permission
+app_settings_path=/home/m1namoto/development/dynamics-app.properties

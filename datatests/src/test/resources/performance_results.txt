@@ -1,0 +1,35 @@
+Weka Random forest (100 trees). multi-class. 50 users. learning rate = 20. auth. per user = 150, threshold = 70%
+
+TOTAL: 7650
+Successful: 368 ; Mean prob. - 0.799157608695652
+Failed: 7282 ; Mean prob. - 0.2186995330952996
+
+-----------------------------------------------------------------------------------------------------------------
+
+Weka MLP. multi-class. 50 users. learning rate = 20. auth. per user = 150, threshold = 70%
+
+TOTAL: 7650
+Successful: 2365 ; Mean prob. - 0.8908975518260273
+Failed: 5285 ; Mean prob. - 0.17822101897036283
+
+-----------------------------------------------------------------------------------------------------------------
+
+Dataset: 51 participants typed password "".tie5Roanl"".
+
+First 200 typings for template creation.
+Remaining 200 typings for authentication attempts (measuring FRR, how many genuine users have been rejected)
+First 5 passwords of each user checked as impostor against all other users (measuring FAR, how many impostors could pass auth.).
+
+Distance algorithm: Manhattan distance (scaled)
+
+FRR TOTAL: 10200
+Successful: 8325
+Failed: 1875
+FRR: 0.18382352941176472
+
+FAR TOTAL: 1020000
+Successful: 174570
+Failed: 845430
+FAR: 0.1711470588235294
+
+EER= ~18%, that is not a good result

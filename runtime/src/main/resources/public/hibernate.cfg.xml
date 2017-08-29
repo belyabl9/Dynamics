@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+ <session-factory>
+  <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
+  <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
+  <property name="hibernate.connection.url">jdbc:mysql://127.10.63.2:3306/dynamics</property>
+  <property name="hibernate.connection.username">adminhtYQ738</property>
+  <property name="hibernate.connection.password">gqpktq3Hcpw_</property>
+
+  <property name="hibernate.current_session_context_class">thread</property>
+
+  <!--  <property name="hbm2ddl.auto">update</property> -->
+  <property name="hbm2ddl.auto">create-drop</property>
+
+  <mapping class="com.ReleasePressFeature" />
+  <mapping class="com.HoldFeature" />
+  <mapping class="com.Session" />
+  <mapping class="com.User" />
+
+ </session-factory>
+</hibernate-configuration>
