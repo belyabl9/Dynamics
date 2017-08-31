@@ -210,15 +210,15 @@ public class FeatureExtractorService {
                     for (Iterator<Event> pressIterator = pressEvents.iterator(); pressIterator.hasNext();) {
                         Event pressEvent = pressIterator.next();
                         if (pressEvent.getCode() == user.getPassword().charAt(pos + 1)) {
-                                double timeDiff = Math.abs(pressEvent.getTime() - releaseEvent.getTime());
+                            double timeDiff = pressEvent.getTime() - releaseEvent.getTime();
 
-                                ReleasePressFeature feature = new ReleasePressFeature(
-                                        timeDiff, releaseEvent.getCode(), pressEvent.getCode(), user
-                                );
-                                releasePressFeatures.add(feature);
-                                pressIterator.remove();
-                                processed = true;
-                                break;
+                            ReleasePressFeature feature = new ReleasePressFeature(
+                                    timeDiff, releaseEvent.getCode(), pressEvent.getCode(), user
+                            );
+                            releasePressFeatures.add(feature);
+                            pressIterator.remove();
+                            processed = true;
+                            break;
                         }
                     }
                 }

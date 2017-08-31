@@ -1,4 +1,4 @@
-package dynamics;
+package dynamics.samepass;
 
 import com.google.common.base.Stopwatch;
 import com.m1namoto.api.ClassificationResult;
@@ -15,8 +15,6 @@ import com.m1namoto.service.PasswordService;
 import com.m1namoto.service.SessionService;
 import com.m1namoto.service.UserService;
 import com.m1namoto.utils.Utils;
-import dynamics.samepass.DataSetRecord;
-import dynamics.samepass.DataSetRecordIterator;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;

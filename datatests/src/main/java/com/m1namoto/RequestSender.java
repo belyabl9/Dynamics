@@ -1,4 +1,4 @@
-package dynamics;
+package com.m1namoto;
 
 import com.m1namoto.etc.AuthRequest;
 import com.m1namoto.etc.RegRequest;
@@ -49,8 +49,7 @@ public class RequestSender {
     }
     
     public static int sendDBCleanupRequest() throws IOException {
-        // TODO do not remove admin user
-        return sendRequest("/action/dbCleanup", new ArrayList<NameValuePair>());
+        return sendRequest("/action/dbCleanup", new ArrayList<>());
     }
 
     public static int sendRegRequest(String name, String surname, String login, String password, String stat) throws IOException {

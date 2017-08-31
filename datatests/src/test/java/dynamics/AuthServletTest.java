@@ -2,6 +2,7 @@ package dynamics;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.m1namoto.RequestSender;
 import com.m1namoto.etc.AuthRequest;
 import com.m1namoto.service.PropertiesService;
 import com.m1namoto.utils.Utils;

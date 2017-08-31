@@ -1,4 +1,4 @@
-package dynamics;
+package dynamics.samepass;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
@@ -10,8 +10,6 @@ import com.m1namoto.entity.FeatureType;
 import com.m1namoto.service.*;
 import com.m1namoto.service.verification.VerificationService;
 import com.m1namoto.service.verification.VerificationType;
-import dynamics.samepass.DataSetRecord;
-import dynamics.samepass.DataSetRecordIterator;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -80,27 +78,13 @@ public class SamePasswordDataTest {
         registerTemplates();
 
 //        for (VerificationType verificationType : VERIFICATION_TYPES) {
-        for (VerificationType verificationType : Arrays.asList(VerificationType.DTW)) {
+        for (VerificationType verificationType : Arrays.asList(VerificationType.MANHATTAN_SCALED)) {
             System.out.println("Distance algorithm: " + verificationType.name());
 
             Stopwatch stopwatch = Stopwatch.createStarted();
             AnomalyDetector anomalyDetector = new VerificationService(verificationType);
 //            PerformanceResult result = evaluate(anomalyDetector, Optional.of(VERIFICATION_TYPE_THRESHOLDS.get(verificationType)));
             PerformanceResult result = evaluate(anomalyDetector, Optional.<Double>absent());
-
-//            double threshold = 1d;
-//            boolean processedAll = false;
-//            while (!processedAll) {
-//                PerformanceResult result = evaluate(anomalyDetector, Optional.of(threshold));
-//                if (result.getFar() == 1d) {
-//                    processedAll = true;
-//                }
-//
-//                System.out.println("FRR: " + result.getFrr());
-//                System.out.println("FAR: " + result.getFar());
-//
-//                threshold += 0.1d;
-//            }
 
             System.out.println("FRR: " + result.getFrr());
             System.out.println("FAR: " + result.getFar());

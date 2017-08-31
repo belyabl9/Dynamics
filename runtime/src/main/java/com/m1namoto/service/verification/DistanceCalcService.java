@@ -1,5 +1,8 @@
 package com.m1namoto.service.verification;
 
+import com.fastdtw.dtw.FastDTW;
+import com.fastdtw.timeseries.TimeSeriesBase;
+import com.fastdtw.util.Distances;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -40,8 +43,22 @@ public class DistanceCalcService {
     }
 
     public double dtw(@NotNull List<Double> trainingVector, @NotNull List<Double> testVector) {
-        DTW dtw = new DTW(convert(trainingVector), convert(testVector));
-        return dtw.getDistance();
+        TimeSeriesBase.Builder trainingTimeSeriesBuilder = TimeSeriesBase.builder();
+        for (int i = 0; i < trainingVector.size(); i++) {
+            trainingTimeSeriesBuilder.add(i, trainingVector.get(i));
+        }
+
+        TimeSeriesBase.Builder testTimeSeriesBuilder = TimeSeriesBase.builder();
+        for (int i = 0; i < testVector.size(); i++) {
+            testTimeSeriesBuilder.add(i, testVector.get(i));
+        }
+
+        return FastDTW.compare(
+                trainingTimeSeriesBuilder.build(),
+                testTimeSeriesBuilder.build(),
+                10,
+                Distances.MANHATTAN_DISTANCE
+        ).getDistance();
     }
 
     private double[] convert(@NotNull List<Double> lst) {

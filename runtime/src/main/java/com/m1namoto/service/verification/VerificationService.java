@@ -139,17 +139,17 @@ public class VerificationService implements AnomalyDetector {
         boolean pressPressMatches = false;
         if (featureTypes.contains(FeatureType.HOLD)) {
             double maxAllowedDistance = maxAllowedDistanceOpt.isPresent() ? maxAllowedDistanceOpt.get() : template.getThreshold(FeatureType.HOLD);
-            logger.info(holdScore + " vs " + maxAllowedDistance);
+//            logger.info(holdScore + " vs " + maxAllowedDistance);
             holdMatches = holdScore <= maxAllowedDistance;
         }
         if (featureTypes.contains(FeatureType.RELEASE_PRESS)) {
             double maxAllowedDistance = maxAllowedDistanceOpt.isPresent() ? maxAllowedDistanceOpt.get() : template.getThreshold(FeatureType.RELEASE_PRESS);
-            logger.info(releasePressScore + " vs " + maxAllowedDistance);
+//            logger.info(releasePressScore + " vs " + maxAllowedDistance);
             releasePressMatches = releasePressScore <= maxAllowedDistance;
         }
         if (featureTypes.contains(FeatureType.PRESS_PRESS)) {
             double maxAllowedDistance = maxAllowedDistanceOpt.isPresent() ? maxAllowedDistanceOpt.get() : template.getThreshold(FeatureType.PRESS_PRESS);
-            logger.info(pressPressScore + " vs " + maxAllowedDistance);
+//            logger.info(pressPressScore + " vs " + maxAllowedDistance);
             pressPressMatches = pressPressScore <= maxAllowedDistance;
         }
 
