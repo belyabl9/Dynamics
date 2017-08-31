@@ -13,7 +13,14 @@
         <script src="/js/Settings.js"></script>
     </jsp:attribute>
     <jsp:body>
-        
+
+        <script type="text/javascript">
+            $(document).ready(function() {
+                Settings.init();
+            });
+
+        </script>
+
         <div id="statusMessage"></div>
         <div class="panel panel-primary" style="width: 35%;">
             <div class="panel-heading">
@@ -25,15 +32,15 @@
                 <form id="settingsForm" style="width: 100%;">
                     <div class="form-group" style="display: flex;">
                         <label>Save requests</label>
-                        <input type="checkbox" name="save_requests"
-                            style="margin-left: auto;" value="true"
+                        <input type="hidden" id="save_requests" name="save_requests" value="false" />
+                        <input type="checkbox" id="save_requests_inp" style="margin-left: auto;"
                             ${data.settings.save_requests eq 'true' ? 'checked' : '' }>
                         </input>
                     </div>
                     <div class="form-group" style="display: flex;">
                         <label>Update biometric template</label>
-                        <input type="checkbox" name="update_template"
-                            style="margin-left: auto;" value="true"
+                        <input type="hidden" id="update_template" name="update_template" value="true" />
+                        <input type="checkbox" id="update_template_inp" style="margin-left: auto;"
                             ${data.settings.update_template eq 'true' ? 'checked' : '' }>
                         </input>
                     </div>
@@ -54,7 +61,7 @@
                       </input>
                     </div>
 
-                    <button class="btn btn-default pull-right" onclick="Settings.save(); return false;">
+                    <button class="btn btn-default pull-right">
                         Save
                     </button>
                 </form>
