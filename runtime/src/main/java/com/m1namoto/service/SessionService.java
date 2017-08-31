@@ -16,7 +16,7 @@ public class SessionService {
     private static class LazyHolder {
         static final SessionService INSTANCE = new SessionService();
     }
-    public SessionService getInstance() {
+    public static SessionService getInstance() {
         return SessionService.LazyHolder.INSTANCE;
     }
 
