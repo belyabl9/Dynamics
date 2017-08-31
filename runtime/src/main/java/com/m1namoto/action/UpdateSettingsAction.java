@@ -78,13 +78,14 @@ public class UpdateSettingsAction extends Action {
     }
 
     private void validateDouble(@NotNull String val) {
+        double valDouble;
         try {
-            double valDouble = Double.parseDouble(val);
-            if (valDouble < 0d || valDouble > 1d) {
-                throw new IllegalArgumentException("Value must be in range [0-1].");
-            }
+            valDouble = Double.parseDouble(val);
         } catch (Exception e) {
             throw new IllegalArgumentException("Value must be double");
+        }
+        if (valDouble < 0d || valDouble > 1d) {
+            throw new IllegalArgumentException("Value must be in range [0-1].");
         }
     }
 
