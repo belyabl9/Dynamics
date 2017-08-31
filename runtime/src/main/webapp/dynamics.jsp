@@ -27,9 +27,9 @@
 		</div>
     	
     	<script type="text/javascript">
-    	$(document).ready(function() {
-    		Dynamics.init();
-    	});
+			$(document).ready(function() {
+				Dynamics.init();
+			});
     		
     	</script>
     
@@ -70,23 +70,26 @@
 										<input type="password" class="form-control" name="password" placeholder="Enter the password" value="${user.password}" required />
 									</div>
 								</div>
-								<div class="form-group row">
+								<div class="form-group row hidden">
 									<label class="col-form-label col-sm-3">Learning text example</label>
 									<div class="col-sm-9">
-										<textarea class="form-control" style="overflow: hidden;" required  readonly="readonly">
+										<textarea class="form-control" style="overflow: hidden;" readonly="readonly">
 											pack my bags with five dozen liquor jugs
 										</textarea>
 									</div>
 								</div>
-								<div class="form-group row">
+								<%-- hidden for now
+								<div class="form-group row hidden">
 									<label class="col-form-label col-sm-3">Learning text</label>
 									<div class="col-sm-9">
 										<textarea class="form-control" name="learningText" required></textarea>
 									</div>
 								</div>
+								--%>
 							   <div class="pull-right">
 							   	   <button class="btn btn-primary">Sign in</button>
 							   </div>
+
 						   	</div>
 					    </div>
 					    </form>

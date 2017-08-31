@@ -110,7 +110,7 @@ var Dynamics = (function() {
 		init: function() {
 			this.initStatistics();
 			this.setKeyListeners('registrationForm', [ 'firstName', 'surname', 'login', 'password', 'learningText' ]);
-			this.setKeyListeners('authForm', [ 'login', 'password', 'learningText' ]);
+			this.setKeyListeners('authForm', [ 'login', 'password' ]);
 
 			$('input, textarea').on('paste', function(event) {
 				event.preventDefault();
@@ -121,12 +121,12 @@ var Dynamics = (function() {
 			$('#registrationForm').submit(function( event ) {
 			  event.preventDefault();
 
-                var learningText = $(this).find("textarea[name='learningText']").val();
-                if (!self.isEnoughLearningText(learningText)) {
-                    $("#matchErrorAlert").fadeTo(2000, 500).slideUp(500, function(){
-                        $("#matchErrorAlert").slideUp(500);
-                    });
-                    return;
+				var learningText = $(this).find("textarea[name='learningText']").val();
+				if (!self.isEnoughLearningText(learningText)) {
+					$("#matchErrorAlert").fadeTo(2000, 500).slideUp(500, function(){
+						$("#matchErrorAlert").slideUp(500);
+					});
+					return;
 				}
 
 			  var name = $(this).find('[name=firstName]').val().trim();
@@ -166,13 +166,13 @@ var Dynamics = (function() {
 			$('#authForm').submit(function(event) {
   			    event.preventDefault();
 
-                var learningText = $(this).find("textarea[name='learningText']").val();
-                if (!self.isEnoughLearningText(learningText)) {
-                    $("#matchErrorAlert").fadeTo(2000, 500).slideUp(500, function(){
-                        $("#matchErrorAlert").slideUp(500);
-                    });
-                    return;
-                }
+                // var learningText = $(this).find("textarea[name='learningText']").val();
+                // if (!self.isEnoughLearningText(learningText)) {
+                //     $("#matchErrorAlert").fadeTo(2000, 500).slideUp(500, function(){
+                //         $("#matchErrorAlert").slideUp(500);
+                //     });
+                //     return;
+                // }
 
 				  var login = $(this).find('[name=login]').val().trim();
 				  var password = $(this).find('[name=password]').val().trim();
@@ -223,7 +223,7 @@ var Dynamics = (function() {
 	                  }
 	          	  });
 	          	  
-	        	  $(this).find("input[type=text], [type=password], textarea:not([readonly='readonly'])").val("");
+	        	  $(this).find("input[type=text], [type=password]").val("");
 	          	  self.initStatistics();
 			});
 		}
